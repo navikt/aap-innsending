@@ -1,0 +1,4 @@
+package innsending
+
+class AppTest {
+}
