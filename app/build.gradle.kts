@@ -48,7 +48,7 @@ repositories {
 
 tasks {
     withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = "19"
+        kotlinOptions.jvmTarget = "20"
     }
     withType<Test> {
         useJUnitPlatform()
