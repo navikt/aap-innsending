@@ -2,6 +2,7 @@ package innsending
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import innsending.db.Repo
 import innsending.kafka.Topics
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -55,6 +56,7 @@ fun Application.server(kafka: Streams = KafkaStreams()) {
 
     val datasource = initDatasource(config.database)
     migrate(datasource)
+    val repo = Repo(datasource)
 
     routing {
         route("/actuator") {
