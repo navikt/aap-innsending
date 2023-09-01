@@ -44,7 +44,7 @@ class InnsendingDAO(private val dataSource: DataSource) {
         }
     }
 
-    fun deleteFil(innsendingsreferanse: UUID) {
+    fun deleteInnsending(innsendingsreferanse: UUID) {
         dataSource.connection.use { connection ->
             connection.prepareStatement(deleteInnsendingSql).use {  preparedStatement ->
                 preparedStatement.setObject(1, innsendingsreferanse)
