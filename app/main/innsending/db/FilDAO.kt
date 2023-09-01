@@ -15,7 +15,7 @@ class FilDAO(private val dataSource: DataSource) {
     """
 
     private val deleteFilSql = """
-       DELETE fil WHERE filreferanse = ? 
+       DELETE FROM fil WHERE filreferanse = ? 
     """
 
 
