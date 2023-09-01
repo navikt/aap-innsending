@@ -71,18 +71,27 @@ fun Application.server(kafka: Streams = KafkaStreams()) {
             }
         }
         route("/fil") {
-            get("/{filreferanse}") {}
-            post {}
+            get("/{filreferanse}") { /* Hent ut en fil */}
+            post { /* Opprett ny fil */}
+            put("/{filreferanse}") { /* Endre metadata på en fil (tittel osv) */}
             delete("/{filreferanse}") {}
         }
         route("/soknad") {
-            get {}
-            post {}
-            post("/{soknad_id}") {}
-            delete {}
+            get { /* Siste / alle / fullførte... */}
+            get("/soknad_id") {}
+            post { /* Opprett ny */ }
+            post("/send_inn/{soknad_id}") {}
+            put("/{soknad_id}") {}
+            delete("/{soknad_id}") {}
         }
+
+
+        // TODO: Er ettersending bare en spesialversjon av søknad med annen brevkode?
         route("/ettersending") {
+            get("/{filreferanse}") {}
             post {}
+            put("/{innsendingsreferanse}") {}
+            post("/send_inn/{innsendingreferanse}") {}
             delete("/{filreferanse}") {}
         }
     }

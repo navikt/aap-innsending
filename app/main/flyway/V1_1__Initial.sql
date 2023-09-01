@@ -14,16 +14,20 @@ CREATE TABLE fil
 (
     filreferanse            UUID PRIMARY KEY,
     innsendingsreferanse    UUID REFERENCES innsending (innsendingsreferanse),
-    soknad_id               UUID REFERENCES soknad (soknad_id), -- TODO Skal denne være med?
     tittel                  TEXT
 );
 
-CREATE TABLE soknad -- TODO, kan vi lagre fullført søknad lenge?
+-- TODO Kanskje søknad skal bli en generell representasjon av "noe blir innsendt"?
+-- TODO Søknad må versjoneres og migreres
+CREATE TABLE soknad
 (
     soknad_id               UUID PRIMARY KEY,
+    innsendingsreferanse    UUID REFERENCES innsending (innsendingsreferanse),
     brukerid                VARCHAR(11),
     opprettet               TIMESTAMP NOT NULL,
     innsendt                TIMESTAMP DEFAULT NULL,
+    versjon                 INT,
     data                    JSON
 );
 
+-- Vedleggskrav? Kanskje i eget API (varsel)
