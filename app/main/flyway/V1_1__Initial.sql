@@ -5,9 +5,14 @@ CREATE TABLE innsending
 (
     innsendingsreferanse    UUID PRIMARY KEY,
     opprettet               TIMESTAMP NOT NULL,
-    fullfoert               TIMESTAMP DEFAULT NULL,
+    fullfort                TIMESTAMP DEFAULT NULL,
+    sist_oppdatert          TIMESTAMP NOT NULL,
+    sendt_til_arkivering    BOOLEAN DEFAULT FALSE NOT NULL,
     brukerid                VARCHAR(11) NOT NULL,
-    brevkode                TEXT NOT NULL -- TODO skal alle innsendinger ha brevkode
+    brevkode                TEXT NOT NULL, -- TODO skal alle innsendinger ha brevkode
+    type                    TEXT NOT NULL,
+    versjon                 INT,
+    data                    JSON
 );
 
 CREATE TABLE fil
@@ -17,17 +22,5 @@ CREATE TABLE fil
     tittel                  TEXT
 );
 
--- TODO Kanskje søknad skal bli en generell representasjon av "noe blir innsendt"?
--- TODO Søknad må versjoneres og migreres
-CREATE TABLE soknad
-(
-    soknad_id               UUID PRIMARY KEY,
-    innsendingsreferanse    UUID REFERENCES innsending (innsendingsreferanse),
-    brukerid                VARCHAR(11),
-    opprettet               TIMESTAMP NOT NULL,
-    innsendt                TIMESTAMP DEFAULT NULL,
-    versjon                 INT,
-    data                    JSON
-);
 
 -- Vedleggskrav? Kanskje i eget API (varsel)

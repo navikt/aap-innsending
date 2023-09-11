@@ -1,5 +1,7 @@
 package innsending.db
 
+import innsending.domene.Innsending
+import java.sql.ResultSet
 import java.sql.Timestamp
 import java.sql.Types
 import java.time.LocalDateTime
@@ -7,6 +9,10 @@ import java.util.*
 import javax.sql.DataSource
 
 class InnsendingDAO(private val dataSource: DataSource) {
+    private val selectInnsendingSql = """
+       SELECT * FROM innsending WHERE innsendingsreferanse = ? 
+    """
+
     private val insertInnsendingSql = """
        INSERT INTO innsending VALUES (?, ?, ?, ?, ?) 
     """
@@ -18,6 +24,27 @@ class InnsendingDAO(private val dataSource: DataSource) {
     private val deleteInnsendingSql = """
        DELETE FROM innsending WHERE innsendingsreferanse = ? 
     """
+
+
+    private fun ResultSet.getUUID(columnLabel: String): UUID = UUID.fromString(this.getString(columnLabel))
+
+    fun getInnsending(innsendingsreferanse: UUID):Innsending {
+        dataSource.connection.use { connection ->
+            connection.prepareStatement(selectInnsendingSql).use { preparedStatement ->
+                preparedStatement.setObject(1, innsendingsreferanse)
+
+                val resultSet = preparedStatement.executeQuery()
+                return resultSet.map{row->
+                    Innsending(
+                        row.getUUID("innsendingsreferanse"),
+                        row.getString("brukerid"),
+                        row.getString("type"),
+                        row.getString("data")
+                    )
+                }.single()
+            }
+        }
+    }
 
     fun insertInnsending(innsendingsreferanse: UUID, brukerId: String, brevkode:String){
         dataSource.connection.use {connection ->

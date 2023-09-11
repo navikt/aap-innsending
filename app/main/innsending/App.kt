@@ -72,30 +72,34 @@ fun Application.server(kafka: Streams = KafkaStreams()) {
                 call.respond(status, "vedtak")
             }
         }
+        route("/innsending"){
+            route("/soknad") {
+                get { /* Siste / alle / fullførte... */}
+                get("/{innsendingsreferanse}") { /*Henter ut en innsending data blob*/ }
+                post {
+                }
+                post("/send_inn/{innsendingsreferanse}") {/* sender inn en søknad*/ }
+                put("/{innsendingsreferanse}") {/*oppdaterer en innsending data blob(++)*/}
+            }
+            route("/ettersending") {
+                get("/{filreferanse}") {}
+                post {
+                }
+                }
+                put("/{innsendingsreferanse}") {}
+                post("/send_inn/{innsendingreferanse}") {}
+            }
+            delete("/{innsendingsreferanse}") {}
+
+
         route("/fil") {
             get("/{filreferanse}") { /* Hent ut en fil */}
             post { /* Opprett ny fil */}
             put("/{filreferanse}") { /* Endre metadata på en fil (tittel osv) */}
             delete("/{filreferanse}") {}
         }
-        route("/soknad") {
-            get { /* Siste / alle / fullførte... */}
-            get("/soknad_id") {}
-            post { /* Opprett ny */ }
-            post("/send_inn/{soknad_id}") {}
-            put("/{soknad_id}") {}
-            delete("/{soknad_id}") {}
-        }
-
-
         // TODO: Er ettersending bare en spesialversjon av søknad med annen brevkode?
-        route("/ettersending") {
-            get("/{filreferanse}") {}
-            post {}
-            put("/{innsendingsreferanse}") {}
-            post("/send_inn/{innsendingreferanse}") {}
-            delete("/{filreferanse}") {}
-        }
+
     }
 }
 
