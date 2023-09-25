@@ -3,12 +3,14 @@ package innsending
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import innsending.db.Repo
+import innsending.fillager.FillagerClient
 import innsending.kafka.Topics
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.metrics.micrometer.*
 import io.ktor.server.netty.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheus.PrometheusConfig
@@ -17,22 +19,30 @@ import no.nav.aap.kafka.streams.v2.KafkaStreams
 import no.nav.aap.kafka.streams.v2.Streams
 import no.nav.aap.kafka.streams.v2.Topology
 import no.nav.aap.kafka.streams.v2.config.StreamsConfig
+import no.nav.aap.ktor.client.AzureConfig
 import no.nav.aap.ktor.config.loadConfig
 import org.flywaydb.core.Flyway
 import org.slf4j.LoggerFactory
+import java.util.UUID
 import javax.sql.DataSource
 
 private val secureLog = LoggerFactory.getLogger("secureLog")
 
 data class Config(
     val kafka: StreamsConfig,
-    val database: DbConfig
+    val database: DbConfig,
+    val azure: AzureConfig,
+    val fillager: FillagerConfig
 )
 
 data class DbConfig(
     val url: String,
     val username: String,
     val password: String
+)
+
+data class FillagerConfig(
+    val baseUrl: String
 )
 
 fun main() {
@@ -57,6 +67,7 @@ fun Application.server(kafka: Streams = KafkaStreams()) {
     val datasource = initDatasource(config.database)
     migrate(datasource)
     val repo = Repo(datasource)
+    val fillagerClient = FillagerClient(config.azure, config.fillager)
 
     routing {
         route("/actuator") {
@@ -72,34 +83,34 @@ fun Application.server(kafka: Streams = KafkaStreams()) {
                 call.respond(status, "vedtak")
             }
         }
-        route("/innsending"){
+
+        route("/innsending") {
             route("/soknad") {
-                get { /* Siste / alle / fullførte... */}
+                get { /* Siste / alle / fullførte... */ }
                 get("/{innsendingsreferanse}") { /*Henter ut en innsending data blob*/ }
                 post {
                 }
                 post("/send_inn/{innsendingsreferanse}") {/* sender inn en søknad*/ }
-                put("/{innsendingsreferanse}") {/*oppdaterer en innsending data blob(++)*/}
-            }
-            route("/ettersending") {
-                get("/{filreferanse}") {}
-                post {
-                }
-                }
-                put("/{innsendingsreferanse}") {}
-                post("/send_inn/{innsendingreferanse}") {}
+                put("/{innsendingsreferanse}") {/*oppdaterer en innsending data blob(++)*/ }
             }
             delete("/{innsendingsreferanse}") {}
-
+        }
 
         route("/fil") {
-            get("/{filreferanse}") { /* Hent ut en fil */}
-            post { /* Opprett ny fil */}
-            put("/{filreferanse}") { /* Endre metadata på en fil (tittel osv) */}
-            delete("/{filreferanse}") {}
-        }
-        // TODO: Er ettersending bare en spesialversjon av søknad med annen brevkode?
+            get("/{filreferanse}") {
+                call.respond(fillagerClient.hentFil(UUID.fromString(call.parameters["filreferanse"])))
+            }
 
+            post {
+                call.respond(fillagerClient.opprettFil(call.receive()))
+            }
+
+            put("/{filreferanse}") { /* TODO: Endre metadata på en fil (tittel osv) */ }
+
+            delete("/{filreferanse}") {
+                fillagerClient.slettFil(UUID.fromString(call.parameters["filreferanse"]))
+            }
+        }
     }
 }
 
