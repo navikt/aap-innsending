@@ -14,6 +14,10 @@ class InnsendingDAO(private val dataSource: DataSource) {
        SELECT * FROM innsending WHERE innsendingsreferanse = ? 
     """
 
+    private val selectInnsendingForEksternreferanseSql = """
+        SELECT * FROM innsending WHERE eksternreferanse = ? 
+    """
+
     private val insertInnsendingSql = """
        INSERT INTO innsending (innsendingsreferanse, eksternreferanse, opprettet, sist_oppdatert, brukerid, brevkode) 
        VALUES (?, ?, ?, ?, ?, ?) 
@@ -54,6 +58,24 @@ class InnsendingDAO(private val dataSource: DataSource) {
 
                 val resultSet = preparedStatement.executeQuery()
                 return lagInnsending(resultSet)
+            }
+        }
+    }
+
+    fun getInnsendingForEksternreferanse(eksternreferanse: UUID): List<Innsending> {
+        dataSource.connection.use { connection ->
+            connection.prepareStatement(selectInnsendingForEksternreferanseSql).use { preparedStatement ->
+                preparedStatement.setObject(1, eksternreferanse)
+
+                val resultSet = preparedStatement.executeQuery()
+                return resultSet.map { row ->
+                    Innsending(
+                        row.getUUID("innsendingsreferanse"),
+                        row.getString("brukerid"),
+                        row.getString("type"),
+                        row.getString("data")
+                    )
+                }.toList()
             }
         }
     }

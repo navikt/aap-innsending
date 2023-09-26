@@ -24,28 +24,32 @@ class Repo(dataSource: DataSource) {
         filDAO.deleteFil(filReferanse)
     }
 
-    fun hentSøknad(innsendingsreferanse: UUID):String{
+    fun hentSøknad(innsendingsreferanse: UUID): String {
         val innsending:Innsending=hentInnsending(innsendingsreferanse)
         return innsending.data
     }
 
-    fun hentInnsending(innsendingsreferanse: UUID):Innsending{
+    fun hentInnsending(innsendingsreferanse: UUID): Innsending {
         return innsendingDAO.getInnsending(innsendingsreferanse)
     }
 
-    fun hentInnsendingMedBrukerId(brukerId: String):Innsending{
+    fun hentInnsendingerForEksternreferanse(eksternreferanse: UUID): List<Innsending> {
+        return innsendingDAO.getInnsendingForEksternreferanse(eksternreferanse)
+    }
+
+    fun hentInnsendingMedBrukerId(brukerId: String): Innsending {
         return innsendingDAO.getInnsendingByBrukerId(brukerId)
     }
 
-    fun opprettNyInnsending(innsendingsreferanse: UUID, eksternreferanse: UUID?, brukerId: String, brevkode:String?){
+    fun opprettNyInnsending(innsendingsreferanse: UUID, eksternreferanse: UUID?, brukerId: String, brevkode:String?) {
         innsendingDAO.insertInnsending(innsendingsreferanse, eksternreferanse, brukerId, brevkode)
     }
 
-    fun oppdaterInnsending(innsendingsreferanse: UUID,innsending: NyInnsendingRequest){
+    fun oppdaterInnsending(innsendingsreferanse: UUID,innsending: NyInnsendingRequest) {
         innsendingDAO.updateInnsending(innsendingsreferanse, innsending)
     }
 
-    fun slettInnsending(innsendingsreferanse: UUID){
+    fun slettInnsending(innsendingsreferanse: UUID) {
         innsendingDAO.deleteInnsending(innsendingsreferanse)
     }
 

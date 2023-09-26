@@ -97,6 +97,10 @@ fun Application.server(kafka: Streams = KafkaStreams()) {
                 call.respond(innsending)
             }
 
+            get("/eksternreferanse/{eksternreferanse}") {
+                call.respond(repo.hentInnsendingerForEksternreferanse(UUID.fromString(call.parameters["innsendingsreferanse"])))
+            }
+
             get("/{innsendingsreferanse}/filer") {
                 call.respond(repo.hentAlleFilerForEnInnsending(UUID.fromString(call.parameters["innsendingsreferanse"])))
             }
