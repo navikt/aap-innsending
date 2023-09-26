@@ -19,6 +19,7 @@ import io.micrometer.prometheus.PrometheusMeterRegistry
 import no.nav.aap.kafka.streams.v2.KafkaStreams
 import no.nav.aap.kafka.streams.v2.Streams
 import no.nav.aap.kafka.streams.v2.Topology
+import no.nav.aap.kafka.streams.v2.topology
 import no.nav.aap.kafka.streams.v2.config.StreamsConfig
 import no.nav.aap.ktor.client.AzureConfig
 import no.nav.aap.ktor.config.loadConfig
@@ -146,7 +147,7 @@ fun Application.server(kafka: Streams = KafkaStreams()) {
 }
 
 internal fun topology(): Topology {
-    return no.nav.aap.kafka.streams.v2.topology {
+    return topology {
         consume(Topics.innsending)
 
     }
