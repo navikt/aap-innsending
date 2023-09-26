@@ -50,14 +50,14 @@ fun Application.server(kafka: Streams = KafkaStreams()) {
             val httpMethod = call.request.httpMethod.value
             val userAgent = call.request.headers["User-Agent"]
             val callId = call.request.header("x-callId") ?: call.request.header("nav-callId") ?: "ukjent"
-            "Status: $status, HTTP method: $httpMethod, User agent: $userAgent, callId: $callId"
+            "URL: ${call.request.local.uri}, Status: $status, HTTP method: $httpMethod, User agent: $userAgent, callId: $callId"
         }
         filter { call -> call.request.path().startsWith("/actuator").not() }
     }
 
     install(StatusPages) {
         exception<Throwable> { call, cause ->
-            logger.error("Uhåndtert feil", cause)
+            logger.error("Uhåndtert feil ved kall til '{}'", call.request.local.uri, cause)
             call.respondText(text = "Feil i tjeneste: ${cause.message}" , status = HttpStatusCode.InternalServerError)
         }
     }
