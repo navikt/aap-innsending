@@ -21,6 +21,8 @@ dependencies {
     implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
     implementation("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
+    implementation("io.ktor:ktor-server-call-logging:$ktorVersion")
+    implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
 
     implementation("io.ktor:ktor-client-auth:$ktorVersion")
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
