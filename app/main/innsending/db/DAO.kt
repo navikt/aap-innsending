@@ -1,6 +1,7 @@
 package innsending.db
 
 import java.sql.Connection
+import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.util.*
 
@@ -41,3 +42,11 @@ fun <T> Connection.transaction(block: (connection: Connection) -> T): T {
 }
 
 fun ResultSet.getUUID(columnLabel: String): UUID = UUID.fromString(this.getString(columnLabel))
+
+fun PreparedStatement.setNullableObject(index: Int, obj: Any?, type: Int) {
+    if (obj != null) {
+        this.setObject(index, obj)
+    } else {
+        this.setNull(index, type)
+    }
+}

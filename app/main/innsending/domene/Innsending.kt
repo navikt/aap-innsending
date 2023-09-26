@@ -10,7 +10,8 @@ data class Innsending(
 )
 
 data class NyInnsendingRequest(
+    val eksternreferanse: UUID? = null,
     val brukerId: String,
     val innsendingsType: String?,
-    val data: String,
+    val data: String
 )

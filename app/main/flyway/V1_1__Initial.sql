@@ -4,6 +4,7 @@ GRANT ALL ON ALL TABLES IN SCHEMA PUBLIC TO cloudsqliamuser;
 CREATE TABLE innsending
 (
     innsendingsreferanse    UUID PRIMARY KEY, --en innsending kan ha flere filer
+    eksternreferanse        UUID DEFAULT NULL,
     opprettet               TIMESTAMP NOT NULL,
     fullfort                TIMESTAMP DEFAULT NULL,
     sist_oppdatert          TIMESTAMP NOT NULL,

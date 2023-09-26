@@ -15,7 +15,8 @@ class InnsendingDAO(private val dataSource: DataSource) {
     """
 
     private val insertInnsendingSql = """
-       INSERT INTO innsending VALUES (?, ?, ?, ?, ?) 
+       INSERT INTO innsending (innsendingsreferanse, eksternreferanse, opprettet, sist_oppdatert, brukerid, brevkode) 
+       VALUES (?, ?, ?, ?, ?, ?) 
     """
 
     private val fullførInnsendingSql = """
@@ -35,7 +36,7 @@ class InnsendingDAO(private val dataSource: DataSource) {
        SELECT * FROM innsending WHERE brukerid = ? AND fullfoert IS NULL
     """
 
-    fun getInnsending(innsendingsreferanse: UUID):Innsending {
+    fun getInnsending(innsendingsreferanse: UUID): Innsending {
         dataSource.connection.use { connection ->
             connection.prepareStatement(selectInnsendingSql).use { preparedStatement ->
                 preparedStatement.setObject(1, innsendingsreferanse)
@@ -46,7 +47,7 @@ class InnsendingDAO(private val dataSource: DataSource) {
         }
     }
 
-    fun getInnsendingByBrukerId(brukerId: String):Innsending{
+    fun getInnsendingByBrukerId(brukerId: String): Innsending{
         dataSource.connection.use { connection ->
             connection.prepareStatement(selectInnsendingByBrukerIdSql).use { preparedStatement ->
                 preparedStatement.setObject(1, brukerId)
@@ -57,21 +58,22 @@ class InnsendingDAO(private val dataSource: DataSource) {
         }
     }
 
-    fun insertInnsending(innsendingsreferanse: UUID, brukerId: String, brevkode:String?){
+    fun insertInnsending(innsendingsreferanse: UUID, eksternreferanse: UUID?, brukerId: String, brevkode:String?) {
         dataSource.connection.use {connection ->
             connection.prepareStatement(insertInnsendingSql).use {preparedStatement ->
-                preparedStatement.setObject(1,innsendingsreferanse)
-                preparedStatement.setObject(2, Timestamp.valueOf(LocalDateTime.now())) //TODO: skal denne settes her eller være satt når den kommer inn?
-                preparedStatement.setNull(3, Types.TIMESTAMP) //TODO: kan denne være satt når den kommer første gang?
-                preparedStatement.setString(4, brukerId)
-                preparedStatement.setString(4, brevkode)
+                preparedStatement.setObject(1, innsendingsreferanse)
+                preparedStatement.setNullableObject(2, eksternreferanse, Types.OTHER)
+                preparedStatement.setObject(3, Timestamp.valueOf(LocalDateTime.now()))
+                preparedStatement.setObject(4, Timestamp.valueOf(LocalDateTime.now()))
+                preparedStatement.setString(5, brukerId)
+                preparedStatement.setString(6, brevkode)
 
                 preparedStatement.execute()
             }
         }
     }
 
-    fun updateInnsending(innsendingsreferanse: UUID,innsending: NyInnsendingRequest){
+    fun updateInnsending(innsendingsreferanse: UUID,innsending: NyInnsendingRequest) {
         dataSource.connection.use {connection ->
             connection.prepareStatement(updateInnsendingSql).use {preparedStatement ->
                 preparedStatement.setObject(1, innsending.data)
@@ -83,7 +85,7 @@ class InnsendingDAO(private val dataSource: DataSource) {
         }
     }
 
-    fun fullførInnsending(innsendingsreferanse: UUID){
+    fun fullførInnsending(innsendingsreferanse: UUID) {
         dataSource.connection.use {connection ->
             connection.prepareStatement(updateInnsendingSql).use {preparedStatement ->
                 preparedStatement.setObject(1, Timestamp.valueOf(LocalDateTime.now()))

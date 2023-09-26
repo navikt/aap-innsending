@@ -92,7 +92,8 @@ fun Application.server(kafka: Streams = KafkaStreams()) {
             }
 
             get {
-                val innsending = repo.hentInnsendingMedBrukerId(call.request.queryParameters["brukerId"]!!)//TODO: brukerID fra token?
+                val innsending =
+                    repo.hentInnsendingMedBrukerId(call.request.queryParameters["brukerId"]!!)//TODO: brukerID fra token?
                 call.respond(innsending)
             }
 
@@ -105,6 +106,7 @@ fun Application.server(kafka: Streams = KafkaStreams()) {
                 val innsendingId = UUID.randomUUID()
                 repo.opprettNyInnsending(
                     innsendingsreferanse = innsendingId,
+                    eksternreferanse = innsending.eksternreferanse,
                     brukerId = innsending.brukerId,
                     brevkode = innsending.innsendingsType
                 )
@@ -117,7 +119,7 @@ fun Application.server(kafka: Streams = KafkaStreams()) {
                 val innsending = call.receive<NyInnsendingRequest>()
                 val innsedingsreferanse = repo.hentInnsendingMedBrukerId(innsending.brukerId).innsendingsreferanse
 
-                repo.oppdaterInnsending(innsedingsreferanse,innsending) //TODO: Vi trenger token her også
+                repo.oppdaterInnsending(innsedingsreferanse, innsending) //TODO: Vi trenger token her også
 
                 call.respond(HttpStatusCode.OK)
             }

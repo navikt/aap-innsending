@@ -37,8 +37,8 @@ class Repo(dataSource: DataSource) {
         return innsendingDAO.getInnsendingByBrukerId(brukerId)
     }
 
-    fun opprettNyInnsending(innsendingsreferanse: UUID, brukerId: String, brevkode:String?){
-        innsendingDAO.insertInnsending(innsendingsreferanse, brukerId, brevkode)
+    fun opprettNyInnsending(innsendingsreferanse: UUID, eksternreferanse: UUID?, brukerId: String, brevkode:String?){
+        innsendingDAO.insertInnsending(innsendingsreferanse, eksternreferanse, brukerId, brevkode)
     }
 
     fun oppdaterInnsending(innsendingsreferanse: UUID,innsending: NyInnsendingRequest){
