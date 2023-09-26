@@ -20,8 +20,6 @@ import no.nav.aap.kafka.streams.v2.KafkaStreams
 import no.nav.aap.kafka.streams.v2.Streams
 import no.nav.aap.kafka.streams.v2.Topology
 import no.nav.aap.kafka.streams.v2.topology
-import no.nav.aap.kafka.streams.v2.config.StreamsConfig
-import no.nav.aap.ktor.client.AzureConfig
 import no.nav.aap.ktor.config.loadConfig
 import org.flywaydb.core.Flyway
 import org.slf4j.LoggerFactory
@@ -29,23 +27,6 @@ import java.util.UUID
 import javax.sql.DataSource
 
 private val secureLog = LoggerFactory.getLogger("secureLog")
-
-data class Config(
-    val kafka: StreamsConfig,
-    val database: DbConfig,
-    val azure: AzureConfig,
-    val fillager: FillagerConfig
-)
-
-data class DbConfig(
-    val url: String,
-    val username: String,
-    val password: String
-)
-
-data class FillagerConfig(
-    val baseUrl: String
-)
 
 fun main() {
     embeddedServer(Netty, port = 8080, module = Application::server).start(wait = true)
