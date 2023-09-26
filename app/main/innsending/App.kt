@@ -3,16 +3,15 @@ package innsending
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import innsending.db.Repo
-import innsending.domene.NyInnsendingRequest
 import innsending.fillager.FillagerClient
 import innsending.kafka.Topics
-import io.ktor.http.*
+import innsending.routes.actuator
+import innsending.routes.fil
+import innsending.routes.innsending
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.metrics.micrometer.*
 import io.ktor.server.netty.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
@@ -23,7 +22,6 @@ import no.nav.aap.kafka.streams.v2.topology
 import no.nav.aap.ktor.config.loadConfig
 import org.flywaydb.core.Flyway
 import org.slf4j.LoggerFactory
-import java.util.UUID
 import javax.sql.DataSource
 
 private val secureLog = LoggerFactory.getLogger("secureLog")
@@ -53,83 +51,11 @@ fun Application.server(kafka: Streams = KafkaStreams()) {
     val fillagerClient = FillagerClient(config.azure, config.fillager)
 
     routing {
-        route("/actuator") {
-            get("/metrics") {
-                call.respond(prometheus.scrape())
-            }
-            get("/live") {
-                val status = if (kafka.live()) HttpStatusCode.OK else HttpStatusCode.InternalServerError
-                call.respond(status, "vedtak")
-            }
-            get("/ready") {
-                val status = if (kafka.ready()) HttpStatusCode.OK else HttpStatusCode.InternalServerError
-                call.respond(status, "vedtak")
-            }
-        }
+        actuator(prometheus, kafka)
 
-        route("/innsending") {
-            get("/{innsendingsreferanse}") {
-                call.respond(repo.hentInnsending(UUID.fromString(call.parameters["innsendingsreferanse"])))
-            }
+        innsending(repo)
 
-            get {
-                val innsending =
-                    repo.hentInnsendingMedBrukerId(call.request.queryParameters["brukerId"]!!)//TODO: brukerID fra token?
-                call.respond(innsending)
-            }
-
-            get("/eksternreferanse/{eksternreferanse}") {
-                call.respond(repo.hentInnsendingerForEksternreferanse(UUID.fromString(call.parameters["innsendingsreferanse"])))
-            }
-
-            get("/{innsendingsreferanse}/filer") {
-                call.respond(repo.hentAlleFilerForEnInnsending(UUID.fromString(call.parameters["innsendingsreferanse"])))
-            }
-
-            post {
-                val innsending = call.receive<NyInnsendingRequest>()
-                val innsendingId = UUID.randomUUID()
-                repo.opprettNyInnsending(
-                    innsendingsreferanse = innsendingId,
-                    eksternreferanse = innsending.eksternreferanse,
-                    brukerId = innsending.brukerId,
-                    brevkode = innsending.innsendingsType
-                )
-                call.respond(HttpStatusCode.Created, innsendingId)
-            }
-
-            post("/{innsendingsreferanse}/send_inn") {/* sender inn på kafka */ }
-
-            put("/{innsendingsreferanse}") {
-                val innsending = call.receive<NyInnsendingRequest>()
-                val innsedingsreferanse = repo.hentInnsendingMedBrukerId(innsending.brukerId).innsendingsreferanse
-
-                repo.oppdaterInnsending(innsedingsreferanse, innsending) //TODO: Vi trenger token her også
-
-                call.respond(HttpStatusCode.OK)
-            }
-
-            delete("/{innsendingsreferanse}") {
-                repo.slettInnsending(UUID.fromString(call.parameters["innsendingsreferanse"]))
-                call.respond(HttpStatusCode.OK)
-            }
-        }
-
-        route("/fil") {
-            get("/{filreferanse}") {
-                call.respond(fillagerClient.hentFil(UUID.fromString(call.parameters["filreferanse"])))
-            }
-
-            post {
-                call.respond(fillagerClient.opprettFil(call.receive()))
-            }
-
-            put("/{filreferanse}") { /* TODO: Endre metadata på en fil (tittel osv) */ }
-
-            delete("/{filreferanse}") {
-                fillagerClient.slettFil(UUID.fromString(call.parameters["filreferanse"]))
-            }
-        }
+        fil(fillagerClient)
     }
 }
 
@@ -140,7 +66,7 @@ internal fun topology(): Topology {
     }
 }
 
-fun initDatasource(dbConfig: DbConfig) = HikariDataSource(HikariConfig().apply {
+private fun initDatasource(dbConfig: DbConfig) = HikariDataSource(HikariConfig().apply {
     jdbcUrl = dbConfig.url
     username = dbConfig.username
     password = dbConfig.password
@@ -153,7 +79,7 @@ fun initDatasource(dbConfig: DbConfig) = HikariDataSource(HikariConfig().apply {
     driverClassName = "org.postgresql.Driver"
 })
 
-fun migrate(dataSource: DataSource) {
+private fun migrate(dataSource: DataSource) {
     Flyway
         .configure()
         .cleanDisabled(false) // TODO: husk å skru av denne før prod
