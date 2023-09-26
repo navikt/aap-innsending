@@ -90,7 +90,10 @@ fun Application.server(kafka: Streams = KafkaStreams()) {
             get("/{innsendingsreferanse}") {
                 call.respond(repo.hentInnsending(UUID.fromString(call.parameters["innsendingsreferanse"])))
             }
-
+            get {
+                val innsending = repo.hentInnsendingMedBrukerId(call.request.queryParameters["brukerId"]!!)//TODO: brukerID fra token?
+                call.respond(innsending)
+            }
             post {
                 val innsending = call.receive<NyInnsendingRequest>()
                 val innsendingId = UUID.randomUUID()
@@ -105,7 +108,14 @@ fun Application.server(kafka: Streams = KafkaStreams()) {
 
             post("/send_inn/{innsendingsreferanse}") {/* sender inn på kafka */ }
 
-            put("/{innsendingsreferanse}") {/*oppdaterer en innsending data blob(++)*/ }
+            put("/{innsendingsreferanse}") {
+                val innsending = call.receive<NyInnsendingRequest>()
+                val innsedingsreferanse = repo.hentInnsendingMedBrukerId(innsending.brukerId).innsendingsreferanse
+
+                repo.oppdaterInnsending(innsedingsreferanse,innsending) //TODO: Vi trenger token her også
+
+                call.respond(HttpStatusCode.OK)
+            }
 
             delete("/{innsendingsreferanse}") {
                 repo.slettInnsending(UUID.fromString(call.parameters["innsendingsreferanse"]))

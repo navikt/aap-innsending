@@ -1,6 +1,7 @@
 package innsending.db
 
 import innsending.domene.Innsending
+import innsending.domene.NyInnsendingRequest
 import java.util.*
 import javax.sql.DataSource
 
@@ -31,12 +32,16 @@ class Repo(dataSource: DataSource) {
         return innsendingDAO.getInnsending(innsendingsreferanse)
     }
 
-    fun opprettNyInnsending(innsendingsreferanse: UUID, brukerId: String, brevkode:String, data:String){
+    fun hentInnsendingMedBrukerId(brukerId: String):Innsending{
+        return innsendingDAO.getInnsendingByBrukerId(brukerId)
+    }
+
+    fun opprettNyInnsending(innsendingsreferanse: UUID, brukerId: String, brevkode:String?, data:String){
         innsendingDAO.insertInnsending(innsendingsreferanse, brukerId, brevkode)
     }
 
-    fun oppdaterInnsending(innsendingsreferanse: UUID){
-        innsendingDAO.updateInnsending(innsendingsreferanse)
+    fun oppdaterInnsending(innsendingsreferanse: UUID,innsending: NyInnsendingRequest){
+        innsendingDAO.updateInnsending(innsendingsreferanse, innsending)
     }
 
     fun slettInnsending(innsendingsreferanse: UUID){
