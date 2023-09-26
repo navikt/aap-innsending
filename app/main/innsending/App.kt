@@ -3,6 +3,8 @@ package innsending
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import innsending.db.Repo
+import innsending.domene.Innsending
+import innsending.domene.NyInnsendingRequest
 import innsending.fillager.FillagerClient
 import innsending.kafka.Topics
 import io.ktor.http.*
@@ -85,15 +87,30 @@ fun Application.server(kafka: Streams = KafkaStreams()) {
         }
 
         route("/innsending") {
-            route("/soknad") {
-                get { /* Siste / alle / fullførte... */ }
-                get("/{innsendingsreferanse}") { /*Henter ut en innsending data blob*/ }
-                post {
-                }
-                post("/send_inn/{innsendingsreferanse}") {/* sender inn en søknad*/ }
-                put("/{innsendingsreferanse}") {/*oppdaterer en innsending data blob(++)*/ }
+            get("/{innsendingsreferanse}") {
+                call.respond(repo.hentInnsending(UUID.fromString(call.parameters["innsendingsreferanse"])))
             }
-            delete("/{innsendingsreferanse}") {}
+
+            post {
+                val innsending = call.receive<NyInnsendingRequest>()
+                val innsendingId = UUID.randomUUID()
+                repo.opprettNyInnsending(
+                    innsendingsreferanse = innsendingId,
+                    brukerId = innsending.brukerId,
+                    brevkode = innsending.innsendingsType,
+                    data = innsending.data
+                )
+                call.respond(HttpStatusCode.Created, innsendingId)
+            }
+
+            post("/send_inn/{innsendingsreferanse}") {/* sender inn på kafka */ }
+
+            put("/{innsendingsreferanse}") {/*oppdaterer en innsending data blob(++)*/ }
+
+            delete("/{innsendingsreferanse}") {
+                repo.slettInnsending(UUID.fromString(call.parameters["innsendingsreferanse"]))
+                call.respond(HttpStatusCode.OK)
+            }
         }
 
         route("/fil") {

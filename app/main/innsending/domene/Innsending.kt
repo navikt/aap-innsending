@@ -6,5 +6,11 @@ data class Innsending(
     val innsendingsreferanse: UUID,
     val brukerId: String,
     val innsendingsType: String,
-    val data:String,
+    val data: String,
+)
+
+data class NyInnsendingRequest(
+    val brukerId: String,
+    val innsendingsType: String,
+    val data: String,
 )
