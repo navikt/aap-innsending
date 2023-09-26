@@ -3,7 +3,6 @@ package innsending
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import innsending.db.Repo
-import innsending.domene.Innsending
 import innsending.domene.NyInnsendingRequest
 import innsending.fillager.FillagerClient
 import innsending.kafka.Topics
@@ -100,8 +99,7 @@ fun Application.server(kafka: Streams = KafkaStreams()) {
                 repo.opprettNyInnsending(
                     innsendingsreferanse = innsendingId,
                     brukerId = innsending.brukerId,
-                    brevkode = innsending.innsendingsType,
-                    data = innsending.data
+                    brevkode = innsending.innsendingsType
                 )
                 call.respond(HttpStatusCode.Created, innsendingId)
             }

@@ -44,14 +44,7 @@ class InnsendingDAO(private val dataSource: DataSource) {
                 preparedStatement.setObject(1, innsendingsreferanse)
 
                 val resultSet = preparedStatement.executeQuery()
-                return resultSet.map{row->
-                    Innsending(
-                        row.getUUID("innsendingsreferanse"),
-                        row.getString("brukerid"),
-                        row.getString("type"),
-                        row.getString("data")
-                    )
-                }.single()
+                return lagInnsending(resultSet)
             }
         }
     }
@@ -62,14 +55,7 @@ class InnsendingDAO(private val dataSource: DataSource) {
                 preparedStatement.setObject(1, brukerId)
 
                 val resultSet = preparedStatement.executeQuery()
-                return resultSet.map{row->
-                    Innsending(
-                        row.getUUID("innsendingsreferanse"),
-                        row.getString("brukerid"),
-                        row.getString("type"),
-                        row.getString("data")
-                    )
-                }.single()
+                return lagInnsending(resultSet)
             }
         }
     }
@@ -122,5 +108,13 @@ class InnsendingDAO(private val dataSource: DataSource) {
         }
     }
 
+    private fun lagInnsending(resultSet: ResultSet) = resultSet.map { row ->
+        Innsending(
+            row.getUUID("innsendingsreferanse"),
+            row.getString("brukerid"),
+            row.getString("type"),
+            row.getString("data")
+        )
+    }.single()
 
 }
