@@ -89,10 +89,16 @@ fun Application.server(kafka: Streams = KafkaStreams()) {
             get("/{innsendingsreferanse}") {
                 call.respond(repo.hentInnsending(UUID.fromString(call.parameters["innsendingsreferanse"])))
             }
+
             get {
                 val innsending = repo.hentInnsendingMedBrukerId(call.request.queryParameters["brukerId"]!!)//TODO: brukerID fra token?
                 call.respond(innsending)
             }
+
+            get("/{innsendingsreferanse}/filer") {
+                call.respond(repo.hentAlleFilerForEnInnsending(UUID.fromString(call.parameters["innsendingsreferanse"])))
+            }
+
             post {
                 val innsending = call.receive<NyInnsendingRequest>()
                 val innsendingId = UUID.randomUUID()
@@ -104,7 +110,7 @@ fun Application.server(kafka: Streams = KafkaStreams()) {
                 call.respond(HttpStatusCode.Created, innsendingId)
             }
 
-            post("/send_inn/{innsendingsreferanse}") {/* sender inn på kafka */ }
+            post("/{innsendingsreferanse}/send_inn") {/* sender inn på kafka */ }
 
             put("/{innsendingsreferanse}") {
                 val innsending = call.receive<NyInnsendingRequest>()

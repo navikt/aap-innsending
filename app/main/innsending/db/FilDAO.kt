@@ -1,5 +1,6 @@
 package innsending.db
 
+import innsending.domene.Fil
 import java.sql.Types
 import java.util.UUID
 import javax.sql.DataSource
@@ -16,6 +17,10 @@ class FilDAO(private val dataSource: DataSource) {
 
     private val deleteFilSql = """
        DELETE FROM fil WHERE filreferanse = ? 
+    """
+
+    private val selectFilerForInnendingsreferanseSql = """
+        SELECT filreferanse, tittel FROM fil WHERE innsendingsreferanse = ? 
     """
 
 
@@ -55,5 +60,22 @@ class FilDAO(private val dataSource: DataSource) {
             }
         }
     }
+
+    fun selectFilerForInnendingsreferanse(innsendingsreferanse: UUID): List<Fil> =
+        dataSource.connection.use { connection ->
+            connection.prepareStatement(selectFilerForInnendingsreferanseSql).use { preparedStatement ->
+                preparedStatement.setObject(1, innsendingsreferanse)
+
+                val resultSet = preparedStatement.executeQuery()
+
+                resultSet.map { row ->
+                    Fil(
+                        filreferanse = row.getUUID("filreferanse"),
+                        innsendingsreferanse = innsendingsreferanse,
+                        tittel = row.getString("tittel")
+                    )
+                }.toList()
+            }
+        }
 
 }

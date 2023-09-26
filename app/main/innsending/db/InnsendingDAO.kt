@@ -35,9 +35,6 @@ class InnsendingDAO(private val dataSource: DataSource) {
        SELECT * FROM innsending WHERE brukerid = ? AND fullfoert IS NULL
     """
 
-
-    private fun ResultSet.getUUID(columnLabel: String): UUID = UUID.fromString(this.getString(columnLabel))
-
     fun getInnsending(innsendingsreferanse: UUID):Innsending {
         dataSource.connection.use { connection ->
             connection.prepareStatement(selectInnsendingSql).use { preparedStatement ->

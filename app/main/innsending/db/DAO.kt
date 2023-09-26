@@ -2,6 +2,7 @@ package innsending.db
 
 import java.sql.Connection
 import java.sql.ResultSet
+import java.util.*
 
 private class ResultSetSequence(private val resultSet: ResultSet) : Sequence<ResultSet> {
     override fun iterator(): Iterator<ResultSet> {
@@ -38,3 +39,5 @@ fun <T> Connection.transaction(block: (connection: Connection) -> T): T {
         }
     }
 }
+
+fun ResultSet.getUUID(columnLabel: String): UUID = UUID.fromString(this.getString(columnLabel))

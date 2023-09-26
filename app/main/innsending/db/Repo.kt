@@ -1,5 +1,6 @@
 package innsending.db
 
+import innsending.domene.Fil
 import innsending.domene.Innsending
 import innsending.domene.NyInnsendingRequest
 import java.util.*
@@ -48,6 +49,8 @@ class Repo(dataSource: DataSource) {
         innsendingDAO.deleteInnsending(innsendingsreferanse)
     }
 
-
+    fun hentAlleFilerForEnInnsending(innsendingsreferanse: UUID): List<Fil> {
+        return filDAO.selectFilerForInnendingsreferanse(innsendingsreferanse)
+    }
 
 }
