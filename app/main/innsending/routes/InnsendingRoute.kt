@@ -21,43 +21,43 @@ fun NormalOpenAPIRoute.innsending(repo: Repo) {
         route("/{innsendingsreferanse}") {
             get<InnsendingsreferanseParams, Innsending>(
                 info(summary = "Hent innsending", description = "Hent ut en innsending basert på referanse")
-            ) { req ->
-                respond(repo.hentInnsending(req.innsendingsreferanse))
+            ) { params ->
+                respond(repo.hentInnsending(params.innsendingsreferanse))
             }
 
             put<InnsendingsreferanseParams, Unit, NyInnsendingRequest>(
                 info(summary = "Oppdater innsending", description = "Oppdater en innsending basert på referanse")
-            ) { req, body ->
-                repo.oppdaterInnsending(req.innsendingsreferanse, body)
+            ) { params, body ->
+                repo.oppdaterInnsending(params.innsendingsreferanse, body)
             }
 
             delete<InnsendingsreferanseParams, Unit>(
                 info(summary = "Slett innsending", description = "Sletter en innsending basert på referanse")
-            ) { req ->
-                repo.slettInnsending(req.innsendingsreferanse)
+            ) { params ->
+                repo.slettInnsending(params.innsendingsreferanse)
             }
 
         }
 
         get<BrukerIdParams, Innsending>(
             info(summary = "Hent innsending", description = "Hent en innsending basert på brukers fødselsnummer")
-        ) { req ->
-            respond(repo.hentInnsendingMedBrukerId(req.brukerId)) //TODO: brukerID fra token?
+        ) { params ->
+            respond(repo.hentInnsendingMedBrukerId(params.brukerId)) //TODO: brukerID fra token?
         }
 
         route("/eksternreferanse/{eksternreferanse}") {
             get<EksternreferanseParams, List<Innsending>>(
                 info(summary = "Hent innsendinger", description = "Hent innsendinger basert på eksternreferanse")
-            ) { req ->
-                respond(repo.hentInnsendingerForEksternreferanse(req.eksternreferanse))
+            ) { params ->
+                respond(repo.hentInnsendingerForEksternreferanse(params.eksternreferanse))
             }
         }
 
         route("/{innsendingsreferanse}/filer") {
             get<InnsendingsreferanseParams, List<Fil>>(
                 info(summary = "Hent filer", description = "Hent alle filer for en innsendingsreferanse")
-            ) { req ->
-                respond(repo.hentAlleFilerForEnInnsending(req.innsendingsreferanse))
+            ) { params ->
+                respond(repo.hentAlleFilerForEnInnsending(params.innsendingsreferanse))
             }
         }
 

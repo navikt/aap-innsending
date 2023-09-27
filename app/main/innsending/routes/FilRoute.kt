@@ -18,8 +18,8 @@ fun NormalOpenAPIRoute.fil(fillagerClient: FillagerClient) {
         route("/{filreferanse}") {
             get<FilrefaranseParams, ByteArray>(
                 info(summary = "Hent fil", description = "Hent ut en fil basert på filreferanse")
-            ) { req ->
-                respond(fillagerClient.hentFil(req.filreferanse))
+            ) { params ->
+                respond(fillagerClient.hentFil(params.filreferanse))
             }
         }
 
@@ -34,8 +34,8 @@ fun NormalOpenAPIRoute.fil(fillagerClient: FillagerClient) {
         route("/{filreferanse}") {
             delete<FilrefaranseParams, Unit>(
                 info(summary = "Slett fil", description = "Sletter en fil basert på filreferanse")
-            ) { req ->
-                fillagerClient.slettFil(req.filreferanse)
+            ) { params ->
+                fillagerClient.slettFil(params.filreferanse)
             }
         }
     }
