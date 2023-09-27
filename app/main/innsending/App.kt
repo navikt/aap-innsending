@@ -70,6 +70,7 @@ fun Application.server(kafka: Streams = KafkaStreams()) {
         serveSwaggerUi = true // this servers Swagger UI on /swagger-ui/index.html
         info {
             title = "AAP - Innsending"
+            description = "Applikasjon som håndterer innsending (søknad, ettersending) fra bruker på nav.no"
         }
     }
 
@@ -93,11 +94,9 @@ fun Application.server(kafka: Streams = KafkaStreams()) {
 
     apiRouting {
         fil(fillagerClient)
-
+        innsending(repo)
         routing {
             actuator(prometheus, kafka)
-
-            innsending(repo)
         }
     }
 }

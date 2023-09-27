@@ -11,12 +11,12 @@ import com.papsign.ktor.openapigen.route.route
 import innsending.fillager.FillagerClient
 import java.util.*
 
-data class FilrefaranseRequest(@PathParam("") val filreferanse: UUID)
+data class FilrefaranseParams(@PathParam("") val filreferanse: UUID)
 
 fun NormalOpenAPIRoute.fil(fillagerClient: FillagerClient) {
     route("/fil") {
         route("/{filreferanse}") {
-            get<FilrefaranseRequest, ByteArray>(
+            get<FilrefaranseParams, ByteArray>(
                 info(summary = "Hent fil", description = "Hent ut en fil basert på filreferanse")
             ) { req ->
                 respond(fillagerClient.hentFil(req.filreferanse))
@@ -32,7 +32,7 @@ fun NormalOpenAPIRoute.fil(fillagerClient: FillagerClient) {
         //put("/{filreferanse}") { TODO: Endre metadata på en fil (tittel osv)  }
 
         route("/{filreferanse}") {
-            delete<FilrefaranseRequest, Unit>(
+            delete<FilrefaranseParams, Unit>(
                 info(summary = "Slett fil", description = "Sletter en fil basert på filreferanse")
             ) { req ->
                 fillagerClient.slettFil(req.filreferanse)
