@@ -43,3 +43,6 @@ spec:
     path: /actuator/metrics
   secureLogs:
     enabled: true
+  env:
+    - name: FILLAGER_BASE_URL
+      value: {{fillager.url}}
