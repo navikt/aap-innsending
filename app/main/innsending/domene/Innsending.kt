@@ -3,10 +3,8 @@ package innsending.domene
 import java.util.*
 
 data class Innsending(
-    val tittel: String,
     val innsendingsreferanse: UUID,
     val brukerId: String,
-    val filreferanser: List<String>,
     val innsendingsType: String?,
     val data: String,
 )
@@ -18,6 +16,7 @@ data class InnsendingKafkaDto(
     val brevkode: String,
     val callId:String
 )
+
 
 data class NyInnsendingRequest(
     val eksternreferanse: UUID? = null,
