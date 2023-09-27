@@ -23,6 +23,7 @@ dependencies {
     implementation("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
     implementation("io.ktor:ktor-server-call-logging:$ktorVersion")
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
+    implementation("io.ktor:ktor-server-cors:$ktorVersion")
 
     implementation("io.ktor:ktor-client-auth:$ktorVersion")
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
@@ -34,9 +35,9 @@ dependencies {
 
     implementation("io.micrometer:micrometer-registry-prometheus:1.11.2")
     implementation("ch.qos.logback:logback-classic:1.4.11")
-    runtimeOnly("net.logstash.logback:logstash-logback-encoder:7.4")
-
+    implementation("dev.forst:ktor-openapi-generator:0.6.1")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2")
+    runtimeOnly("net.logstash.logback:logstash-logback-encoder:7.4")
 
     implementation("com.zaxxer:HikariCP:5.0.1")
     implementation("org.flywaydb:flyway-core:9.21.1")

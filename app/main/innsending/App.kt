@@ -1,5 +1,7 @@
 package innsending
 
+import com.papsign.ktor.openapigen.OpenAPIGen
+import com.papsign.ktor.openapigen.route.apiRouting
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import innsending.db.Repo
@@ -14,6 +16,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.metrics.micrometer.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.callloging.*
+import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -62,6 +65,19 @@ fun Application.server(kafka: Streams = KafkaStreams()) {
         }
     }
 
+    install(OpenAPIGen) {
+        serveOpenApiJson = true
+        serveSwaggerUi = true // this servers Swagger UI on /swagger-ui/index.html
+        info {
+            title = "AAP - Innsending"
+        }
+    }
+
+    install(CORS) {
+        anyHost() // FIXME: Dette blir litt vel aggresivt, men greit for nå? :pray:
+        allowHeader(HttpHeaders.ContentType)
+    }
+
     environment.monitor.subscribe(ApplicationStopping) { kafka.close() }
 
     kafka.connect(
@@ -75,12 +91,14 @@ fun Application.server(kafka: Streams = KafkaStreams()) {
     val repo = Repo(datasource)
     val fillagerClient = FillagerClient(config.azure, config.fillager)
 
-    routing {
-        actuator(prometheus, kafka)
-
-        innsending(repo)
-
+    apiRouting {
         fil(fillagerClient)
+
+        routing {
+            actuator(prometheus, kafka)
+
+            innsending(repo)
+        }
     }
 }
 
