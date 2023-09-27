@@ -11,7 +11,7 @@ import com.papsign.ktor.openapigen.route.route
 import innsending.fillager.FillagerClient
 import java.util.*
 
-data class FilrefaranseParams(@PathParam("") val filreferanse: UUID)
+data class FilrefaranseParams(@PathParam("Filreferanse") val filreferanse: UUID)
 
 fun NormalOpenAPIRoute.fil(fillagerClient: FillagerClient) {
     route("/fil") {
@@ -21,22 +21,20 @@ fun NormalOpenAPIRoute.fil(fillagerClient: FillagerClient) {
             ) { params ->
                 respond(fillagerClient.hentFil(params.filreferanse))
             }
+
+            //put { TODO: Endre metadata på en fil (tittel osv) }
+
+            delete<FilrefaranseParams, Unit>(
+                info(summary = "Slett fil", description = "Sletter en fil basert på filreferanse")
+            ) { params ->
+                fillagerClient.slettFil(params.filreferanse)
+            }
         }
 
         post<Unit, UUID, ByteArray>(
             info(summary = "Lagre fil", description = "Lagre en fil")
         ) { _, body ->
             respond(fillagerClient.opprettFil(body))
-        }
-
-        //put("/{filreferanse}") { TODO: Endre metadata på en fil (tittel osv)  }
-
-        route("/{filreferanse}") {
-            delete<FilrefaranseParams, Unit>(
-                info(summary = "Slett fil", description = "Sletter en fil basert på filreferanse")
-            ) { params ->
-                fillagerClient.slettFil(params.filreferanse)
-            }
         }
     }
 }
