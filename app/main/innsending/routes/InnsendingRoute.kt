@@ -2,6 +2,7 @@ package innsending.routes
 
 import com.papsign.ktor.openapigen.annotations.parameters.PathParam
 import com.papsign.ktor.openapigen.annotations.parameters.QueryParam
+import com.papsign.ktor.openapigen.route.info
 import com.papsign.ktor.openapigen.route.path.normal.*
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
@@ -18,37 +19,51 @@ data class BrukerIdRequest(@QueryParam("Brukers fødselsnummer") val brukerId: S
 fun NormalOpenAPIRoute.innsending(repo: Repo) {
     route("/innsending") {
         route("/{innsendingsreferanse}") {
-            get<InnsendingsreferanseRequest, Innsending> { req ->
+            get<InnsendingsreferanseRequest, Innsending>(
+                info(summary = "Hent innsending", description = "Hent ut en innsending basert på referanse")
+            ) { req ->
                 respond(repo.hentInnsending(req.innsendingsreferanse))
             }
 
-            put<InnsendingsreferanseRequest, Unit, NyInnsendingRequest> { req, body ->
+            put<InnsendingsreferanseRequest, Unit, NyInnsendingRequest>(
+                info(summary = "Oppdater innsending", description = "Oppdater en innsending basert på referanse")
+            ) { req, body ->
                 repo.oppdaterInnsending(req.innsendingsreferanse, body)
             }
 
-            delete<InnsendingsreferanseRequest, Unit> { req ->
+            delete<InnsendingsreferanseRequest, Unit>(
+                info(summary = "Slett innsending", description = "Sletter en innsending basert på referanse")
+            ) { req ->
                 repo.slettInnsending(req.innsendingsreferanse)
             }
 
         }
 
-        get<BrukerIdRequest, Innsending> { req ->
+        get<BrukerIdRequest, Innsending>(
+            info(summary = "Hent innsending", description = "Hent en innsending basert på brukers fødselsnummer")
+        ) { req ->
             respond(repo.hentInnsendingMedBrukerId(req.brukerId)) //TODO: brukerID fra token?
         }
 
         route("/eksternreferanse/{eksternreferanse}") {
-            get<EksternreferanseRequest, List<Innsending>> { req ->
+            get<EksternreferanseRequest, List<Innsending>>(
+                info(summary = "Hent innsendinger", description = "Hent innsendinger basert på eksternreferanse")
+            ) { req ->
                 respond(repo.hentInnsendingerForEksternreferanse(req.eksternreferanse))
             }
         }
 
         route("/{innsendingsreferanse}/filer") {
-            get<InnsendingsreferanseRequest, List<Fil>> { req ->
+            get<InnsendingsreferanseRequest, List<Fil>>(
+                info(summary = "Hent filer", description = "Hent alle filer for en innsendingsreferanse")
+            ) { req ->
                 respond(repo.hentAlleFilerForEnInnsending(req.innsendingsreferanse))
             }
         }
 
-        post<Unit, UUID, NyInnsendingRequest> { _, body ->
+        post<Unit, UUID, NyInnsendingRequest>(
+            info(summary = "Opprett innsending", description = "Opprett en ny innsending")
+        ) { _, body ->
             val innsendingId = UUID.randomUUID()
             repo.opprettNyInnsending(
                 innsendingsreferanse = innsendingId,
