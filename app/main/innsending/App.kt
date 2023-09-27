@@ -103,6 +103,7 @@ fun Application.server(kafka: Streams = KafkaStreams()) {
 
 private fun topology(): Topology {
     return topology {
+        consume(Topics.innsending)
 
     }
 }
