@@ -1,10 +1,14 @@
 package innsending
 
-import no.nav.aap.kafka.streams.v2.config.StreamsConfig
-import no.nav.aap.ktor.client.AzureConfig
-
-
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
 
 
 class AppTest {
+
+    @Test
+    fun test() {
+        Assertions.assertTrue(true)
+    }
+
 }
