@@ -1,5 +1,7 @@
 package innsending
 
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.papsign.ktor.openapigen.OpenAPIGen
 import com.papsign.ktor.openapigen.route.apiRouting
 import com.zaxxer.hikari.HikariConfig
@@ -11,11 +13,13 @@ import innsending.routes.actuator
 import innsending.routes.fil
 import innsending.routes.innsending
 import io.ktor.http.*
+import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.metrics.micrometer.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.callloging.*
+import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
@@ -79,6 +83,13 @@ fun Application.server(kafka: Streams = KafkaStreams()) {
         allowHeader(HttpHeaders.ContentType)
     }
 
+    install(ContentNegotiation) {
+        jackson {
+            registerModule(JavaTimeModule())
+            disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+        }
+    }
+
     environment.monitor.subscribe(ApplicationStopping) { kafka.close() }
 
     kafka.connect(
@@ -93,8 +104,8 @@ fun Application.server(kafka: Streams = KafkaStreams()) {
     val fillagerClient = FillagerClient(config.azure, config.fillager)
 
     apiRouting {
-        //fil(fillagerClient)
-        //innsending(repo)
+        fil(fillagerClient)
+        innsending(repo)
         routing {
             actuator(prometheus, kafka)
         }
