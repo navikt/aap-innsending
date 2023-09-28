@@ -1,0 +1,34 @@
+name: topics
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.nais/topic-*.yml'
+      - '.github/workflows/topics.yml'
+      - '.nais/dev.yml'
+
+jobs:
+  deploy:
+    strategy:
+      matrix:
+        name:
+          - topic-innsending.yml
+        cluster:
+          - dev-gcp
+        include:
+          - cluster: dev-gcp
+            vars: dev.yml
+    name: Deploy ${{ matrix.name }} to ${{ matrix.cluster }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Deploy ${{ matrix.name }} to ${{ matrix.cluster }}
+        uses: nais/deploy/actions/deploy@v1
+        env:
+          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+          CLUSTER: ${{ matrix.cluster }}
+          RESOURCE: .nais/${{ matrix.name }}
+          VARS: .nais/${{ matrix.vars }}
+          PRINT_PAYLOAD: true
