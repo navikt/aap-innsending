@@ -93,8 +93,8 @@ fun Application.server(kafka: Streams = KafkaStreams()) {
     val fillagerClient = FillagerClient(config.azure, config.fillager)
 
     apiRouting {
-        fil(fillagerClient)
-        innsending(repo)
+        //fil(fillagerClient)
+        //innsending(repo)
         routing {
             actuator(prometheus, kafka)
         }
