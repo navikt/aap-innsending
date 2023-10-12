@@ -33,6 +33,10 @@ spec:
       - type: POSTGRES_14
         databases:
           - name: innsending
+  accessPolicy:
+    outbound:
+      rules:
+        - application: fillager
   liveness:
     path: /actuator/live
     initialDelay: 3
