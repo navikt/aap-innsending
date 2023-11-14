@@ -37,6 +37,7 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus:1.11.2")
     implementation("ch.qos.logback:logback-classic:1.4.11")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2")
+    implementation("org.apache.pdfbox:pdfbox:3.0.0")
     runtimeOnly("net.logstash.logback:logstash-logback-encoder:7.4")
 
     implementation("com.zaxxer:HikariCP:5.0.1")

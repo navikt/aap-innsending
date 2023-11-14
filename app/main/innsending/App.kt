@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import innsending.fillager.PdfGen
+import innsending.fillager.VirusScanClient
 import innsending.postgres.PostgresRepo
 import innsending.redis.RedisRepo
 import innsending.routes.actuator
@@ -38,6 +40,8 @@ fun main() {
 fun Application.server() {
     val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
     val config = loadConfig<Config>()
+    val pdfGen = PdfGen()
+    val virusScanClient = VirusScanClient()
 
     install(MicrometerMetrics) { registry = prometheus }
 
@@ -72,7 +76,7 @@ fun Application.server() {
 
     routing {
         innsendingRoute(PostgresRepo(datasource))
-        mellomlagerRoute(RedisRepo(config.redis))
+        mellomlagerRoute(RedisRepo(config.redis),virusScanClient,pdfGen)
         actuator(prometheus)
     }
 }

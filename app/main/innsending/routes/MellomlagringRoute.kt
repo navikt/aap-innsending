@@ -1,23 +1,45 @@
 package innsending.routes
 
+import innsending.fillager.PdfGen
+import innsending.fillager.ScanResult
+import innsending.fillager.VirusScanClient
 import innsending.redis.RedisRepo
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import org.apache.pdfbox.Loader
 import java.util.*
 
-fun Route.mellomlagerRoute(redis: RedisRepo) {
+fun Route.mellomlagerRoute(redis: RedisRepo, virusScanClient: VirusScanClient, pdfGen: PdfGen) {
 
     post("/vedlegg/{vedleggId}") {
         val vedleggId = requireNotNull(UUID.fromString(call.parameters["vedleggId"]))
+        val fil = call.receive<ByteArray>()
+        val contentType= call.request.header(HttpHeaders.ContentType)
+        if (virusScanClient.scan(fil).result == ScanResult.Result.FOUND) {
+            call.respond(HttpStatusCode.NotAcceptable,"Fant virus i fil")
+        }
 
-        // todo: virusscan
-        // todo: pdfgen
+        val pdf: ByteArray? = when (contentType){
+            "application/pdf" -> fil
+            "image/jpeg" -> pdfGen.bildeTilPfd(fil)
+            "image/png" -> pdfGen.bildeTilPfd(fil)
+            else -> null
+        }
+
+        if(pdf==null){
+            call.respond(HttpStatusCode.NotAcceptable,"Filtype ikke støttet")
+        }
+
+        if(!sjekkPdf(pdf!!)){
+            call.respond(HttpStatusCode.NotAcceptable,"PDF er kryptert")
+        }
+
         redis.mellomlagre(
             key = vedleggId,
-            value = call.receive()
+            value = pdf
         )
 
         call.respond(HttpStatusCode.Created, "Vedlegg ble mellomlagret")
@@ -31,4 +53,12 @@ fun Route.mellomlagerRoute(redis: RedisRepo) {
             else -> call.respond(HttpStatusCode.OK, vedlegg)
         }
     }
+}
+
+fun sjekkPdf(fil:ByteArray):Boolean{
+    val pdf = Loader.loadPDF(fil)
+    if(pdf.isEncrypted){
+        return false
+    }
+    return true
 }
