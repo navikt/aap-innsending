@@ -1,4 +1,4 @@
-package innsending.db
+package innsending.postgres
 
 import java.sql.Connection
 import java.sql.PreparedStatement

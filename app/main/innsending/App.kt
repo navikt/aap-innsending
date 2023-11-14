@@ -2,16 +2,13 @@ package innsending
 
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.papsign.ktor.openapigen.OpenAPIGen
-import com.papsign.ktor.openapigen.route.apiRouting
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import innsending.db.Repo
-import innsending.fillager.FillagerClient
-import innsending.kafka.Topics
+import innsending.postgres.PostgresRepo
+import innsending.redis.RedisRepo
 import innsending.routes.actuator
-import innsending.routes.fil
-import innsending.routes.innsending
+import innsending.routes.innsendingRoute
+import innsending.routes.mellomlagerRoute
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
@@ -20,17 +17,12 @@ import io.ktor.server.metrics.micrometer.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.callloging.*
 import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
-import no.nav.aap.kafka.streams.v2.KafkaStreams
-import no.nav.aap.kafka.streams.v2.Streams
-import no.nav.aap.kafka.streams.v2.Topology
-import no.nav.aap.kafka.streams.v2.topology
 import no.nav.aap.ktor.config.loadConfig
 import org.flywaydb.core.Flyway
 import org.slf4j.LoggerFactory
@@ -38,13 +30,12 @@ import org.slf4j.event.Level
 import javax.sql.DataSource
 
 private val secureLog = LoggerFactory.getLogger("secureLog")
-private val logger = LoggerFactory.getLogger("App")
 
 fun main() {
     embeddedServer(Netty, port = 8080, module = Application::server).start(wait = true)
 }
 
-fun Application.server(kafka: Streams = KafkaStreams()) {
+fun Application.server() {
     val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
     val config = loadConfig<Config>()
 
@@ -64,23 +55,9 @@ fun Application.server(kafka: Streams = KafkaStreams()) {
 
     install(StatusPages) {
         exception<Throwable> { call, cause ->
-            logger.error("Uhåndtert feil ved kall til '{}'", call.request.local.uri, cause)
-            call.respondText(text = "Feil i tjeneste: ${cause.message}" , status = HttpStatusCode.InternalServerError)
+            secureLog.error("Uhåndtert feil ved kall til '{}'", call.request.local.uri, cause)
+            call.respondText(text = "Feil i tjeneste: ${cause.message}", status = HttpStatusCode.InternalServerError)
         }
-    }
-
-    install(OpenAPIGen) {
-        serveOpenApiJson = true
-        serveSwaggerUi = true // this servers Swagger UI on /swagger-ui/index.html
-        info {
-            title = "AAP - Innsending"
-            description = "Applikasjon som håndterer innsending (søknad, ettersending) fra bruker på nav.no"
-        }
-    }
-
-    install(CORS) {
-        anyHost() // FIXME: Dette blir litt vel aggresivt, men greit for nå? :pray:
-        allowHeader(HttpHeaders.ContentType)
     }
 
     install(ContentNegotiation) {
@@ -90,32 +67,13 @@ fun Application.server(kafka: Streams = KafkaStreams()) {
         }
     }
 
-    environment.monitor.subscribe(ApplicationStopping) { kafka.close() }
-
-    kafka.connect(
-        config = config.kafka,
-        registry = prometheus,
-        topology = topology()
-    )
-
     val datasource = initDatasource(config.database)
     migrate(datasource)
-    val repo = Repo(datasource)
-    val fillagerClient = FillagerClient(config.azure, config.fillager)
 
-    apiRouting {
-        fil(fillagerClient)
-        innsending(repo)
-        routing {
-            actuator(prometheus, kafka)
-        }
-    }
-}
-
-private fun topology(): Topology {
-    return topology {
-        consume(Topics.innsending)
-
+    routing {
+        innsendingRoute(PostgresRepo(datasource))
+        mellomlagerRoute(RedisRepo(config.redis))
+        actuator(prometheus)
     }
 }
 

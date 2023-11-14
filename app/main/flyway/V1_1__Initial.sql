@@ -3,25 +3,16 @@ GRANT ALL ON ALL TABLES IN SCHEMA PUBLIC TO cloudsqliamuser;
 
 CREATE TABLE innsending
 (
-    innsendingsreferanse    UUID PRIMARY KEY, --en innsending kan ha flere filer
-    eksternreferanse        UUID DEFAULT NULL,
+    id                      UUID PRIMARY KEY,
     opprettet               TIMESTAMP NOT NULL,
-    fullfort                TIMESTAMP DEFAULT NULL,
-    sist_oppdatert          TIMESTAMP NOT NULL,
-    sendt_til_arkivering    BOOLEAN DEFAULT FALSE NOT NULL,
-    brukerid                VARCHAR(11) NOT NULL,
-    brevkode                TEXT, -- TODO skal alle innsendinger ha brevkode
-    type                    TEXT, -- TODO Sier type noe om søknad eller ettersending?
-    versjon                 INT,
+    personident             VARCHAR(11) NOT NULL,
     data                    JSON
 );
 
 CREATE TABLE fil
 (
-    filreferanse            UUID PRIMARY KEY,
-    innsendingsreferanse    UUID REFERENCES innsending (innsendingsreferanse),
-    tittel                  TEXT
+    id                      UUID PRIMARY KEY,
+    innsending_id           UUID REFERENCES innsending (id),
+    tittel                  TEXT,
+    fil                     BYTEA, -- ligger i redis
 );
-
-
--- Vedleggskrav? Kanskje i eget API (varsel)

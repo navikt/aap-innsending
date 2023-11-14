@@ -1,8 +1,8 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.9.0"
-    id("io.ktor.plugin") version "2.3.3"
+    kotlin("jvm") version "1.9.20"
+    id("io.ktor.plugin") version "2.3.4"
     application
 }
 
@@ -16,7 +16,6 @@ application {
 dependencies {
     implementation("com.github.navikt.aap-libs:ktor-utils:$aapLibVersion")
     implementation("com.github.navikt.aap-libs:ktor-auth-azuread:$aapLibVersion")
-    implementation("com.github.navikt.aap-libs:kafka-2:$aapLibVersion")
 
     implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
@@ -24,7 +23,6 @@ dependencies {
     implementation("io.ktor:ktor-server-call-logging:$ktorVersion")
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
     implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
-    implementation("io.ktor:ktor-server-cors:$ktorVersion")
 
     implementation("io.ktor:ktor-client-auth:$ktorVersion")
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
@@ -32,11 +30,12 @@ dependencies {
     implementation("io.ktor:ktor-client-jackson:$ktorVersion")
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
 
+    implementation("redis.clients:jedis:5.0.2")
+
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
 
     implementation("io.micrometer:micrometer-registry-prometheus:1.11.2")
     implementation("ch.qos.logback:logback-classic:1.4.11")
-    implementation("dev.forst:ktor-openapi-generator:0.6.1")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2")
     runtimeOnly("net.logstash.logback:logstash-logback-encoder:7.4")
 
@@ -46,7 +45,6 @@ dependencies {
 
     testImplementation(kotlin("test"))
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
-    testImplementation("com.github.navikt.aap-libs:kafka-test-2:$aapLibVersion")
 }
 
 repositories {
