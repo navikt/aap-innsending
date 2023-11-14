@@ -12,41 +12,39 @@ import java.util.*
 
 private val logger = LoggerFactory.getLogger("App")
 
-fun Route.innsendingRoute(postgres: PostgresRepo, redis: RedisRepo){
+fun Route.innsendingRoute(postgres: PostgresRepo, redis: RedisRepo) {
+    route("/innsending") {
 
-    post("/søknad/{søknad_id}") {
-        val søknadId = UUID.fromString(call.parameters["søknad_id"])
-        logger.trace("Mottok søknad med id {}", søknadId)
+        post("/søknad/{søknad_id}") {
+            val søknadId = UUID.fromString(call.parameters["søknad_id"])
+            logger.trace("Mottok søknad med id {}", søknadId)
 
-        postgres.lagreSøknad(
-            søknadId = søknadId,
-            personident = requireNotNull(call.request.headers["personident"]),
-            søknad = call.receive()
-        )
+            postgres.lagreSøknad(
+                søknadId = søknadId,
+                personident = requireNotNull(call.request.headers["personident"]),
+                søknad = call.receive()
+            )
 
-        redis.slettMellomlagring(søknadId)
+            redis.slettMellomlagring(søknadId)
 
-        call.respond(HttpStatusCode.OK, "Vi har mottatt søknaden din")
-    }
+            call.respond(HttpStatusCode.OK, "Vi har mottatt søknaden din")
+        }
 
-    post("/vedlegg/{søknad_id}/{vedlegg_id}/{tittel}") {
-        val vedleggId = UUID.fromString(call.parameters["vedlegg_id"])
-        val vedlegg = redis.hentMellomlagring(vedleggId)
-             ?: return@post call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret vedlegg")
+        post("/vedlegg/{søknad_id}/{vedlegg_id}/{tittel}") {
+            val vedleggId = UUID.fromString(call.parameters["vedlegg_id"])
+            val vedlegg = redis.hentMellomlagring(vedleggId)
+                ?: return@post call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret vedlegg")
 
-        postgres.lagreVedlegg(
+            postgres.lagreVedlegg(
 
-            søknadId = UUID.fromString(call.parameters["søknad_id"]),
-            vedleggId = vedleggId,
-            tittel = requireNotNull(call.parameters["tittel"]),
-            vedlegg = vedlegg
-        )
+                søknadId = UUID.fromString(call.parameters["søknad_id"]),
+                vedleggId = vedleggId,
+                tittel = requireNotNull(call.parameters["tittel"]),
+                vedlegg = vedlegg
+            )
 
-        redis.slettMellomlagring(vedleggId)
-        call.respond(HttpStatusCode.OK, "Vedlegg ble slettet fra mellomlageret og lagret i databasen")
-    }
-
-    delete("/vedlegg/{søknad_id}/{vedlegg_id}") {
-
+            redis.slettMellomlagring(vedleggId)
+            call.respond(HttpStatusCode.OK, "Vedlegg ble slettet fra mellomlageret og lagret i databasen")
+        }
     }
 }

@@ -13,8 +13,7 @@ import org.apache.pdfbox.Loader
 import java.util.*
 
 fun Route.mellomlagerRoute(redis: RedisRepo, virusScanClient: VirusScanClient, pdfGen: PdfGen) {
-
-    route("/vedlegg/{vedleggId}") {
+    route("/mellomlagring/vedlegg/{vedleggId}") {
 
         post {
             val vedleggId = requireNotNull(UUID.fromString(call.parameters["vedleggId"]))
