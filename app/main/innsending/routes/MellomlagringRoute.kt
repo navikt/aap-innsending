@@ -14,51 +14,60 @@ import java.util.*
 
 fun Route.mellomlagerRoute(redis: RedisRepo, virusScanClient: VirusScanClient, pdfGen: PdfGen) {
 
-    post("/vedlegg/{vedleggId}") {
-        val vedleggId = requireNotNull(UUID.fromString(call.parameters["vedleggId"]))
-        val fil = call.receive<ByteArray>()
-        val contentType= call.request.header(HttpHeaders.ContentType)
-        if (virusScanClient.scan(fil).result == ScanResult.Result.FOUND) {
-            call.respond(HttpStatusCode.NotAcceptable,"Fant virus i fil")
+    route("/vedlegg/{vedleggId}") {
+
+        post {
+            val vedleggId = requireNotNull(UUID.fromString(call.parameters["vedleggId"]))
+            val fil = call.receive<ByteArray>()
+            val contentType = call.request.header(HttpHeaders.ContentType)
+
+            if (virusScanClient.scan(fil).result == ScanResult.Result.FOUND) {
+                call.respond(HttpStatusCode.NotAcceptable, "Fant virus i fil")
+            }
+
+            val pdf: ByteArray? = when (contentType) {
+                "application/pdf" -> fil
+                "image/jpeg" -> pdfGen.bildeTilPfd(fil)
+                "image/png" -> pdfGen.bildeTilPfd(fil)
+                else -> null
+            }
+
+            if (pdf == null) {
+                call.respond(HttpStatusCode.NotAcceptable, "Filtype ikke støttet")
+            }
+
+            if (!sjekkPdf(pdf!!)) {
+                call.respond(HttpStatusCode.NotAcceptable, "PDF er kryptert")
+            }
+
+            redis.mellomlagre(
+                key = vedleggId,
+                value = pdf
+            )
+
+            call.respond(HttpStatusCode.Created, "Vedlegg ble mellomlagret")
         }
 
-        val pdf: ByteArray? = when (contentType){
-            "application/pdf" -> fil
-            "image/jpeg" -> pdfGen.bildeTilPfd(fil)
-            "image/png" -> pdfGen.bildeTilPfd(fil)
-            else -> null
+        get {
+            val vedleggId = requireNotNull(UUID.fromString(call.parameters["vedleggId"]))
+
+            when (val vedlegg = redis.hentMellomlagring(vedleggId)) {
+                null -> call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret vedlegg")
+                else -> call.respond(HttpStatusCode.OK, vedlegg)
+            }
         }
 
-        if(pdf==null){
-            call.respond(HttpStatusCode.NotAcceptable,"Filtype ikke støttet")
-        }
+        delete {
+            val vedleggId = requireNotNull(UUID.fromString(call.parameters["vedleggId"]))
 
-        if(!sjekkPdf(pdf!!)){
-            call.respond(HttpStatusCode.NotAcceptable,"PDF er kryptert")
-        }
+            redis.slettMellomlagring(vedleggId)
+            call.respond(HttpStatusCode.OK)
 
-        redis.mellomlagre(
-            key = vedleggId,
-            value = pdf
-        )
-
-        call.respond(HttpStatusCode.Created, "Vedlegg ble mellomlagret")
-    }
-
-    get("/vedlegg/{vedleggId}") {
-        val vedleggId = requireNotNull(UUID.fromString(call.parameters["vedleggId"]))
-
-        when (val vedlegg = redis.hentMellomlagring(vedleggId)) {
-            null -> call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret vedlegg")
-            else -> call.respond(HttpStatusCode.OK, vedlegg)
         }
     }
 }
 
-fun sjekkPdf(fil:ByteArray):Boolean{
+fun sjekkPdf(fil: ByteArray): Boolean {
     val pdf = Loader.loadPDF(fil)
-    if(pdf.isEncrypted){
-        return false
-    }
-    return true
+    return !pdf.isEncrypted
 }
