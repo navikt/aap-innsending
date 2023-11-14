@@ -14,5 +14,5 @@ CREATE TABLE fil
     id                      UUID PRIMARY KEY,
     innsending_id           UUID REFERENCES innsending (id),
     tittel                  TEXT,
-    fil                     BYTEA, -- ligger i redis
+    data                    BYTEA, -- ligger i redis
 );

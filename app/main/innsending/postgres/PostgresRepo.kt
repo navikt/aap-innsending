@@ -13,4 +13,14 @@ class PostgresRepo(ds: DataSource) {
             søknad = søknad,
         )
     }
+
+    fun lagreVedlegg(søknadId: UUID, vedleggId: UUID, vedlegg: ByteArray, tittel: String) {
+        innsendingDAO.insertVedlegg(
+            søknadId = søknadId,
+            vedleggId = vedleggId,
+            vedlegg = vedlegg,
+            tittel = tittel,
+        )
+
+    }
 }

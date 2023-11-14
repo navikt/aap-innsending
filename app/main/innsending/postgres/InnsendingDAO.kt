@@ -14,6 +14,10 @@ class InnsendingDAO(private val dataSource: DataSource) {
     private val deleteInnsendingSql = """
        DELETE FROM innsending WHERE id = ? 
     """
+    private val insterVedleggSql = """
+       INSERT INTO fil (id, innsending_id, tittel, data) 
+       VALUES (?, ?, ?, ?) 
+    """
 
     fun insertInnsending(søknadId: UUID, personident: String, søknad: ByteArray) {
         dataSource.connection.use { connection ->
@@ -36,5 +40,19 @@ class InnsendingDAO(private val dataSource: DataSource) {
                 preparedStatement.execute()
             }
         }
+    }
+
+    fun insertVedlegg(søknadId: UUID, vedleggId: UUID, vedlegg: ByteArray, tittel :String) {
+        dataSource.connection.use { connection ->
+            connection.prepareStatement(insterVedleggSql).use { preparedStatement ->
+                preparedStatement.setObject(1, vedleggId)
+                preparedStatement.setObject(2, søknadId)
+                preparedStatement.setObject(3, tittel)
+                preparedStatement.setObject(4, vedlegg)
+
+                preparedStatement.execute()
+            }
+        }
+
     }
 }
