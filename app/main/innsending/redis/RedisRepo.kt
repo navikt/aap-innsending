@@ -26,21 +26,20 @@ class RedisRepo(config: RedisConfig) {
     fun mellomlagre(key: String, value: ByteArray) {
         jedisPool.resource.use {
             it.set(key.toByteArray(), value)
-            it.expire(key.toByteArray(), EnDag)
+            it.expire(key.toByteArray(), 3 * EnDag)
         }
     }
 
     fun hentMellomlagring(key: String): ByteArray? =
         try {
             jedisPool.resource.use {
-                it.get(key.toString().toByteArray())
+                it.get(key.toByteArray())
             }
         } catch (e: Exception) {
             null
         }
 
     fun slettMellomlagring(key: String): Long =
-
         jedisPool.resource.use {
             it.del(key.toByteArray())
         }

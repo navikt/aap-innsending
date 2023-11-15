@@ -10,6 +10,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.apache.pdfbox.Loader
+import java.util.*
 
 fun Route.mellomlagerRoute(redis: RedisRepo, virusScanClient: ClamAVClient, pdfGen: PdfGen) {
     route("/mellomlagring/søknad") {
@@ -39,10 +40,9 @@ fun Route.mellomlagerRoute(redis: RedisRepo, virusScanClient: ClamAVClient, pdfG
         }
     }
 
-    route("/mellomlagring/vedlegg/{vedleggId}") {
-        //TODO: vi genererer vedleggId og frontend tar vare på dem
+    route("/mellomlagring/vedlegg") {
         post {
-            val vedleggId = requireNotNull(call.parameters["vedleggId"])
+            val vedleggId = UUID.randomUUID().toString()
             val fil = call.receive<ByteArray>()
             val contentType = call.request.header(HttpHeaders.ContentType)
 
@@ -70,10 +70,10 @@ fun Route.mellomlagerRoute(redis: RedisRepo, virusScanClient: ClamAVClient, pdfG
                 value = pdf
             )
 
-            call.respond(HttpStatusCode.Created, "Vedlegg ble mellomlagret")
+            call.respond(HttpStatusCode.Created, vedleggId)
         }
 
-        get {
+        get("/{vedleggId}") {
             val vedleggId = requireNotNull(call.parameters["vedleggId"])
 
             when (val vedlegg = redis.hentMellomlagring(vedleggId)) {
@@ -82,12 +82,11 @@ fun Route.mellomlagerRoute(redis: RedisRepo, virusScanClient: ClamAVClient, pdfG
             }
         }
 
-        delete {
+        delete("/{vedleggId}") {
             val vedleggId = requireNotNull(call.parameters["vedleggId"])
 
             redis.slettMellomlagring(vedleggId)
             call.respond(HttpStatusCode.OK)
-
         }
     }
 }

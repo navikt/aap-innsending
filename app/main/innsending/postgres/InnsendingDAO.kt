@@ -21,7 +21,6 @@ class InnsendingDAO(private val dataSource: DataSource) {
        VALUES (?, ?, ?, ?) 
     """
 
-
     fun insertInnsending(søknadId: UUID, personident: String, søknad: ByteArray) {
         dataSource.connection.use { connection ->
             insertInnsendingStatement(søknadId, personident, søknad, connection)
@@ -68,6 +67,5 @@ class InnsendingDAO(private val dataSource: DataSource) {
         dataSource.connection.use { connection ->
             insertVedleggStatement(søknadId, vedleggId, vedlegg, tittel, connection)
         }
-
     }
 }

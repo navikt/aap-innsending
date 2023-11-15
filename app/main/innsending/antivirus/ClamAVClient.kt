@@ -1,6 +1,5 @@
 package innsending.antivirus
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import innsending.http.HttpClientFactory
 import io.ktor.client.call.*
 import io.ktor.client.request.*
