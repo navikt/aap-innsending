@@ -2,10 +2,10 @@ package innsending
 
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.zaxxer.hikari.HikariConfig
-import com.zaxxer.hikari.HikariDataSource
-import innsending.fillager.PdfGen
-import innsending.fillager.VirusScanClient
+import innsending.antivirus.ClamAVClient
+import innsending.pdf.PdfGen
+import innsending.postgres.Postgres
+import innsending.postgres.Postgres.flywayMigration
 import innsending.postgres.PostgresRepo
 import innsending.redis.RedisRepo
 import innsending.routes.actuator
@@ -26,12 +26,11 @@ import io.ktor.server.routing.*
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
 import no.nav.aap.ktor.config.loadConfig
-import org.flywaydb.core.Flyway
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
-import javax.sql.DataSource
 
-private val secureLog = LoggerFactory.getLogger("secureLog")
+val SERCURE_LOGGER: Logger = LoggerFactory.getLogger("secureLog")
 
 fun main() {
     embeddedServer(Netty, port = 8080, module = Application::server).start(wait = true)
@@ -41,7 +40,7 @@ fun Application.server() {
     val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
     val config = loadConfig<Config>()
     val pdfGen = PdfGen()
-    val virusScanClient = VirusScanClient()
+    val antivirusClient = ClamAVClient()
 
     install(MicrometerMetrics) { registry = prometheus }
 
@@ -59,7 +58,7 @@ fun Application.server() {
 
     install(StatusPages) {
         exception<Throwable> { call, cause ->
-            secureLog.error("Uhåndtert feil ved kall til '{}'", call.request.local.uri, cause)
+            SERCURE_LOGGER.error("Uhåndtert feil ved kall til '{}'", call.request.local.uri, cause)
             call.respondText(text = "Feil i tjeneste: ${cause.message}", status = HttpStatusCode.InternalServerError)
         }
     }
@@ -71,36 +70,12 @@ fun Application.server() {
         }
     }
 
-    val datasource = initDatasource(config.database)
-    migrate(datasource)
+    val redis = RedisRepo(config.redis)
+    val datasource = Postgres.createDatasource(config.postgres).apply { flywayMigration() }
 
     routing {
-        innsendingRoute(PostgresRepo(datasource))
-        mellomlagerRoute(RedisRepo(config.redis),virusScanClient,pdfGen)
+        innsendingRoute(PostgresRepo(datasource), redis)
+        mellomlagerRoute(redis, antivirusClient, pdfGen)
         actuator(prometheus)
     }
-}
-
-private fun initDatasource(dbConfig: DbConfig) = HikariDataSource(HikariConfig().apply {
-    jdbcUrl = dbConfig.url
-    username = dbConfig.username
-    password = dbConfig.password
-    maximumPoolSize = 3
-    minimumIdle = 1
-    initializationFailTimeout = 5000
-    idleTimeout = 10001
-    connectionTimeout = 1000
-    maxLifetime = 30001
-    driverClassName = "org.postgresql.Driver"
-})
-
-private fun migrate(dataSource: DataSource) {
-    Flyway
-        .configure()
-        .cleanDisabled(false) // TODO: husk å skru av denne før prod
-        .cleanOnValidationError(true) // TODO: husk å skru av denne før prod
-        .dataSource(dataSource)
-        .locations("flyway")
-        .load()
-        .migrate()
 }

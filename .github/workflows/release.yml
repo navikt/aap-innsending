@@ -1,4 +1,4 @@
-name: Deploy innsending
+name: Release innsending
 
 on:
   push:
@@ -49,28 +49,14 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  deploy:
+  deploy-dev:
     needs: [ build ]
-    strategy:
-      matrix:
-        name: [ app.yml ]
-        cluster:
-          - dev-gcp
-#          - prod-gcp
-        include:
-          - cluster: dev-gcp
-            vars: dev.yml
-#          - cluster: prod-gcp
-#            vars: prod.yml
-
-    name: Deploy (${{ matrix.cluster }})
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: nais/deploy/actions/deploy@v1
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
-          CLUSTER: ${{ matrix.cluster }}
-          RESOURCE: .nais/${{ matrix.name }}
-          VARS: .nais/${{ matrix.vars }}
+          CLUSTER: dev-gcp
+          RESOURCE: .nais/dev-gcp
           PRINT_PAYLOAD: true

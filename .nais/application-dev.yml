@@ -9,7 +9,7 @@ metadata:
 spec:
   image: {{image}}
   ingresses:
-    - {{ingress}}
+    - https://aap-innsending.intern.dev.nav.no
   replicas:
     cpuThresholdPercentage: 90
     disableAutoScaling: true
@@ -33,10 +33,6 @@ spec:
       - type: POSTGRES_14
         databases:
           - name: innsending
-  accessPolicy:
-    outbound:
-      rules:
-        - application: fillager
   liveness:
     path: /actuator/live
     initialDelay: 3

@@ -1,8 +1,8 @@
 package innsending.routes
 
-import innsending.fillager.PdfGen
-import innsending.fillager.ScanResult
-import innsending.fillager.VirusScanClient
+import innsending.antivirus.ClamAVClient
+import innsending.antivirus.ScanResult
+import innsending.pdf.PdfGen
 import innsending.redis.RedisRepo
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -12,7 +12,7 @@ import io.ktor.server.routing.*
 import org.apache.pdfbox.Loader
 import java.util.*
 
-fun Route.mellomlagerRoute(redis: RedisRepo, virusScanClient: VirusScanClient, pdfGen: PdfGen) {
+fun Route.mellomlagerRoute(redis: RedisRepo, virusScanClient: ClamAVClient, pdfGen: PdfGen) {
     route("/mellomlagring/vedlegg/{vedleggId}") {
 
         post {

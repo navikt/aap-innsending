@@ -1,6 +1,0 @@
-kafka:
-  pool: nav-dev
-  permanent-delete-topics: true
-ingress: https://aap-innsending.intern.dev.nav.no
-fillager:
-  url: http://fillager
