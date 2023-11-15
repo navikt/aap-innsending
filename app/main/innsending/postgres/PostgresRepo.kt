@@ -6,29 +6,33 @@ import java.sql.Connection
 import java.util.*
 import javax.sql.DataSource
 
-class PostgresRepo(val ds: DataSource) {
+class PostgresRepo(private val ds: DataSource) {
     private val innsendingDAO = InnsendingDAO(ds)
-    fun transaction(block: (connection: Connection, innsendingDao: InnsendingDAO) -> Unit) {
+
+    private fun transaction(block: (connection: Connection, innsendingDao: InnsendingDAO) -> Unit) {
         ds.connection.transaction {
             block(it, innsendingDAO)
         }
     }
 
-    fun lagreSøknadMedVedlegg(søknadId: UUID, personIdent: String, innsending: Innsending, vedlegg: List<Pair<Vedlegg, ByteArray>>) {
+    fun lagreSøknadMedVedlegg(
+        søknadId: UUID,
+        personIdent: String,
+        innsending: Innsending,
+        vedlegg: List<Pair<Vedlegg, ByteArray>>
+    ) {
         transaction { con, dao ->
             dao.insertInnsendingStatement(
                 søknadId = søknadId,
                 personident = personIdent,
-                søknad = innsending.søknad,
+                søknad = innsending.soknad,
                 connection = con
             )
 
-
-            vedlegg.forEach { (vedlegg,data) ->
-
+            vedlegg.forEach { (vedlegg, data) ->
                 dao.insertVedleggStatement(
-                    søknadId = søknadId.toString(),
-                    vedleggId = vedlegg.id,
+                    søknadId = søknadId,
+                    vedleggId = UUID.fromString(vedlegg.id),
                     tittel = vedlegg.tittel,
                     vedlegg = data,
                     connection = con
@@ -38,13 +42,12 @@ class PostgresRepo(val ds: DataSource) {
     }
 
 
-fun lagreVedlegg(søknadId: String, vedleggId: String, vedlegg: ByteArray, tittel: String) {
-    innsendingDAO.insertVedlegg(
-        søknadId = søknadId,
-        vedleggId = vedleggId,
-        vedlegg = vedlegg,
-        tittel = tittel,
-    )
-
-}
+    fun lagreVedlegg(søknadId: UUID, vedleggId: UUID, vedlegg: ByteArray, tittel: String) {
+        innsendingDAO.insertVedlegg(
+            søknadId = søknadId,
+            vedleggId = vedleggId,
+            vedlegg = vedlegg,
+            tittel = tittel,
+        )
+    }
 }

@@ -24,6 +24,7 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: RedisRepo) {
             val vedleggMedDataPairs = innsending.vedlegg.mapNotNull { vedlegg ->
                 redis.hentMellomlagring(vedlegg.id)?.let { Pair(vedlegg, it) }
             }
+
             if(vedleggMedDataPairs.size != innsending.vedlegg.size ){
                 call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret vedlegg")
             }
@@ -49,8 +50,8 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: RedisRepo) {
                 ?: return@post call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret vedlegg")
 
             postgres.lagreVedlegg(
-                søknadId = innsending.soknadId,
-                vedleggId = innsending.vedleggId,
+                søknadId = UUID.fromString(innsending.soknadId),
+                vedleggId = UUID.fromString(innsending.vedleggId),
                 tittel = innsending.tittel,
                 vedlegg = vedlegg
             )
@@ -69,11 +70,24 @@ data class InnsendingVedlegg(
 )
 
 data class Innsending(
-    val søknad: ByteArray,
+    val soknad: ByteArray,
     val vedlegg: List<Vedlegg>,
 )
 
 data class Vedlegg(
     val id: String,
     val tittel: String,
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Vedlegg
+
+        return id == other.id
+    }
+
+    override fun hashCode(): Int {
+        return id.hashCode()
+    }
+}

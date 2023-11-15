@@ -15,6 +15,7 @@ class InnsendingDAO(private val dataSource: DataSource) {
     private val deleteInnsendingSql = """
        DELETE FROM innsending WHERE id = ? 
     """
+
     private val insertVedleggSql = """
        INSERT INTO fil (id, innsending_id, tittel, data) 
        VALUES (?, ?, ?, ?) 
@@ -23,7 +24,7 @@ class InnsendingDAO(private val dataSource: DataSource) {
 
     fun insertInnsending(søknadId: UUID, personident: String, søknad: ByteArray) {
         dataSource.connection.use { connection ->
-            insertVedleggStatement(søknadId.toString(), søknadId.toString(), søknad, "søknad", connection)
+            insertInnsendingStatement(søknadId, personident, søknad, connection)
         }
     }
 
@@ -38,8 +39,8 @@ class InnsendingDAO(private val dataSource: DataSource) {
     }
 
     fun insertVedleggStatement(
-        søknadId: String,
-        vedleggId: String,
+        søknadId: UUID,
+        vedleggId: UUID,
         vedlegg: ByteArray,
         tittel: String,
         connection: Connection
@@ -63,7 +64,7 @@ class InnsendingDAO(private val dataSource: DataSource) {
         }
     }
 
-    fun insertVedlegg(søknadId: String, vedleggId: String, vedlegg: ByteArray, tittel: String) {
+    fun insertVedlegg(søknadId: UUID, vedleggId: UUID, vedlegg: ByteArray, tittel: String) {
         dataSource.connection.use { connection ->
             insertVedleggStatement(søknadId, vedleggId, vedlegg, tittel, connection)
         }
