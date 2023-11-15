@@ -10,38 +10,39 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.apache.pdfbox.Loader
-import java.util.*
 
 fun Route.mellomlagerRoute(redis: RedisRepo, virusScanClient: ClamAVClient, pdfGen: PdfGen) {
-    route("/mellomlagring/søknad/{soknadId}") {
+    route("/mellomlagring/søknad") {
 
         post {
+            //TODO: bytt søknadID til personId i header
+            val personIdent = "<personIdent>"
             redis.mellomlagre(
-                key = requireNotNull(UUID.fromString(call.parameters["soknadId"])),
+                key = personIdent,
                 value = call.receive()
             )
             call.respond(HttpStatusCode.OK)
         }
 
         get {
-            val soknadId = requireNotNull(UUID.fromString(call.parameters["soknadId"]))
-            when (val soknad = redis.hentMellomlagring(soknadId)) {
+            val personIdent = "<personIdent>"
+            when (val soknad = redis.hentMellomlagring(personIdent)) {
                 null -> call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret søknad")
                 else -> call.respond(HttpStatusCode.OK, soknad)
             }
         }
 
         delete {
-            val soknadId = requireNotNull(UUID.fromString(call.parameters["soknadId"]))
-            redis.slettMellomlagring(soknadId)
+            val personIdent = "<personIdent>"
+            redis.slettMellomlagring(personIdent)
             call.respond(HttpStatusCode.OK)
         }
     }
 
     route("/mellomlagring/vedlegg/{vedleggId}") {
-
+        //TODO: vi genererer vedleggId og frontend tar vare på dem
         post {
-            val vedleggId = requireNotNull(UUID.fromString(call.parameters["vedleggId"]))
+            val vedleggId = requireNotNull(call.parameters["vedleggId"])
             val fil = call.receive<ByteArray>()
             val contentType = call.request.header(HttpHeaders.ContentType)
 
@@ -73,7 +74,7 @@ fun Route.mellomlagerRoute(redis: RedisRepo, virusScanClient: ClamAVClient, pdfG
         }
 
         get {
-            val vedleggId = requireNotNull(UUID.fromString(call.parameters["vedleggId"]))
+            val vedleggId = requireNotNull(call.parameters["vedleggId"])
 
             when (val vedlegg = redis.hentMellomlagring(vedleggId)) {
                 null -> call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret vedlegg")
@@ -82,7 +83,7 @@ fun Route.mellomlagerRoute(redis: RedisRepo, virusScanClient: ClamAVClient, pdfG
         }
 
         delete {
-            val vedleggId = requireNotNull(UUID.fromString(call.parameters["vedleggId"]))
+            val vedleggId = requireNotNull(call.parameters["vedleggId"])
 
             redis.slettMellomlagring(vedleggId)
             call.respond(HttpStatusCode.OK)

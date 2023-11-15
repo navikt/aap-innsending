@@ -15,17 +15,30 @@ private val logger = LoggerFactory.getLogger("App")
 fun Route.innsendingRoute(postgres: PostgresRepo, redis: RedisRepo) {
     route("/innsending") {
 
-        post("/søknad/{søknad_id}") {
-            val søknadId = UUID.fromString(call.parameters["søknad_id"])
-            logger.trace("Mottok søknad med id {}", søknadId)
+        post("/søknad") {
+            val personIdent = "<personIdent>"
+            val innsending = call.receive<Innsending>()
+            val søknadId = UUID.randomUUID()
+            logger.trace("Mottok søknad med id")
 
-            postgres.lagreSøknad(
+            val vedleggMedDataPairs = innsending.vedlegg.mapNotNull { vedlegg ->
+                redis.hentMellomlagring(vedlegg.id)?.let { Pair(vedlegg, it) }
+            }
+            if(vedleggMedDataPairs.size != innsending.vedlegg.size ){
+                call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret vedlegg")
+            }
+
+            postgres.lagreSøknadMedVedlegg(
                 søknadId = søknadId,
-                personident = requireNotNull(call.request.headers["personident"]),
-                søknad = call.receive()
+                personIdent = personIdent,
+                innsending = innsending,
+                vedlegg = vedleggMedDataPairs
             )
 
-            redis.slettMellomlagring(søknadId)
+            innsending.vedlegg.forEach { vedlegg ->
+                redis.slettMellomlagring(vedlegg.id)
+            }
+            redis.slettMellomlagring(personIdent)
 
             call.respond(HttpStatusCode.OK, "Vi har mottatt søknaden din")
         }
@@ -36,7 +49,6 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: RedisRepo) {
                 ?: return@post call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret vedlegg")
 
             postgres.lagreVedlegg(
-
                 søknadId = innsending.soknadId,
                 vedleggId = innsending.vedleggId,
                 tittel = innsending.tittel,
@@ -51,7 +63,17 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: RedisRepo) {
 }
 
 data class InnsendingVedlegg(
-    val soknadId: UUID,
-    val vedleggId: UUID,
+    val soknadId: String,
+    val vedleggId: String,
+    val tittel: String,
+)
+
+data class Innsending(
+    val søknad: ByteArray,
+    val vedlegg: List<Vedlegg>,
+)
+
+data class Vedlegg(
+    val id: String,
     val tittel: String,
 )

@@ -5,7 +5,6 @@ import redis.clients.jedis.DefaultJedisClientConfig
 import redis.clients.jedis.HostAndPort
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.JedisPoolConfig
-import java.util.*
 
 const val EnDag: Long = 60 * 60 * 24
 
@@ -24,14 +23,14 @@ class RedisRepo(config: RedisConfig) {
      * Mellomlagrer key-value parr. Kan f.eks være en søknad eller et vedlegg
      * @param value kan ikke overstige 1GB
      */
-    fun mellomlagre(key: UUID, value: ByteArray) {
+    fun mellomlagre(key: String, value: ByteArray) {
         jedisPool.resource.use {
-            it.set(key.toString().toByteArray(), value)
-            it.expire(key.toString().toByteArray(), EnDag)
+            it.set(key.toByteArray(), value)
+            it.expire(key.toByteArray(), EnDag)
         }
     }
 
-    fun hentMellomlagring(key: UUID): ByteArray? =
+    fun hentMellomlagring(key: String): ByteArray? =
         try {
             jedisPool.resource.use {
                 it.get(key.toString().toByteArray())
@@ -40,9 +39,9 @@ class RedisRepo(config: RedisConfig) {
             null
         }
 
-    fun slettMellomlagring(key: UUID): Long =
+    fun slettMellomlagring(key: String): Long =
 
         jedisPool.resource.use {
-            it.del(key.toString().toByteArray())
+            it.del(key.toByteArray())
         }
 }
