@@ -13,6 +13,31 @@ import org.apache.pdfbox.Loader
 import java.util.*
 
 fun Route.mellomlagerRoute(redis: RedisRepo, virusScanClient: ClamAVClient, pdfGen: PdfGen) {
+    route("/mellomlagring/søknad/{soknadId}") {
+
+        post {
+            redis.mellomlagre(
+                key = requireNotNull(UUID.fromString(call.parameters["soknadId"])),
+                value = call.receive()
+            )
+            call.respond(HttpStatusCode.OK)
+        }
+
+        get {
+            val soknadId = requireNotNull(UUID.fromString(call.parameters["soknadId"]))
+            when (val soknad = redis.hentMellomlagring(soknadId)) {
+                null -> call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret søknad")
+                else -> call.respond(HttpStatusCode.OK, soknad)
+            }
+        }
+
+        delete {
+            val soknadId = requireNotNull(UUID.fromString(call.parameters["soknadId"]))
+            redis.slettMellomlagring(soknadId)
+            call.respond(HttpStatusCode.OK)
+        }
+    }
+
     route("/mellomlagring/vedlegg/{vedleggId}") {
 
         post {

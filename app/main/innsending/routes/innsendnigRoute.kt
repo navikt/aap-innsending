@@ -30,21 +30,28 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: RedisRepo) {
             call.respond(HttpStatusCode.OK, "Vi har mottatt søknaden din")
         }
 
-        post("/vedlegg/{søknad_id}/{vedlegg_id}/{tittel}") {
-            val vedleggId = UUID.fromString(call.parameters["vedlegg_id"])
-            val vedlegg = redis.hentMellomlagring(vedleggId)
+        post("/vedlegg") {
+            val innsending = call.receive<InnsendingVedlegg>()
+            val vedlegg = redis.hentMellomlagring(innsending.vedleggId)
                 ?: return@post call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret vedlegg")
 
             postgres.lagreVedlegg(
 
-                søknadId = UUID.fromString(call.parameters["søknad_id"]),
-                vedleggId = vedleggId,
-                tittel = requireNotNull(call.parameters["tittel"]),
+                søknadId = innsending.soknadId,
+                vedleggId = innsending.vedleggId,
+                tittel = innsending.tittel,
                 vedlegg = vedlegg
             )
 
-            redis.slettMellomlagring(vedleggId)
+            redis.slettMellomlagring(innsending.vedleggId)
+
             call.respond(HttpStatusCode.OK, "Vedlegg ble slettet fra mellomlageret og lagret i databasen")
         }
     }
 }
+
+data class InnsendingVedlegg(
+    val soknadId: UUID,
+    val vedleggId: UUID,
+    val tittel: String,
+)
