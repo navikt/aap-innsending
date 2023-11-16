@@ -27,4 +27,4 @@ jobs:
     secrets: inherit
     with:
       cluster: dev-gcp
-      manifest: .nais/application-dev
+      manifest: .nais/application-dev.yml
