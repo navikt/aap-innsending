@@ -9,7 +9,8 @@ import org.junit.jupiter.api.Test
 import java.util.*
 
 internal class PostgresRepoTest : H2TestBase() {
-    private val repo = PostgresRepo(PostgresConfig("", "", ""), dataSource)
+    private val config = PostgresConfig("", "", "", "", "")
+    private val repo = PostgresRepo(config, dataSource)
 
     @Test
     fun `Insert en innsending med vedlegg`() {

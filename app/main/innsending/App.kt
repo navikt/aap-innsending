@@ -23,7 +23,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
-import no.nav.aap.ktor.config.loadConfig
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
@@ -34,7 +33,7 @@ fun main() {
     embeddedServer(Netty, port = 8080, module = Application::server).start(wait = true)
 }
 
-fun Application.server(config: Config = loadConfig<Config>()) {
+fun Application.server(config: Config = Config()) {
     val postgres = PostgresRepo(config.postgres)
     val redis = RedisRepo(config.redis)
     val antivirus = ClamAVClient()

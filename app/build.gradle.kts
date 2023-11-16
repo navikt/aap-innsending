@@ -14,7 +14,7 @@ application {
 }
 
 dependencies {
-    implementation("com.github.navikt.aap-libs:ktor-utils:$aapLibVersion")
+//    implementation("com.github.navikt.aap-libs:ktor-utils:$aapLibVersion")
     implementation("com.github.navikt.aap-libs:ktor-auth-azuread:$aapLibVersion")
 
     implementation("io.ktor:ktor-server-core:$ktorVersion")
