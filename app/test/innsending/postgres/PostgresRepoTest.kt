@@ -1,5 +1,6 @@
 package innsending.postgres
 
+import innsending.postgres.InitTestDatabase.config
 import innsending.postgres.InitTestDatabase.dataSource
 import innsending.routes.Innsending
 import innsending.routes.Vedlegg
@@ -8,8 +9,7 @@ import org.junit.jupiter.api.Test
 import java.util.*
 
 internal class PostgresRepoTest : DatabaseTestBase() {
-
-    private val repo = PostgresRepo(dataSource)
+    private val repo = PostgresRepo(config, dataSource)
 
     @Test
     fun `Insert en innsending med vedlegg`() {

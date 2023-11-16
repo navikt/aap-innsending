@@ -4,8 +4,6 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import innsending.antivirus.ClamAVClient
 import innsending.pdf.PdfGen
-import innsending.postgres.Postgres
-import innsending.postgres.Postgres.flywayMigration
 import innsending.postgres.PostgresRepo
 import innsending.redis.RedisRepo
 import innsending.routes.actuator
@@ -36,12 +34,13 @@ fun main() {
     embeddedServer(Netty, port = 8080, module = Application::server).start(wait = true)
 }
 
-fun Application.server() {
-    val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
-    val config = loadConfig<Config>()
+fun Application.server(config: Config = loadConfig<Config>()) {
+    val postgres = PostgresRepo(config.postgres)
+    val redis = RedisRepo(config.redis)
+    val antivirus = ClamAVClient()
     val pdfGen = PdfGen()
-    val antivirusClient = ClamAVClient()
 
+    val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
     install(MicrometerMetrics) { registry = prometheus }
 
     install(CallLogging) {
@@ -70,12 +69,9 @@ fun Application.server() {
         }
     }
 
-    val redis = RedisRepo(config.redis)
-    val datasource = Postgres.createDatasource(config.postgres).apply { flywayMigration() }
-
     routing {
-        innsendingRoute(PostgresRepo(datasource), redis)
-        mellomlagerRoute(redis, antivirusClient, pdfGen)
+        innsendingRoute(postgres, redis)
+        mellomlagerRoute(redis, antivirus, pdfGen)
         actuator(prometheus)
     }
 }

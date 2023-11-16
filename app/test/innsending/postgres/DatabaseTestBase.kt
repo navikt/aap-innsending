@@ -2,6 +2,7 @@ package innsending.postgres
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import innsending.PostgresConfig
 import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.BeforeEach
 import org.testcontainers.containers.PostgreSQLContainer
@@ -11,6 +12,7 @@ internal object InitTestDatabase {
     private val postgres = PostgreSQLContainer<Nothing>("postgres:14")
     private val flyway: Flyway
 
+    internal val config: PostgresConfig
     internal val dataSource: DataSource
 
     init {
@@ -27,6 +29,7 @@ internal object InitTestDatabase {
             maxLifetime = 30001
         })
 
+        config = PostgresConfig(postgres.jdbcUrl, postgres.username, postgres.password)
         flyway = Flyway.configure().dataSource(dataSource).locations("flyway").load().apply { migrate() }
     }
 }

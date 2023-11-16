@@ -15,7 +15,7 @@ private val logger = Logger.getLogger("App")
 private const val DISABLE_FLYWAY_CLEAN = false
 private const val ENABLE_FLYWAY_CLEAN_ON_VALIDATION_ERROR = true
 
-internal object Postgres {
+internal object Hikari {
     fun createDatasource(config: PostgresConfig): DataSource =
         HikariDataSource(HikariConfig().apply {
             jdbcUrl = config.url
@@ -30,7 +30,7 @@ internal object Postgres {
             driverClassName = "org.postgresql.Driver"
         })
 
-    fun DataSource.flywayMigration() {
+    fun flywayMigration(ds: DataSource) {
         if (!DISABLE_FLYWAY_CLEAN) logger.warning("Flyway.cleanDisabled er satt til false. Husk å skru av i prod")
         if (ENABLE_FLYWAY_CLEAN_ON_VALIDATION_ERROR) logger.warning("Flyway.cleanOnValidationError er satt til true. Husk å skru av i prod")
 
@@ -38,7 +38,7 @@ internal object Postgres {
             .configure()
             .cleanDisabled(DISABLE_FLYWAY_CLEAN) // TODO: husk å skru av denne før prod
             .cleanOnValidationError(ENABLE_FLYWAY_CLEAN_ON_VALIDATION_ERROR) // TODO: husk å skru av denne før prod
-            .dataSource(this)
+            .dataSource(ds)
             .locations("flyway")
             .load()
             .migrate()

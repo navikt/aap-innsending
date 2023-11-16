@@ -1,16 +1,21 @@
 package innsending.postgres
 
+import innsending.PostgresConfig
+import innsending.postgres.Hikari.flywayMigration
 import innsending.routes.Innsending
 import innsending.routes.Vedlegg
 import java.sql.Connection
 import java.util.*
 import javax.sql.DataSource
 
-class PostgresRepo(private val ds: DataSource) {
-    private val innsendingDAO = InnsendingDAO(ds)
+class PostgresRepo(
+    config: PostgresConfig,
+    private val hikari: DataSource = Hikari.createDatasource(config).apply(::flywayMigration),
+    private val innsendingDAO: InnsendingDAO = InnsendingDAO(hikari),
+) {
 
-    private fun transaction(block: (connection: Connection, innsendingDao: InnsendingDAO) -> Unit) {
-        ds.connection.transaction {
+    private fun transaction(block: Connection.(InnsendingDAO) -> Unit) {
+        hikari.connection.transaction {
             block(it, innsendingDAO)
         }
     }
@@ -21,12 +26,12 @@ class PostgresRepo(private val ds: DataSource) {
         innsending: Innsending,
         vedlegg: List<Pair<Vedlegg, ByteArray>>
     ) {
-        transaction { con, dao ->
+        transaction { dao ->
             dao.insertInnsendingStatement(
                 søknadId = søknadId,
                 personident = personIdent,
                 søknad = innsending.soknad,
-                connection = con
+                connection = this
             )
 
             vedlegg.forEach { (vedlegg, data) ->
@@ -35,7 +40,7 @@ class PostgresRepo(private val ds: DataSource) {
                     vedleggId = UUID.fromString(vedlegg.id),
                     tittel = vedlegg.tittel,
                     vedlegg = data,
-                    connection = con
+                    connection = this
                 )
             }
         }
