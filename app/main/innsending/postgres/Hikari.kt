@@ -39,7 +39,6 @@ internal object Hikari {
             .cleanDisabled(DISABLE_FLYWAY_CLEAN) // TODO: husk å skru av denne før prod
             .cleanOnValidationError(ENABLE_FLYWAY_CLEAN_ON_VALIDATION_ERROR) // TODO: husk å skru av denne før prod
             .dataSource(ds)
-            .locations("flyway")
             .load()
             .migrate()
     }
