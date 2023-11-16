@@ -4,6 +4,11 @@ on:
   push:
     branches: [ main ]
 
+permissions:
+  actions: read
+  checks: write
+  id-token: write
+
 jobs:
   gradle:
     ## push til main eller etter branch (e.g. dependabot) er merget
