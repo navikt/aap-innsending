@@ -46,7 +46,6 @@ dependencies {
 
     testImplementation(kotlin("test"))
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
-    testImplementation("org.testcontainers:postgresql:1.19.1")
     testImplementation("com.h2database:h2:2.2.224")
 }
 

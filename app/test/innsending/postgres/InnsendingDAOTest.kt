@@ -1,13 +1,11 @@
 package innsending.postgres
 
-import innsending.postgres.InitTestDatabase.dataSource
+import innsending.postgres.InitH2.dataSource
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.*
 
-
-internal class InnsendingDAOTest : DatabaseTestBase() {
-
+class InnsendingDAOTest : H2TestBase() {
     private val dao = InnsendingDAO(dataSource)
 
     @Test
