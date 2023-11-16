@@ -19,6 +19,9 @@ jobs:
   dev:
     ## push til main eller etter branch (e.g. dependabot) er merget
     if: github.event.pull_request.merged || github.event_name == 'push'
+    permissions:
+      contents: read
+      id-token: write
     needs: gradle
     uses: navikt/aap-workflows/.github/workflows/deploy.yml@main
     secrets: inherit
