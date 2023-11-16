@@ -9,9 +9,9 @@ data class Config(
 )
 
 data class RedisConfig(
-    val host: String,
-    val port: Int,
-    val pwd: String,
+    val uri: String,
+    val username: String,
+    val password: String,
 )
 
 data class PostgresConfig(

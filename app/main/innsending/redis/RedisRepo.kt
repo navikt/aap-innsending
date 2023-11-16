@@ -8,14 +8,14 @@ import redis.clients.jedis.JedisPoolConfig
 
 const val EnDag: Long = 60 * 60 * 24
 
-class RedisRepo(config: RedisConfig) {
+class RedisRepo(private val config: RedisConfig) {
     private val jedisPool = JedisPool(
         JedisPoolConfig(),
-        HostAndPort(config.host, config.port),
+        HostAndPort.from(config.uri),
         DefaultJedisClientConfig.builder()
             .ssl(true)
-            .user("<redis_username>") // TODO: hva er denne
-            .password(config.pwd)
+            .user(config.username)
+            .password(config.password)
             .build()
     )
 

@@ -1,7 +1,7 @@
 redis:
-  host: ${REDIS_HOST}
-  port: ${REDIS_PORT}
-  pwd: ${REDIS_PASSWORD}
+  host: ${REDIS_URI_MELLOMLAGER}
+  port: ${REDIS_USERNAME_MELLOMLAGER}
+  pwd: ${REDIS_PASSWORD_MELLOMLAGER}
 
 azure:
   tokenEndpoint: ${AZURE_OPENID_CONFIG_TOKEN_ENDPOINT}
