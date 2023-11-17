@@ -20,6 +20,14 @@ class PostgresRepo(
         }
     }
 
+    fun hentAlleInnsendinger() = innsendingDAO.selectInnsendinger()
+
+    fun hentInnsending(søknadId: UUID) = innsendingDAO.selectInnsendingMedVedlegg(søknadId)
+
+    fun slettInnsending(id: UUID) {
+        innsendingDAO.deleteInnsending(id)
+    }
+
     fun lagreSøknadMedVedlegg(
         søknadId: UUID,
         personIdent: String,

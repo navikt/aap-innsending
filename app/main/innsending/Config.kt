@@ -11,6 +11,7 @@ data class Config(
         clientId = getEnvVar("AZURE_APP_CLIENT_ID"),
         clientSecret = getEnvVar("AZURE_APP_CLIENT_SECRET")
     ),
+    val joark: JoarkConfig = JoarkConfig()
 )
 
 data class RedisConfig(
@@ -30,3 +31,7 @@ data class PostgresConfig(
 }
 
 private fun getEnvVar(envar: String) = System.getenv(envar) ?: error("missing envvar $envar")
+
+data class JoarkConfig (
+    val baseUrl: String = getEnvVar("JOARK_BASE_URL")
+)

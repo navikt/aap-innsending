@@ -44,18 +44,10 @@ internal object Hikari {
     }
 }
 
-private class ResultSetSequence(private val resultSet: ResultSet) : Sequence<ResultSet> {
-    override fun iterator(): Iterator<ResultSet> = ResultSetIterator()
-
-    private inner class ResultSetIterator : Iterator<ResultSet> {
-        override fun hasNext(): Boolean = resultSet.next()
-        override fun next(): ResultSet = resultSet
-    }
-}
-
-fun <T : Any> ResultSet.map(block: (rs: ResultSet) -> T): Sequence<T> {
-    return ResultSetSequence(this).map(block)
-}
+fun <T : Any> ResultSet.map(block: (rs: ResultSet) -> T): List<T> =
+    sequence {
+        while (next()) yield(block(this@map))
+    }.toList()
 
 fun <T> Connection.transaction(block: (connection: Connection) -> T): T {
     return this.use { connection ->

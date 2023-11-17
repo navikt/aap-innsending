@@ -40,4 +40,21 @@ class InnsendingDAOTest : H2TestBase() {
         assertEquals(0, countInnsending())
         assertEquals(0, countVedlegg())
     }
+
+    @Test
+    fun `Henter en komplett innsending med vedlegg`() {
+        val søknadId = UUID.randomUUID()
+        dao.insertInnsending(søknadId, "12345678910", "søknad".toByteArray())
+
+        dao.insertVedlegg(søknadId, UUID.randomUUID(), "vedlegg1".toByteArray(), "tittel1")
+        dao.insertVedlegg(søknadId, UUID.randomUUID(), "vedlegg2".toByteArray(), "tittel2")
+        dao.insertVedlegg(søknadId, UUID.randomUUID(), "vedlegg3".toByteArray(), "tittel3")
+        dao.insertVedlegg(søknadId, UUID.randomUUID(), "vedlegg4".toByteArray(), "tittel4")
+        dao.insertVedlegg(søknadId, UUID.randomUUID(), "vedlegg5".toByteArray(), "tittel5")
+
+        val innsending = dao.selectInnsendingMedVedlegg(søknadId)
+
+        assertEquals(søknadId, innsending.id)
+        assertEquals(5, innsending.vedlegg.size)
+    }
 }

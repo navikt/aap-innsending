@@ -3,12 +3,15 @@ package innsending
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import innsending.antivirus.ClamAVClient
+import innsending.arkiv.JoarkClient
+import innsending.arkiv.JournalpostSender
 import innsending.pdf.PdfGen
 import innsending.postgres.PostgresRepo
 import innsending.redis.RedisRepo
 import innsending.routes.actuator
 import innsending.routes.innsendingRoute
 import innsending.routes.mellomlagerRoute
+import innsending.scheduler.ArkivScheduler
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
@@ -28,8 +31,10 @@ import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 
 val SERCURE_LOGGER: Logger = LoggerFactory.getLogger("secureLog")
+val log: Logger = LoggerFactory.getLogger("App")
 
 fun main() {
+    Thread.currentThread().setUncaughtExceptionHandler { _, e -> log.error("Uhåndtert feil", e) }
     embeddedServer(Netty, port = 8080, module = Application::server).start(wait = true)
 }
 
@@ -39,7 +44,16 @@ fun Application.server(config: Config = Config()) {
     val antivirus = ClamAVClient()
     val pdfGen = PdfGen()
 
+    val joarkClient = JoarkClient(config.azure, config.joark)
+    val journalpostSender = JournalpostSender(joarkClient, postgres)
+    val arkivScheduler = ArkivScheduler(postgres, journalpostSender)
+
     val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+
+    environment.monitor.subscribe(ApplicationStopping) {
+        arkivScheduler.close()
+    }
+
     install(MicrometerMetrics) { registry = prometheus }
 
     install(CallLogging) {
@@ -67,6 +81,8 @@ fun Application.server(config: Config = Config()) {
             disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
         }
     }
+
+    // TODO Autentisering
 
     routing {
         innsendingRoute(postgres, redis)

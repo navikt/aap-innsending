@@ -21,6 +21,18 @@ class InnsendingDAO(private val dataSource: DataSource) {
        VALUES (?, ?, ?, ?) 
     """
 
+    private val selectAlleInnsendingerIdSql = """
+        SELECT id FROM innsending
+    """
+
+    private val selectInnsendingSql = """
+        SELECT * FROM innsending WHERE id = ?
+    """
+
+    private val selectFiler = """
+       SELECT * from fil WHERE innsending_id = ? 
+    """
+
     fun insertInnsending(søknadId: UUID, personident: String, søknad: ByteArray) {
         dataSource.connection.use { connection ->
             insertInnsendingStatement(søknadId, personident, søknad, connection)
@@ -66,6 +78,57 @@ class InnsendingDAO(private val dataSource: DataSource) {
     fun insertVedlegg(søknadId: UUID, vedleggId: UUID, vedlegg: ByteArray, tittel: String) {
         dataSource.connection.use { connection ->
             insertVedleggStatement(søknadId, vedleggId, vedlegg, tittel, connection)
+        }
+    }
+
+    fun selectInnsendinger(): List<UUID> =
+        dataSource.connection.use { connection ->
+            connection.prepareStatement(selectAlleInnsendingerIdSql).use { preparedStatement ->
+                val resultat = preparedStatement.executeQuery()
+
+                resultat.map { row ->
+                    row.getUUID("id")
+                }
+            }
+        }
+
+    fun selectInnsendingMedVedlegg(søknadId: UUID): InnsendingMedFiler {
+        dataSource.connection.use { connection ->
+            val innsending = connection.prepareStatement(selectInnsendingSql).use { preparedStatement ->
+                preparedStatement.setObject(1, søknadId)
+
+                val resultSet = preparedStatement.executeQuery()
+
+                resultSet.map { row ->
+                    InnsendingDb(
+                        id = row.getUUID("id"),
+                        opprettet = row.getTimestamp("opprettet").toLocalDateTime(),
+                        personident = row.getString("personident"),
+                        data = row.getBytes("data")
+                    )
+                }.single()
+            }
+
+            val vedleggListe = connection.prepareStatement(selectFiler).use { preparedStatement ->
+                preparedStatement.setObject(1, søknadId)
+                val resultSet = preparedStatement.executeQuery()
+
+                resultSet.map { row ->
+                    InnsendingMedFiler.Vedlegg(
+                        id = row.getUUID("id"),
+                        tittel = row.getString("tittel"),
+                        data = row.getBytes("data")
+                    )
+                }
+            }
+
+            return InnsendingMedFiler(
+                id = innsending.id,
+                opprettet = innsending.opprettet,
+                personident = innsending.personident,
+                data = innsending.data,
+                vedlegg = vedleggListe
+            )
         }
     }
 }
