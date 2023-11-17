@@ -31,7 +31,7 @@ class PdfGen {
     // TODO: finn riktig URI til pdfgen
     suspend fun søknadTilPdf(json: ByteArray) =
         clientLatencyStats.startTimer().use {
-            httpClient.post("http://pdfgen/api/v1/genpdf/") {
+            httpClient.post("http://pdfgen/api/v1/genpdf/aap-pdfgen/soknad") {
                 contentType(ContentType.Application.Json)
                 accept(ContentType.Application.Pdf)
                 setBody(json)
