@@ -48,3 +48,6 @@ spec:
     path: /actuator/metrics
   secureLogs:
     enabled: true
+  env:
+    - name: JOARK_BASE_URL
+      value: https://dokarkiv-q2.dev.intern.nav.no
