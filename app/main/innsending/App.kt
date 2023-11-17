@@ -33,10 +33,10 @@ import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 
 val SECURE_LOGGER: Logger = LoggerFactory.getLogger("secureLog")
-val log: Logger = LoggerFactory.getLogger("App")
+val LOGGER: Logger = LoggerFactory.getLogger("App")
 
 fun main() {
-    Thread.currentThread().setUncaughtExceptionHandler { _, e -> log.error("Uhåndtert feil", e) }
+    Thread.currentThread().setUncaughtExceptionHandler { _, e -> LOGGER.error("Uhåndtert feil", e) }
     embeddedServer(Netty, port = 8080, module = Application::server).start(wait = true)
 }
 
@@ -58,7 +58,7 @@ fun Application.server(config: Config = Config()) {
 
     install(MicrometerMetrics) { registry = prometheus }
 
-    authentication(config)
+    authentication(config.tokenx)
 
     install(CallLogging) {
         level = Level.INFO
