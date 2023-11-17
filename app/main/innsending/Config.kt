@@ -11,7 +11,8 @@ data class Config(
         clientId = getEnvVar("AZURE_APP_CLIENT_ID"),
         clientSecret = getEnvVar("AZURE_APP_CLIENT_SECRET")
     ),
-    val joark: JoarkConfig = JoarkConfig()
+    val joark: JoarkConfig = JoarkConfig(),
+    val tokenx: TokenXConfig = TokenXConfig(),
 )
 
 data class RedisConfig(
@@ -34,4 +35,11 @@ private fun getEnvVar(envar: String) = System.getenv(envar) ?: error("missing en
 
 data class JoarkConfig (
     val baseUrl: String = getEnvVar("JOARK_BASE_URL")
+)
+
+data class TokenXConfig(
+    val clientId: String = getEnvVar("TOKEN_X_CLIENT_ID"),
+    val wellknown: String = getEnvVar("TOKEN_X_WELL_KNOWN_URL"),
+    val issuer: String = getEnvVar("TOKEN_X_ISSUER"),
+    val jwks: String = getEnvVar("TOKEN_X_JWKS_URI")
 )

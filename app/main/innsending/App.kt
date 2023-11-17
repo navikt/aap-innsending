@@ -5,6 +5,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import innsending.antivirus.ClamAVClient
 import innsending.arkiv.JoarkClient
 import innsending.arkiv.JournalpostSender
+import innsending.auth.authentication
 import innsending.pdf.PdfGen
 import innsending.postgres.PostgresRepo
 import innsending.redis.RedisRepo
@@ -15,6 +16,7 @@ import innsending.scheduler.ArkivScheduler
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.engine.*
 import io.ktor.server.metrics.micrometer.*
 import io.ktor.server.netty.*
@@ -30,7 +32,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 
-val SERCURE_LOGGER: Logger = LoggerFactory.getLogger("secureLog")
+val SECURE_LOGGER: Logger = LoggerFactory.getLogger("secureLog")
 val log: Logger = LoggerFactory.getLogger("App")
 
 fun main() {
@@ -56,6 +58,8 @@ fun Application.server(config: Config = Config()) {
 
     install(MicrometerMetrics) { registry = prometheus }
 
+    authentication(config)
+
     install(CallLogging) {
         level = Level.INFO
         format { call ->
@@ -70,7 +74,7 @@ fun Application.server(config: Config = Config()) {
 
     install(StatusPages) {
         exception<Throwable> { call, cause ->
-            SERCURE_LOGGER.error("Uhåndtert feil ved kall til '{}'", call.request.local.uri, cause)
+            SECURE_LOGGER.error("Uhåndtert feil ved kall til '{}'", call.request.local.uri, cause)
             call.respondText(text = "Feil i tjeneste: ${cause.message}", status = HttpStatusCode.InternalServerError)
         }
     }
@@ -82,11 +86,12 @@ fun Application.server(config: Config = Config()) {
         }
     }
 
-    // TODO Autentisering
-
     routing {
-        innsendingRoute(postgres, redis)
-        mellomlagerRoute(redis, antivirus, pdfGen)
+        authenticate("tokenx") {
+            innsendingRoute(postgres, redis)
+            mellomlagerRoute(redis, antivirus, pdfGen)
+        }
+
         actuator(prometheus)
     }
 }

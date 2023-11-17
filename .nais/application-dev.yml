@@ -18,6 +18,8 @@ spec:
   azure:
     application:
       enabled: true
+  tokenx:
+    enabled: true
   resources:
     limits:
       cpu: 1000m

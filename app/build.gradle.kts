@@ -23,6 +23,8 @@ dependencies {
     implementation("io.ktor:ktor-server-call-logging:$ktorVersion")
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
     implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
+    implementation("io.ktor:ktor-server-auth:$ktorVersion")
+    implementation("io.ktor:ktor-server-auth-jwt:$ktorVersion")
 
     implementation("io.ktor:ktor-client-auth:$ktorVersion")
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
@@ -38,6 +40,9 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.4.11")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2")
     implementation("org.apache.pdfbox:pdfbox:3.0.0")
+    implementation("io.ktor:ktor-server-auth-jvm:2.3.4")
+    implementation("io.ktor:ktor-server-core-jvm:2.3.4")
+    implementation("io.ktor:ktor-server-auth-jwt-jvm:2.3.4")
     runtimeOnly("net.logstash.logback:logstash-logback-encoder:7.4")
 
     implementation("com.zaxxer:HikariCP:5.0.1")
