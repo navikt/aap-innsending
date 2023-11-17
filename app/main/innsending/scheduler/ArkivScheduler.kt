@@ -15,10 +15,10 @@ class ArkivScheduler(
 ): AutoCloseable {
     private val job: Job = CoroutineScope(Dispatchers.Default).launch {
         while (this.isActive) {
-            logger.info("Prøver å arkivere....")
             try {
                 val liste = postgresRepo.hentAlleInnsendinger()
                 liste.forEach {  søknadId ->
+                    logger.info("Prøver å arkivere....")
                     journalpostSender.arkiverAltSomKanArkiveres(søknadId)
                 }
             } catch (t: Throwable) {
