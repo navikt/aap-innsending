@@ -9,4 +9,5 @@ metadata:
 spec:
   plan: business-4
   project: nav-dev
-  redis_persitence: off
+  userConfig:
+    redis_persistance: off
