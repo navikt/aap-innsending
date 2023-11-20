@@ -47,6 +47,7 @@ class RedisRepo(private val config: RedisConfig, private val jedisPool: JedisPoo
                 it.ping()=="PONG"
             }catch (e:Exception){
                 SECURE_LOGGER.warn("Klarte ikke å pinge redis",e)
+                SECURE_LOGGER.warn("Redis uri: ${config.uri}")
                 false
             }
     }
