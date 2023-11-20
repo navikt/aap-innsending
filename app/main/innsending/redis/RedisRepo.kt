@@ -14,7 +14,7 @@ private fun jedis(config: RedisConfig): Jedis =
         DefaultJedisClientConfig.builder()
             .user(config.username)
             .password(config.password)
-            .ssl(true)
+//            .ssl(true)
             .build()
     )
 

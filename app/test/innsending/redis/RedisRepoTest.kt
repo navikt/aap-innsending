@@ -8,7 +8,7 @@ class RedisRepoTest {
 
     @Test
     fun `mellomlagring kan hentes igjen`() {
-        val redisRepo = RedisRepo(RedisConfig("", "", ""), RedisMock)
+        val redisRepo = RedisRepo(RedisConfig("", "", ""), RedisFake)
         redisRepo.mellomlagre("key", "value".toByteArray())
 
         assertEquals("value", String(redisRepo.hentMellomlagring("key")!!))
@@ -16,7 +16,7 @@ class RedisRepoTest {
 
     @Test
     fun `mellomlagring kan slettes`() {
-        val redisRepo = RedisRepo(RedisConfig("", "", ""), RedisMock)
+        val redisRepo = RedisRepo(RedisConfig("", "", ""), RedisFake)
         redisRepo.mellomlagre("key", "value".toByteArray())
 
         assertEquals("value", String(redisRepo.hentMellomlagring("key")!!))

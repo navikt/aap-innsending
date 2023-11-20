@@ -2,7 +2,7 @@ package innsending.redis
 
 import redis.clients.jedis.Jedis
 
-object RedisMock : Jedis() {
+object RedisFake : Jedis() {
     private val dataStore = mutableMapOf<String, ByteArray>()
 
     override fun get(key: ByteArray): ByteArray? = dataStore[String(key)]
