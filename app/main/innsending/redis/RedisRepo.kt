@@ -9,15 +9,11 @@ import redis.clients.jedis.JedisPoolConfig
 
 const val EnDag: Long = 60 * 60 * 24
 
-private fun jedisPool(config:RedisConfig)= JedisPool(
-    JedisPoolConfig(),
-    HostAndPort.from(config.uri),
-    DefaultJedisClientConfig.builder()
-        .ssl(true)
-        .user(config.username)
-        .password(config.password)
-        .build()
-    )
+private fun jedisPool(config:RedisConfig): JedisPool{
+    val port = config.uri.substringAfter("rediss://").split(":")[1].toInt()
+    val host = config.uri.removeSuffix(":$port")
+    return JedisPool(JedisPoolConfig(),host, port, 2000, config.username, config.password, true)
+}
 
 class RedisRepo(private val config: RedisConfig, private val jedisPool: JedisPool = jedisPool(config)) {
 
