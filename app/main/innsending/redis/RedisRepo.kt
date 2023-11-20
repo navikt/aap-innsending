@@ -44,4 +44,9 @@ class RedisRepo(private val config: RedisConfig, private val jedisPool: JedisPoo
         jedisPool.resource.use {
             it.del(key.toByteArray())
         }
+
+    fun isReady() = jedisPool.resource.use {
+            it.ping()=="PONG"
+        }
+
 }
