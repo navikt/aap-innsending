@@ -5,31 +5,25 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
 class RedisRepoTest {
-    private val redisMock = RedisMock
-    private val redisConfig = RedisConfig("","","")
-
 
     @Test
     fun `mellomlagring kan hentes igjen`() {
-        val redisPoolMock = RedisPoolMock()
-        val redisRepo = RedisRepo(redisConfig, redisPoolMock)
+        val redisRepo = RedisRepo(RedisConfig("", "", ""), RedisMock)
         redisRepo.mellomlagre("key", "value".toByteArray())
 
-        assertEquals("value",String(redisRepo.hentMellomlagring("key")!!))
+        assertEquals("value", String(redisRepo.hentMellomlagring("key")!!))
     }
 
     @Test
-    fun `mellomlagring kan slettes`(){
-        val redisPoolMock = RedisPoolMock()
-        val redisRepo = RedisRepo(redisConfig, redisPoolMock)
+    fun `mellomlagring kan slettes`() {
+        val redisRepo = RedisRepo(RedisConfig("", "", ""), RedisMock)
         redisRepo.mellomlagre("key", "value".toByteArray())
 
-        assertEquals("value",String(redisRepo.hentMellomlagring("key")!!))
+        assertEquals("value", String(redisRepo.hentMellomlagring("key")!!))
 
         redisRepo.slettMellomlagring("key")
 
-        assertEquals(null,redisRepo.hentMellomlagring("key"))
-
+        assertEquals(null, redisRepo.hentMellomlagring("key"))
     }
 
 }
