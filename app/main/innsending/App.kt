@@ -87,10 +87,10 @@ fun Application.server(config: Config = Config()) {
     }
 
     routing {
-        authenticate("tokenx") {
+//        authenticate("tokenx") {
             innsendingRoute(postgres, redis)
             mellomlagerRoute(redis, antivirus, pdfGen)
-        }
+//        }
 
         actuator(prometheus)
     }

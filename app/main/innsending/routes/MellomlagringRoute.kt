@@ -6,18 +6,27 @@ import innsending.pdf.PdfGen
 import innsending.redis.RedisRepo
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.apache.pdfbox.Loader
 import java.util.*
 
+private fun ApplicationCall.personident(): String {
+    return requireNotNull(principal<JWTPrincipal>()) {
+        "principal mangler i ktor auth"
+    }.getClaim("pid", String::class)
+        ?: error("pid mangler i tokenx claims")
+}
+
 fun Route.mellomlagerRoute(redis: RedisRepo, virusScanClient: ClamAVClient, pdfGen: PdfGen) {
     route("/mellomlagring/søknad") {
 
         post {
-            //TODO: bytt søknadID til personId i header
-            val personIdent = "<personIdent>"
+            val personIdent = call.personident()
+
             redis.mellomlagre(
                 key = personIdent,
                 value = call.receive()
@@ -26,7 +35,7 @@ fun Route.mellomlagerRoute(redis: RedisRepo, virusScanClient: ClamAVClient, pdfG
         }
 
         get {
-            val personIdent = "<personIdent>"
+            val personIdent = call.personident()
             when (val soknad = redis.hentMellomlagring(personIdent)) {
                 null -> call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret søknad")
                 else -> call.respond(HttpStatusCode.OK, soknad)
@@ -34,7 +43,7 @@ fun Route.mellomlagerRoute(redis: RedisRepo, virusScanClient: ClamAVClient, pdfG
         }
 
         delete {
-            val personIdent = "<personIdent>"
+            val personIdent = call.personident()
             redis.slettMellomlagring(personIdent)
             call.respond(HttpStatusCode.OK)
         }

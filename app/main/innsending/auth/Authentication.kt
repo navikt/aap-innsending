@@ -45,6 +45,11 @@ fun Application.authentication(config: TokenXConfig) {
                     return@validate null
                 }
 
+                if (cred.getClaim("pid", String::class) == null) {
+                    SECURE_LOGGER.warn("TokenX validering feilet (personident mangler i claims)")
+                    return@validate null
+                }
+
                 JWTPrincipal(cred.payload)
             }
         }
