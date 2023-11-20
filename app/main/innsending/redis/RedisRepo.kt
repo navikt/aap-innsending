@@ -1,6 +1,7 @@
 package innsending.redis
 
 import innsending.RedisConfig
+import innsending.SECURE_LOGGER
 import redis.clients.jedis.DefaultJedisClientConfig
 import redis.clients.jedis.HostAndPort
 import redis.clients.jedis.JedisPool
@@ -46,7 +47,12 @@ class RedisRepo(private val config: RedisConfig, private val jedisPool: JedisPoo
         }
 
     fun isReady() = jedisPool.resource.use {
-            it.ping()=="PONG"
-        }
+            try {
+                it.ping()=="PONG"
+            }catch (e:Exception){
+                SECURE_LOGGER.warn("Klarte ikke å pinge redis",e)
+                false
+            }
+    }
 
 }
