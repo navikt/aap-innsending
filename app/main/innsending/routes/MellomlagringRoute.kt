@@ -25,8 +25,8 @@ fun Route.mellomlagerRoute(redis: RedisRepo, virusScanClient: ClamAVClient, pdfG
     route("/mellomlagring/søknad") {
 
         post {
-            val personIdent = call.personident()
-
+            //val personIdent = call.personident()
+            val personIdent = requireNotNull(call.request.headers["NAV-PersonIdent"])
             redis.mellomlagre(
                 key = personIdent,
                 value = call.receive()
@@ -35,7 +35,8 @@ fun Route.mellomlagerRoute(redis: RedisRepo, virusScanClient: ClamAVClient, pdfG
         }
 
         get {
-            val personIdent = call.personident()
+            //val personIdent = call.personident()
+            val personIdent = requireNotNull(call.request.headers["NAV-PersonIdent"])
             when (val soknad = redis.hentMellomlagring(personIdent)) {
                 null -> call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret søknad")
                 else -> call.respond(HttpStatusCode.OK, soknad)
@@ -43,7 +44,8 @@ fun Route.mellomlagerRoute(redis: RedisRepo, virusScanClient: ClamAVClient, pdfG
         }
 
         delete {
-            val personIdent = call.personident()
+            //val personIdent = call.personident()
+            val personIdent = requireNotNull(call.request.headers["NAV-PersonIdent"])
             redis.slettMellomlagring(personIdent)
             call.respond(HttpStatusCode.OK)
         }
