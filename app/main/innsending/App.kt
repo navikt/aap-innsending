@@ -92,6 +92,6 @@ fun Application.server(config: Config = Config()) {
             mellomlagerRoute(redis, antivirus, pdfGen)
 //        }
 
-        actuator(prometheus)
+        actuator(prometheus, redis)
     }
 }
