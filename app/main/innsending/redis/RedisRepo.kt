@@ -8,16 +8,17 @@ import redis.clients.jedis.JedisPoolConfig
 
 const val EnDag: Long = 60 * 60 * 24
 
-class RedisRepo(private val config: RedisConfig) {
-    private val jedisPool = JedisPool(
-        JedisPoolConfig(),
-        HostAndPort.from(config.uri),
-        DefaultJedisClientConfig.builder()
-            .ssl(true)
-            .user(config.username)
-            .password(config.password)
-            .build()
+private fun jedisPool(config:RedisConfig)= JedisPool(
+    JedisPoolConfig(),
+    HostAndPort.from(config.uri),
+    DefaultJedisClientConfig.builder()
+        .ssl(true)
+        .user(config.username)
+        .password(config.password)
+        .build()
     )
+
+class RedisRepo(private val config: RedisConfig, private val jedisPool: JedisPool = jedisPool(config)) {
 
     /**
      * Mellomlagrer key-value parr. Kan f.eks være en søknad eller et vedlegg
