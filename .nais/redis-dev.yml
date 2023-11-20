@@ -10,4 +10,4 @@ spec:
   plan: business-4
   project: nav-dev
   userConfig:
-    redis_persistance: off
+    redis_persistence: off
