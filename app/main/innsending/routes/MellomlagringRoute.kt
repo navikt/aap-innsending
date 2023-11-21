@@ -3,7 +3,8 @@ package innsending.routes
 import innsending.antivirus.ClamAVClient
 import innsending.antivirus.ScanResult
 import innsending.pdf.PdfGen
-import innsending.redis.RedisRepo
+import innsending.redis.EnDag
+import innsending.redis.Redis
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -21,23 +22,21 @@ private fun ApplicationCall.personident(): String {
         ?: error("pid mangler i tokenx claims")
 }
 
-fun Route.mellomlagerRoute(redis: RedisRepo, virusScanClient: ClamAVClient, pdfGen: PdfGen) {
+fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: PdfGen) {
     route("/mellomlagring/søknad") {
 
         post {
             //val personIdent = call.personident()
             val personIdent = requireNotNull(call.request.headers["NAV-PersonIdent"])
-            redis.mellomlagre(
-                key = personIdent,
-                value = call.receive()
-            )
+            redis[personIdent] = call.receive()
+            redis.expire(personIdent, 3 * EnDag)
             call.respond(HttpStatusCode.OK)
         }
 
         get {
             //val personIdent = call.personident()
             val personIdent = requireNotNull(call.request.headers["NAV-PersonIdent"])
-            when (val soknad = redis.hentMellomlagring(personIdent)) {
+            when (val soknad = redis.get(personIdent)) {
                 null -> call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret søknad")
                 else -> call.respond(HttpStatusCode.OK, soknad)
             }
@@ -46,7 +45,7 @@ fun Route.mellomlagerRoute(redis: RedisRepo, virusScanClient: ClamAVClient, pdfG
         delete {
             //val personIdent = call.personident()
             val personIdent = requireNotNull(call.request.headers["NAV-PersonIdent"])
-            redis.slettMellomlagring(personIdent)
+            redis.del(personIdent)
             call.respond(HttpStatusCode.OK)
         }
     }
@@ -76,10 +75,8 @@ fun Route.mellomlagerRoute(redis: RedisRepo, virusScanClient: ClamAVClient, pdfG
                 call.respond(HttpStatusCode.NotAcceptable, "PDF er kryptert")
             }
 
-            redis.mellomlagre(
-                key = vedleggId,
-                value = pdf
-            )
+            redis[vedleggId] = pdf
+            redis.expire(vedleggId, 3 * EnDag)
 
             call.respond(HttpStatusCode.Created, vedleggId)
         }
@@ -87,7 +84,7 @@ fun Route.mellomlagerRoute(redis: RedisRepo, virusScanClient: ClamAVClient, pdfG
         get("/{vedleggId}") {
             val vedleggId = requireNotNull(call.parameters["vedleggId"])
 
-            when (val vedlegg = redis.hentMellomlagring(vedleggId)) {
+            when (val vedlegg = redis.get(vedleggId)) {
                 null -> call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret vedlegg")
                 else -> call.respond(HttpStatusCode.OK, vedlegg)
             }
@@ -96,7 +93,7 @@ fun Route.mellomlagerRoute(redis: RedisRepo, virusScanClient: ClamAVClient, pdfG
         delete("/{vedleggId}") {
             val vedleggId = requireNotNull(call.parameters["vedleggId"])
 
-            redis.slettMellomlagring(vedleggId)
+            redis.del(vedleggId)
             call.respond(HttpStatusCode.OK)
         }
     }

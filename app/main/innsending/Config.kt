@@ -16,7 +16,7 @@ data class Config(
 )
 
 data class RedisConfig(
-    val uri: String = getEnvVar("REDIS_URI_MELLOMLAGER").also { SECURE_LOGGER.info("redis uri $it") },
+    val uri: URI = URI.create(getEnvVar("REDIS_URI_MELLOMLAGER").also { SECURE_LOGGER.info("redis uri $it") }),
     val username: String = getEnvVar("REDIS_USERNAME_MELLOMLAGER"),
     val password: String = getEnvVar("REDIS_PASSWORD_MELLOMLAGER"),
 )
@@ -33,7 +33,7 @@ data class PostgresConfig(
 
 private fun getEnvVar(envar: String) = System.getenv(envar) ?: error("missing envvar $envar")
 
-data class JoarkConfig (
+data class JoarkConfig(
     val baseUrl: String = getEnvVar("JOARK_BASE_URL")
 )
 

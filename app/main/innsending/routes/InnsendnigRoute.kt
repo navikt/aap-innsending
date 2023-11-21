@@ -1,7 +1,7 @@
 package innsending.routes
 
 import innsending.postgres.PostgresRepo
-import innsending.redis.RedisRepo
+import innsending.redis.Redis
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -12,7 +12,7 @@ import java.util.*
 
 private val logger = LoggerFactory.getLogger("App")
 
-fun Route.innsendingRoute(postgres: PostgresRepo, redis: RedisRepo) {
+fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
     route("/innsending") {
 
         post("/søknad") {
@@ -22,7 +22,7 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: RedisRepo) {
             logger.trace("Mottok søknad med id")
 
             val vedleggMedDataPairs = innsending.vedlegg.mapNotNull { vedlegg ->
-                redis.hentMellomlagring(vedlegg.id)?.let { Pair(vedlegg, it) }
+                redis[vedlegg.id]?.let { Pair(vedlegg, it) }
             }
 
             if(vedleggMedDataPairs.size != innsending.vedlegg.size ){
@@ -37,16 +37,16 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: RedisRepo) {
             )
 
             innsending.vedlegg.forEach { vedlegg ->
-                redis.slettMellomlagring(vedlegg.id)
+                redis.del(vedlegg.id)
             }
-            redis.slettMellomlagring(personIdent)
+            redis.del(personIdent)
 
             call.respond(HttpStatusCode.OK, "Vi har mottatt søknaden din")
         }
 
         post("/vedlegg") {
             val innsending = call.receive<InnsendingVedlegg>()
-            val vedlegg = redis.hentMellomlagring(innsending.vedleggId)
+            val vedlegg = redis[innsending.vedleggId]
                 ?: return@post call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret vedlegg")
 
             postgres.lagreVedlegg(
@@ -56,7 +56,7 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: RedisRepo) {
                 vedlegg = vedlegg
             )
 
-            redis.slettMellomlagring(innsending.vedleggId)
+            redis.del(innsending.vedleggId)
 
             call.respond(HttpStatusCode.OK, "Vedlegg ble slettet fra mellomlageret og lagret i databasen")
         }

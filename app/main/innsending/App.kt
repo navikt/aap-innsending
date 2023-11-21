@@ -8,7 +8,7 @@ import innsending.arkiv.JournalpostSender
 import innsending.auth.authentication
 import innsending.pdf.PdfGen
 import innsending.postgres.PostgresRepo
-import innsending.redis.RedisRepo
+import innsending.redis.Redis
 import innsending.routes.actuator
 import innsending.routes.innsendingRoute
 import innsending.routes.mellomlagerRoute
@@ -16,7 +16,6 @@ import innsending.scheduler.ArkivScheduler
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
-import io.ktor.server.auth.*
 import io.ktor.server.engine.*
 import io.ktor.server.metrics.micrometer.*
 import io.ktor.server.netty.*
@@ -33,16 +32,15 @@ import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 
 val SECURE_LOGGER: Logger = LoggerFactory.getLogger("secureLog")
-val LOGGER: Logger = LoggerFactory.getLogger("App")
 
 fun main() {
-    Thread.currentThread().setUncaughtExceptionHandler { _, e -> LOGGER.error("Uhåndtert feil", e) }
+    Thread.currentThread().setUncaughtExceptionHandler { _, e -> SECURE_LOGGER.error("Uhåndtert feil", e) }
     embeddedServer(Netty, port = 8080, module = Application::server).start(wait = true)
 }
 
 fun Application.server(config: Config = Config()) {
     val postgres = PostgresRepo(config.postgres)
-    val redis = RedisRepo(config.redis)
+    val redis = Redis(config.redis)
     val antivirus = ClamAVClient()
     val pdfGen = PdfGen()
 
@@ -88,8 +86,8 @@ fun Application.server(config: Config = Config()) {
 
     routing {
 //        authenticate("tokenx") {
-            innsendingRoute(postgres, redis)
-            mellomlagerRoute(redis, antivirus, pdfGen)
+        innsendingRoute(postgres, redis)
+        mellomlagerRoute(redis, antivirus, pdfGen)
 //        }
 
         actuator(prometheus, redis)
