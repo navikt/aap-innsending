@@ -8,8 +8,8 @@ import redis.clients.jedis.JedisPool
 class RedisJedis(private val config: RedisConfig) {
     private val pool = JedisPool(
         GenericObjectPoolConfig(),
-        config.uri.host,
-        config.uri.port
+        config.uri.substringBeforeLast(":"),
+        config.uri.substringAfterLast(":").toInt()
     )
 
     operator fun set(key: String, value: ByteArray) {

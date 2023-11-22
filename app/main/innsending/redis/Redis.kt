@@ -6,7 +6,6 @@ import io.ktor.util.*
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.net.Socket
-import java.nio.ByteBuffer
 
 const val EnDag: Long = 60 * 60 * 24
 
@@ -49,9 +48,7 @@ open class Redis(private val config: RedisConfig) {
     }
 
     class ManagedImpl(config: RedisConfig) : Managed, AutoCloseable {
-        private val socket = Socket(config.uri.host, config.uri.port).also {
-            SECURE_LOGGER.info("creating socket with host: ${config.uri.host} and port: ${config.uri.port}")
-        }
+        private val socket = Socket(config.uri.substringBeforeLast(":"), config.uri.substringAfterLast(":").toInt())
         private val writer = Encoder(BufferedOutputStream(socket.getOutputStream()))
         private val reader = Parser(BufferedInputStream(socket.getInputStream()))
 
@@ -60,15 +57,17 @@ open class Redis(private val config: RedisConfig) {
             writer.write(args.toList())
             writer.flush()
             Thread.sleep(100)
-            return when(val parsed = reader.parse()) {
+            return when (val parsed = reader.parse()) {
                 is ByteArray -> {
                     SECURE_LOGGER.info("ByteArray: ${parsed.encodeBase64()}")
                     parsed
                 }
+
                 is Long -> {
                     SECURE_LOGGER.info("Long: $parsed")
                     error("long not supported")
                 }
+
                 is List<*> -> {
                     parsed.forEach {
                         when (it) {
@@ -79,6 +78,7 @@ open class Redis(private val config: RedisConfig) {
                     }
                     error("list not supported")
                 }
+
                 null -> null
                 else -> {
                     SECURE_LOGGER.info("Any: ${parsed.javaClass.canonicalName}")
