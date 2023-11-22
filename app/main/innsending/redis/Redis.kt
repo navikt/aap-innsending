@@ -1,10 +1,12 @@
 package innsending.redis
 
 import innsending.RedisConfig
+import innsending.SECURE_LOGGER
 import io.ktor.util.*
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.net.Socket
+import java.nio.ByteBuffer
 
 const val EnDag: Long = 60 * 60 * 24
 
@@ -39,7 +41,9 @@ open class Redis(private val config: RedisConfig) {
     }
 
     class ManagedImpl(config: RedisConfig) : Managed, AutoCloseable {
-        private val socket = Socket(config.uri.host, config.uri.port)
+        private val host = config.uri.substringBeforeLast(":")
+        private val port = config.uri.substringAfterLast(":").toInt()
+        private val socket = Socket(host, port)
         private val writer = Encoder(BufferedOutputStream(socket.getOutputStream()))
         private val reader = Parser(BufferedInputStream(socket.getInputStream()))
 
@@ -47,7 +51,33 @@ open class Redis(private val config: RedisConfig) {
         override fun call(vararg args: Any): ByteArray? {
             writer.write(args.toList())
             writer.flush()
-            return reader.parse()
+
+            return when(val parsed = reader.parse()) {
+                is ByteArray -> {
+                    SECURE_LOGGER.info("ByteArray: ${parsed.encodeBase64()}")
+                    parsed
+                }
+                is Long -> {
+                    SECURE_LOGGER.info("Long: $parsed")
+                    error("long not supported")
+                }
+                is List<*> -> {
+                    parsed.forEach {
+                        when (it) {
+                            is ByteArray -> SECURE_LOGGER.info("List.ByteArray: ${it.encodeBase64()}")
+                            is Long -> SECURE_LOGGER.info("Long: $it")
+                            else -> SECURE_LOGGER.info("List.* $${it?.javaClass?.canonicalName}")
+                        }
+                    }
+                    error("list not supported")
+                }
+                null -> null
+                else -> {
+                    SECURE_LOGGER.info("Any: ${parsed.javaClass.canonicalName}")
+                    error("unknown not supported")
+                }
+            }
+
         }
 
 //        private inline fun <reified T : Any> read(): T? = reader.parse() as T?

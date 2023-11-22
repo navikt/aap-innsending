@@ -6,11 +6,11 @@ private const val CR = '\r'.code
 private const val LF = '\n'.code
 
 class Parser(private val input: InputStream) {
-    fun parse(): ByteArray? = when (val read = input.read()) {
+    fun parse(): Any? = when (val read = input.read()) {
         '+'.code -> parseString()
-        ':'.code -> parseString() //parseNumber()
+        ':'.code -> parseNumber()
         '$'.code -> parseBulkString()
-        '*'.code -> error("List not supported") // parseList()
+        '*'.code -> parseList()
         '-'.code -> error(String(parseString()))
         -1 -> null
         else -> error("Unexpected input: ${read.toChar()}")

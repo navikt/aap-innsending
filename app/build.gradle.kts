@@ -52,6 +52,7 @@ dependencies {
     testImplementation(kotlin("test"))
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     testImplementation("com.h2database:h2:2.2.224")
+//    testImplementation("com.redis.testcontainers:testcontainers-redis-junit:1.6.4")
 }
 
 repositories {
