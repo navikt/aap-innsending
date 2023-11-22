@@ -13,26 +13,32 @@ const val EnDag: Long = 60 * 60 * 24
 
 open class Redis(private val config: RedisConfig) {
     internal open fun connect(): Managed = ManagedImpl(config).also {
+        SECURE_LOGGER.info("calling AUTH with ${config.username}:${config.password}")
         it.call("AUTH", config.username, config.password)
     }
 
     operator fun set(key: String, value: ByteArray): Unit = connect().use {
+        SECURE_LOGGER.info("calling SET with $key:$value")
         it.call("SET", key, value)
     }
 
     operator fun get(key: String): ByteArray? = connect().use {
+        SECURE_LOGGER.info("calling GET with $key")
         it.call("GET", key)
     }
 
     fun expire(key: String, seconds: Long): Unit = connect().use {
+        SECURE_LOGGER.info("calling EXPIRE $key:$seconds")
         it.call("EXPIRE", key, seconds)
     }
 
     fun del(key: String): Unit = connect().use {
+        SECURE_LOGGER.info("calling DEL $key")
         it.call("DEL", key)
     }
 
     fun ready(): Boolean = connect().use {
+        SECURE_LOGGER.info("calling PING")
         it.call("PING")?.encodeBase64() == "PONG"
     }
 
@@ -41,7 +47,9 @@ open class Redis(private val config: RedisConfig) {
     }
 
     class ManagedImpl(config: RedisConfig) : Managed, AutoCloseable {
-        private val socket = Socket(config.uri.host, config.uri.port)
+        private val socket = Socket(config.uri.host, config.uri.port).also {
+            SECURE_LOGGER.info("creating socket with host: ${config.uri.host} and port: ${config.uri.port}")
+        }
         private val writer = Encoder(BufferedOutputStream(socket.getOutputStream()))
         private val reader = Parser(BufferedInputStream(socket.getInputStream()))
 
