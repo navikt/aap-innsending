@@ -13,7 +13,7 @@ const val EnDag: Long = 60 * 60 * 24
 
 open class Redis(private val config: RedisConfig) {
     internal open fun connect(): Managed = ManagedImpl(config).also {
-        SECURE_LOGGER.info("calling AUTH with ${config.username}:${config.password}")
+//        SECURE_LOGGER.info("calling AUTH with ${config.username}:${config.password}")
 //        it.call("AUTH", config.username, config.password)
     }
 
@@ -38,7 +38,7 @@ open class Redis(private val config: RedisConfig) {
     }
 
     fun ready(): Boolean = connect().use {
-        SECURE_LOGGER.info("calling PING")
+//        SECURE_LOGGER.info("calling PING")
         it.call("PING")?.encodeBase64() == "PONG"
     }
 

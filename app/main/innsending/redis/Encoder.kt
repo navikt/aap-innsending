@@ -27,6 +27,7 @@ class Encoder(private val out: OutputStream) {
         }
     }
 
+    // *3\r\n$4\r\nAUTH\r\n$4\r\nUSER\r\n$4\r\nPASS\r\n
     /*
      * Redis [documentation](https://redis.io/docs/reference/protocol-spec/#bulk-strings)
      */
