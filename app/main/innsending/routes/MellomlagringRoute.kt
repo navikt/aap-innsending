@@ -36,7 +36,7 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
         get {
             //val personIdent = call.personident()
             val personIdent = requireNotNull(call.request.headers["NAV-PersonIdent"])
-            when (val soknad = redis[personIdent]) {
+            when (val soknad = redis.get(personIdent)) {
                 null -> call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret søknad")
                 else -> call.respond(HttpStatusCode.OK, soknad)
             }

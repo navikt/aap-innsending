@@ -39,6 +39,8 @@ open class Redis(private val config: RedisConfig) {
 
     fun ready(): Boolean = connect().use {
 //        SECURE_LOGGER.info("calling PING")
+        val maybePong = it.call("PING")?.encodeBase64()
+        SECURE_LOGGER.warn("PING = $maybePong")
         it.call("PING")?.encodeBase64() == "PONG"
     }
 
