@@ -21,7 +21,7 @@ class Parser(private val input: InputStream) {
             SECURE_LOGGER.info("parsed LR fra redis, scanner videre..")
             scanCr()
         }
-        -1 -> null
+        -1 -> null // outputstream returnerer -1 ved end of stream
         else -> error("Unexpected input: ${read.toChar()}, ${read.toChar().code.toByte()}")
     }
 
@@ -53,19 +53,19 @@ class Parser(private val input: InputStream) {
     private fun scanCr(): ByteArray {
         var buffer = ByteArray(1024)
         var ch: Int
-        var idx = 0
+        var index = 0
 
         fun expandBuffer() {
             buffer = buffer.copyOf(buffer.size * 2)
         }
 
         while (CR != input.read().also { ch = it }) {
-            buffer[idx++] = ch.toByte()
-            if (idx == buffer.size) expandBuffer()
+            buffer[index++] = ch.toByte()
+            if (index == buffer.size) expandBuffer()
         }
 
         if (LF != input.read()) error("Expected LF")
 
-        return buffer.copyOfRange(0, idx)
+        return buffer.copyOfRange(0, index)
     }
 }
