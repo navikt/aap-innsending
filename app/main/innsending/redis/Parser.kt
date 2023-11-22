@@ -8,12 +8,12 @@ private const val LF = '\n'.code
 class Parser(private val input: InputStream) {
     fun parse(): ByteArray? = when (val read = input.read()) {
         '+'.code -> parseString()
-        ':'.code -> parseNumber().toByteArray() // fixme: riktig å ta tobytearray her?
+        ':'.code -> parseString() //parseNumber()
         '$'.code -> parseBulkString()
-//        '*'.code -> parseList()
+        '*'.code -> error("List not supported") // parseList()
         '-'.code -> error(String(parseString()))
         -1 -> null
-        else -> error("Unexpected input: ${read.toByteArray()}")
+        else -> error("Unexpected input: ${read.toChar()}")
     }
 
     private fun parseNumber(): Long = String(scanCr()).toLong()
