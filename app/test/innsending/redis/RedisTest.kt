@@ -37,10 +37,8 @@ class RedisTest {
 //    fun  jedisTest() {
 //        val config = RedisConfig(URI.create("http://localhost:6379"), "", "")
 //
-//        val jedis = Jedis(config.uri.host, config.uri.port)
-//        jedis.connect()
-//        jedis.set("c", "b")
-//        jedis.disconnect()
-//        assertEquals("b", jedis.get("c"))
+//        val jedis = RedisJedis(config)
+//        jedis.set("c", "b".encodeToByteArray())
+//        assertEquals("b", String(jedis.get("c")!!))
 //    }
 }
