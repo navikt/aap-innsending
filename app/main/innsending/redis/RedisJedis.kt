@@ -2,22 +2,26 @@ package innsending.redis
 
 import innsending.RedisConfig
 import io.ktor.util.*
-import org.apache.commons.pool2.impl.GenericObjectPoolConfig
+import redis.clients.jedis.DefaultJedisClientConfig
+import redis.clients.jedis.HostAndPort
 import redis.clients.jedis.JedisPool
+import redis.clients.jedis.JedisPoolConfig
 
 class RedisJedis(private val config: RedisConfig) {
     private val pool = JedisPool(
-        GenericObjectPoolConfig(),
-        config.uri.substringBeforeLast(":"),
-        config.uri.substringAfterLast(":").toInt()
+        JedisPoolConfig(),
+        HostAndPort(config.uri.host, config.uri.port),
+        DefaultJedisClientConfig.builder()
+            .ssl(true)
+            .user(config.username)
+            .password(config.password)
+            .build()
     )
 
     operator fun set(key: String, value: ByteArray) {
         pool.resource.use {
-            it.connect()
             it.auth(config.username, config.password)
             it.set(key, value.encodeBase64())
-            it.disconnect()
         }
     }
 
