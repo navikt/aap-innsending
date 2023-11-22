@@ -2,6 +2,7 @@ package innsending.routes
 
 import innsending.postgres.PostgresRepo
 import innsending.redis.Redis
+import innsending.redis.RedisJedis
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -12,7 +13,7 @@ import java.util.*
 
 private val logger = LoggerFactory.getLogger("App")
 
-fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
+fun Route.innsendingRoute(postgres: PostgresRepo, redis: RedisJedis) {
     route("/innsending") {
 
         post("/søknad") {

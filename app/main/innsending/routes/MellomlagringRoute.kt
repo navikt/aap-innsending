@@ -5,6 +5,7 @@ import innsending.antivirus.ScanResult
 import innsending.pdf.PdfGen
 import innsending.redis.EnDag
 import innsending.redis.Redis
+import innsending.redis.RedisJedis
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -22,7 +23,7 @@ private fun ApplicationCall.personident(): String {
         ?: error("pid mangler i tokenx claims")
 }
 
-fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: PdfGen) {
+fun Route.mellomlagerRoute(redis: RedisJedis, virusScanClient: ClamAVClient, pdfGen: PdfGen) {
     route("/mellomlagring/søknad") {
 
         post {

@@ -1,13 +1,14 @@
 package innsending.routes
 
 import innsending.redis.Redis
+import innsending.redis.RedisJedis
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheus.PrometheusMeterRegistry
 
-fun Routing.actuator(prometheus: PrometheusMeterRegistry, redisRepo: Redis) {
+fun Routing.actuator(prometheus: PrometheusMeterRegistry, redisRepo: RedisJedis) {
     route("/actuator") {
         get("/metrics") {
             call.respond(prometheus.scrape())

@@ -32,7 +32,7 @@ dependencies {
     implementation("io.ktor:ktor-client-jackson:$ktorVersion")
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
 
-//    implementation("redis.clients:jedis:5.0.2")
+    implementation("redis.clients:jedis:5.0.2")
 
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
 

@@ -59,7 +59,7 @@ open class Redis(private val config: RedisConfig) {
         override fun call(vararg args: Any): ByteArray? {
             writer.write(args.toList())
             writer.flush()
-
+            Thread.sleep(100)
             return when(val parsed = reader.parse()) {
                 is ByteArray -> {
                     SECURE_LOGGER.info("ByteArray: ${parsed.encodeBase64()}")
@@ -90,6 +90,9 @@ open class Redis(private val config: RedisConfig) {
 
 //        private inline fun <reified T : Any> read(): T? = reader.parse() as T?
 
-        override fun close() = socket.close()
+        override fun close() {
+            call("QUIT")
+            socket.close()
+        }
     }
 }
