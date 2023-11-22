@@ -14,7 +14,7 @@ const val EnDag: Long = 60 * 60 * 24
 open class Redis(private val config: RedisConfig) {
     internal open fun connect(): Managed = ManagedImpl(config).also {
         SECURE_LOGGER.info("calling AUTH with ${config.username}:${config.password}")
-        it.call("AUTH", config.username, config.password)
+//        it.call("AUTH", config.username, config.password)
     }
 
     operator fun set(key: String, value: ByteArray): Unit = connect().use {
