@@ -41,9 +41,7 @@ open class Redis(private val config: RedisConfig) {
     }
 
     class ManagedImpl(config: RedisConfig) : Managed, AutoCloseable {
-        private val host = config.uri.substringBeforeLast(":")
-        private val port = config.uri.substringAfterLast(":").toInt()
-        private val socket = Socket(host, port)
+        private val socket = Socket(config.uri.host, config.uri.port)
         private val writer = Encoder(BufferedOutputStream(socket.getOutputStream()))
         private val reader = Parser(BufferedInputStream(socket.getInputStream()))
 

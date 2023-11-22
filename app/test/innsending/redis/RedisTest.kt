@@ -16,14 +16,14 @@ import kotlin.test.assertEquals
 class RedisTest {
 
 //    @Test
-    fun test() {
+//    fun test() {
 //        RedisMock().use {
-            val config = RedisConfig("http://host.docker.internal:6379", "", "")
-            SECURE_LOGGER.warn("uri: ${config.uri}")
-            val redis = Redis(config)
-            redis["a"] = "b".toByteArray()
-
-            assertEquals("b", String(redis["a"]!!))
-        }
+//            val config = RedisConfig("http://host.docker.internal:6379", "", "")
+//            SECURE_LOGGER.warn("uri: ${config.uri}")
+//            val redis = Redis(config)
+//            redis["a"] = "b".toByteArray()
+//
+//            assertEquals("b", String(redis["a"]!!))
+//        }
 //    }
 }

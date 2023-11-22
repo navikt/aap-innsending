@@ -30,14 +30,14 @@ class RedisFake(config: RedisConfig) : Redis(config) {
 class RedisFakeTest {
     @Test
     fun `fakes set and get`() {
-        val redis: Redis = RedisFake(RedisConfig("mock:123", "", ""))
+        val redis: Redis = RedisFake(RedisConfig(URI.create("mock:123"), "", ""))
         redis["key"] = "value".toByteArray()
         assertEquals("value", String(requireNotNull(redis["key"])))
     }
 
     @Test
     fun `fakes del`() {
-        val redis: Redis = RedisFake(RedisConfig("mock:123", "", ""))
+        val redis: Redis = RedisFake(RedisConfig(URI.create("mock:123"), "", ""))
         redis["key"] = "value".toByteArray()
         assertEquals("value", String(requireNotNull(redis["key"])))
         redis.del("key")
