@@ -1,4 +1,4 @@
-package innsending.redis
+package no.nav.aap.redis
 
 import java.io.OutputStream
 

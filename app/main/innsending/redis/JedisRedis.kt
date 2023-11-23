@@ -1,13 +1,20 @@
 package innsending.redis
 
 import innsending.RedisConfig
-import io.ktor.util.*
 import redis.clients.jedis.DefaultJedisClientConfig
 import redis.clients.jedis.HostAndPort
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.JedisPoolConfig
 
-class RedisJedis(private val config: RedisConfig) {
+interface Redis {
+    operator fun set(key: String, value: ByteArray)
+    operator fun get(key: String): ByteArray?
+    fun expire(key: String, seconds: Long)
+    fun del(key: String)
+    fun ready(): Boolean
+}
+
+class JedisRedis(config: RedisConfig): Redis {
     private val pool = JedisPool(
         JedisPoolConfig(),
         HostAndPort(config.uri.host, config.uri.port),
@@ -18,31 +25,31 @@ class RedisJedis(private val config: RedisConfig) {
             .build()
     )
 
-    operator fun set(key: String, value: ByteArray) {
+    override operator fun set(key: String, value: ByteArray) {
         pool.resource.use {
             it.set(key.toByteArray(), value)
         }
     }
 
-    operator fun get(key: String): ByteArray? {
+    override operator fun get(key: String): ByteArray? {
         pool.resource.use {
             return it.get(key.toByteArray())
         }
     }
 
-    fun expire(key: String, seconds: Long) {
+    override fun expire(key: String, seconds: Long) {
         pool.resource.use {
             it.expire(key, seconds)
         }
     }
 
-    fun del(key: String) {
+    override fun del(key: String) {
         pool.resource.use {
             it.del(key)
         }
     }
 
-    fun ready(): Boolean {
+    override fun ready(): Boolean {
         pool.resource.use {
             return it.ping() == "PONG"
         }

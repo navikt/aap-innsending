@@ -8,8 +8,7 @@ import innsending.arkiv.JournalpostSender
 import innsending.auth.authentication
 import innsending.pdf.PdfGen
 import innsending.postgres.PostgresRepo
-import innsending.redis.Redis
-import innsending.redis.RedisJedis
+import innsending.redis.JedisRedis
 import innsending.routes.actuator
 import innsending.routes.innsendingRoute
 import innsending.routes.mellomlagerRoute
@@ -41,7 +40,7 @@ fun main() {
 
 fun Application.server(config: Config = Config()) {
     val postgres = PostgresRepo(config.postgres)
-    val redis = RedisJedis(config.redis)
+    val redis = JedisRedis(config.redis)
     val antivirus = ClamAVClient()
     val pdfGen = PdfGen()
 

@@ -1,6 +1,5 @@
-package innsending.redis
+package no.nav.aap.redis
 
-import innsending.RedisConfig
 import org.junit.jupiter.api.Test
 import java.net.URI
 import kotlin.test.assertEquals

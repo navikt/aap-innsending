@@ -3,9 +3,7 @@ package innsending.routes
 import innsending.antivirus.ClamAVClient
 import innsending.antivirus.ScanResult
 import innsending.pdf.PdfGen
-import innsending.redis.EnDag
-import innsending.redis.Redis
-import innsending.redis.RedisJedis
+import innsending.redis.JedisRedis
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -16,6 +14,8 @@ import io.ktor.server.routing.*
 import org.apache.pdfbox.Loader
 import java.util.*
 
+const val EnDag: Long = 60 * 60 * 24
+
 private fun ApplicationCall.personident(): String {
     return requireNotNull(principal<JWTPrincipal>()) {
         "principal mangler i ktor auth"
@@ -23,7 +23,7 @@ private fun ApplicationCall.personident(): String {
         ?: error("pid mangler i tokenx claims")
 }
 
-fun Route.mellomlagerRoute(redis: RedisJedis, virusScanClient: ClamAVClient, pdfGen: PdfGen) {
+fun Route.mellomlagerRoute(redis: JedisRedis, virusScanClient: ClamAVClient, pdfGen: PdfGen) {
     route("/mellomlagring/søknad") {
 
         post {

@@ -1,9 +1,6 @@
-package innsending.redis
+package no.nav.aap.redis
 
-import innsending.RedisConfig
-import innsending.SECURE_LOGGER
 import org.junit.jupiter.api.Test
-import redis.clients.jedis.Jedis
 import java.net.Socket
 import java.net.URI
 import kotlin.test.assertEquals
@@ -18,8 +15,6 @@ import kotlin.test.assertEquals
 //}
 
 class RedisTest {
-// sudo ln -nfs ~/.colima/docker.sock /var/run/docker.sock
-
 //    @Test
 //    fun test() {
 //        val config = RedisConfig(URI("http://localhost:6379"), "", "")

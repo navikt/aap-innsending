@@ -1,15 +1,12 @@
-package innsending.redis
+package no.nav.aap.redis
 
-import innsending.RedisConfig
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.net.Socket
 
-const val EnDag: Long = 60 * 60 * 24
-
 open class Redis(private val config: RedisConfig) {
     internal open fun connect(): Managed = ManagedImpl(config).also {
-//        it.call("AUTH", config.username, config.password)
+        it.call("AUTH", config.username, config.password)
     }
 
     operator fun set(key: String, value: ByteArray): Unit = connect().use {
