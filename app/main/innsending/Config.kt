@@ -39,7 +39,6 @@ data class JoarkConfig(
 
 data class TokenXConfig(
     val clientId: String = getEnvVar("TOKEN_X_CLIENT_ID"),
-    val wellknown: String = getEnvVar("TOKEN_X_WELL_KNOWN_URL"),
     val issuer: String = getEnvVar("TOKEN_X_ISSUER"),
     val jwks: String = getEnvVar("TOKEN_X_JWKS_URI")
 )

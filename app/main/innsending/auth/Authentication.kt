@@ -20,10 +20,7 @@ fun Application.authentication(config: TokenXConfig) {
 
     authentication {
         jwt("tokenx") {
-            verifier(
-                idPortenProvider,
-                config.issuer
-            )
+            verifier(idPortenProvider, config.issuer)
             challenge { _, _ -> call.respond(HttpStatusCode.Unauthorized, "TokenX validering feilet") }
             validate { cred ->
                 val now = Date()
