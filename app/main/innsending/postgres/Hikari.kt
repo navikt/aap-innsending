@@ -27,7 +27,7 @@ internal object Hikari {
             idleTimeout = 10001
             connectionTimeout = 1000
             maxLifetime = 30001
-            driverClassName = "org.postgresql.Driver"
+            driverClassName = config.driver
         })
 
     fun flywayMigration(ds: DataSource) {

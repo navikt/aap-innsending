@@ -27,9 +27,9 @@ data class PostgresConfig(
     val database: String = getEnvVar("NAIS_DATABASE_INNSENDING_INNSENDING_DATABASE"),
     val username: String = getEnvVar("NAIS_DATABASE_INNSENDING_INNSENDING_USERNAME"),
     val password: String = getEnvVar("NAIS_DATABASE_INNSENDING_INNSENDING_PASSWORD"),
-) {
-    val url: String get() = "jdbc:postgresql://${host}:${port}/${database}"
-}
+    val url: String = "jdbc:postgresql://${host}:${port}/${database}",
+    val driver: String ="org.postgresql.Driver"
+    )
 
 private fun getEnvVar(envar: String) = System.getenv(envar) ?: error("missing envvar $envar")
 
