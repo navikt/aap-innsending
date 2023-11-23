@@ -22,11 +22,7 @@ class RedisTest {
 
 //    @Test
 //    fun test() {
-//        val config = RedisConfig(URI.create("http://localhost:6379"), "", "")
-//        println(config.uri.host)
-//        println(config.uri.port)
-//
-//        SECURE_LOGGER.warn("uri: ${config.uri}")
+//        val config = RedisConfig(URI("http://localhost:6379"), "", "")
 //        val redis = Redis(config)
 //        redis.set("a", "b".toByteArray())
 //

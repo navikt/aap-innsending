@@ -6,7 +6,7 @@ RUN apk add binutils
 # Build small JRE image
 RUN $JAVA_HOME/bin/jlink \
     --verbose \
-    --add-modules java.base,java.management,java.naming,java.net.http,java.security.jgss,java.security.sasl,java.sql,jdk.httpserver,jdk.unsupported \
+    --add-modules java.base,java.management,java.naming,java.net.http,java.security.jgss,java.security.sasl,java.sql,jdk.httpserver,jdk.unsupported,jdk.crypto.ec \
     --strip-debug \
     --no-man-pages \
     --no-header-files \

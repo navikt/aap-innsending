@@ -1,6 +1,5 @@
 package innsending.redis
 
-import innsending.SECURE_LOGGER
 import java.io.InputStream
 
 private const val CR = '\r'.code
@@ -13,14 +12,6 @@ class Parser(private val input: InputStream) {
         '$'.code -> parseBulkString()
         '*'.code -> parseList()
         '-'.code -> error(String(parseString()))
-        CR -> {
-            SECURE_LOGGER.info("parsed CR fra redis, scanner videre..")
-            scanCr()
-        }
-        LF -> {
-            SECURE_LOGGER.info("parsed LR fra redis, scanner videre..")
-            scanCr()
-        }
         -1 -> null // outputstream returnerer -1 ved end of stream
         else -> error("Unexpected input: ${read.toChar()}, ${read.toChar().code.toByte()}")
     }
