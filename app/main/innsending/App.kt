@@ -9,6 +9,7 @@ import innsending.auth.authentication
 import innsending.pdf.PdfGen
 import innsending.postgres.PostgresRepo
 import innsending.redis.JedisRedis
+import innsending.redis.Redis
 import innsending.routes.actuator
 import innsending.routes.innsendingRoute
 import innsending.routes.mellomlagerRoute
@@ -16,6 +17,7 @@ import innsending.scheduler.ArkivScheduler
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.engine.*
 import io.ktor.server.metrics.micrometer.*
 import io.ktor.server.netty.*
@@ -38,9 +40,8 @@ fun main() {
     embeddedServer(Netty, port = 8080, module = Application::server).start(wait = true)
 }
 
-fun Application.server(config: Config = Config()) {
+fun Application.server(config: Config = Config(), redis: Redis = JedisRedis(config.redis)) {
     val postgres = PostgresRepo(config.postgres)
-    val redis = JedisRedis(config.redis)
     val antivirus = ClamAVClient()
     val pdfGen = PdfGen()
 
@@ -85,10 +86,10 @@ fun Application.server(config: Config = Config()) {
     }
 
     routing {
-//        authenticate("tokenx") {
+        authenticate("tokenx") {
         innsendingRoute(postgres, redis)
         mellomlagerRoute(redis, antivirus, pdfGen)
-//        }
+        }
 
         actuator(prometheus, redis)
     }

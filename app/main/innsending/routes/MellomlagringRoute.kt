@@ -4,6 +4,7 @@ import innsending.antivirus.ClamAVClient
 import innsending.antivirus.ScanResult
 import innsending.pdf.PdfGen
 import innsending.redis.JedisRedis
+import innsending.redis.Redis
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -23,20 +24,20 @@ private fun ApplicationCall.personident(): String {
         ?: error("pid mangler i tokenx claims")
 }
 
-fun Route.mellomlagerRoute(redis: JedisRedis, virusScanClient: ClamAVClient, pdfGen: PdfGen) {
+fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: PdfGen) {
     route("/mellomlagring/søknad") {
 
         post {
-            //val personIdent = call.personident()
-            val personIdent = requireNotNull(call.request.headers["NAV-PersonIdent"])
+            val personIdent = call.personident()
+            //val personIdent = requireNotNull(call.request.headers["NAV-PersonIdent"])
             redis[personIdent] = call.receive()
             redis.expire(personIdent, 3 * EnDag)
             call.respond(HttpStatusCode.OK)
         }
 
         get {
-            //val personIdent = call.personident()
-            val personIdent = requireNotNull(call.request.headers["NAV-PersonIdent"])
+            val personIdent = call.personident()
+            //val personIdent = requireNotNull(call.request.headers["NAV-PersonIdent"])
             when (val soknad = redis[personIdent]) {
                 null -> call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret søknad")
                 else -> call.respond(HttpStatusCode.OK, soknad)
@@ -44,8 +45,8 @@ fun Route.mellomlagerRoute(redis: JedisRedis, virusScanClient: ClamAVClient, pdf
         }
 
         delete {
-            //val personIdent = call.personident()
-            val personIdent = requireNotNull(call.request.headers["NAV-PersonIdent"])
+            val personIdent = call.personident()
+            //val personIdent = requireNotNull(call.request.headers["NAV-PersonIdent"])
             redis.del(personIdent)
             call.respond(HttpStatusCode.OK)
         }
