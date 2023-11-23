@@ -20,13 +20,13 @@ class RedisJedis(private val config: RedisConfig) {
 
     operator fun set(key: String, value: ByteArray) {
         pool.resource.use {
-            it.set(key, value.encodeBase64())
+            it.set(key.toByteArray(), value)
         }
     }
 
     operator fun get(key: String): ByteArray? {
         pool.resource.use {
-            return it.get(key)?.toByteArray()
+            return it.get(key.toByteArray())
         }
     }
 
