@@ -11,7 +11,7 @@ class Encoder(private val out: OutputStream) {
     /**
      * Redis [documentation](https://redis.io/docs/reference/protocol-spec/#arrays)
      */
-    fun write(list: List<*>) {
+    fun write(list: List<*>): Encoder {
         out.write('*'.toByteArray())
         out.write(list.size.toByteArray())
         out.write(CRLF)
@@ -25,29 +25,35 @@ class Encoder(private val out: OutputStream) {
                 else -> error("Unsupported type: ${it?.javaClass?.canonicalName}")
             }
         }
+        return this
     }
 
     /*
      * Redis [documentation](https://redis.io/docs/reference/protocol-spec/#bulk-strings)
      */
-    private fun write(value: ByteArray) {
+    private fun write(value: ByteArray): Encoder {
         out.write('$'.toByteArray())
         out.write(value.size.toByteArray())
         out.write(CRLF)
         out.write(value)
         out.write(CRLF)
+        return this
     }
 
     /**
      * Redis [documentation](https://redis.io/docs/reference/protocol-spec/#integers)
      */
-    private fun write(value: Long) {
+    private fun write(value: Long): Encoder {
         out.write(':'.toByteArray())
         out.write(value.toByteArray())
         out.write(CRLF)
+        return this
     }
 
-    fun flush() = out.flush()
+    fun flush(): Encoder {
+        out.flush()
+        return this
+    }
 }
 
 internal fun Char.toByteArray() = byteArrayOf(code.toByte())

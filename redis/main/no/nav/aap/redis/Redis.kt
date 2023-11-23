@@ -5,7 +5,7 @@ import java.io.BufferedOutputStream
 import java.net.Socket
 
 open class Redis(private val config: RedisConfig) {
-    internal open fun connect(): Managed = ManagedImpl(config).also {
+    internal open fun connect(): Managed = ManagedImpl().also {
         it.call("AUTH", config.username, config.password)
     }
 
@@ -33,16 +33,10 @@ open class Redis(private val config: RedisConfig) {
         fun call(vararg args: Any): Any?
     }
 
-    class ManagedImpl(config: RedisConfig) : Managed, AutoCloseable {
-        private val socket = Socket(config.uri.host, config.uri.port).apply {
-            reuseAddress = true
-            keepAlive = true
-            tcpNoDelay = true
-            setSoLinger(false, 0)
-            soTimeout = 2000
-        }
-        private val writer get() = Encoder(BufferedOutputStream(socket.getOutputStream()))
-        private val reader get() = Parser(BufferedInputStream(socket.getInputStream()))
+    inner class ManagedImpl : Managed, AutoCloseable {
+        private val socket = Socket(config.uri.host, config.uri.port)
+        private val writer = Encoder(BufferedOutputStream(socket.getOutputStream()))
+        private val reader = Parser(BufferedInputStream(socket.getInputStream()))
 
         // See [docs](https://redis.io/commands)
         override fun call(vararg args: Any): Any? {
