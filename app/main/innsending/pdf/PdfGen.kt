@@ -16,25 +16,24 @@ private val clientLatencyStats: Summary = Summary.build()
     .help("Latency pdfgen, in seconds")
     .register()
 
-class PdfGen {
+class PdfGen(private val host: String) {
     private val httpClient = HttpClientFactory.create()
 
-    suspend fun bildeTilPfd(bildeFil: ByteArray): ByteArray =
+    suspend fun bildeTilPfd(bildeFil: ByteArray, contentType:ContentType): ByteArray =
         clientLatencyStats.startTimer().use {
-            httpClient.post("http://pdfgen/api/v1/genpdf/image/fillager") {
-                accept(ContentType.Application.Json)
+            httpClient.post("$host/api/v1/genpdf/image/fillager") {
+                contentType(contentType)
+                accept(ContentType.Application.Pdf)
                 setBody(bildeFil)
-                contentType(ContentType.Application.Json)
             }
         }.body()
 
-    // TODO: finn riktig URI til pdfgen
-    suspend fun søknadTilPdf(json: ByteArray) =
+    suspend fun søknadTilPdf(json: ByteArray): ByteArray =
         clientLatencyStats.startTimer().use {
-            httpClient.post("http://pdfgen/api/v1/genpdf/aap-pdfgen/soknad") {
+            httpClient.post("$host/api/v1/genpdf/aap-pdfgen/soknad") {
                 contentType(ContentType.Application.Json)
                 accept(ContentType.Application.Pdf)
                 setBody(json)
             }
-        }
+        }.body()
 }

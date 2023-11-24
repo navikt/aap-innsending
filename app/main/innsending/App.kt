@@ -42,8 +42,8 @@ fun main() {
 
 fun Application.server(config: Config = Config(), redis: Redis = JedisRedis(config.redis)) {
     val postgres = PostgresRepo(config.postgres)
-    val antivirus = ClamAVClient()
-    val pdfGen = PdfGen()
+    val antivirus = ClamAVClient(config.virusScanHost)
+    val pdfGen = PdfGen(config.pdfGenHost)
 
     val joarkClient = JoarkClient(config.azure, config.joark)
     val journalpostSender = JournalpostSender(joarkClient, postgres)

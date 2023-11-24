@@ -33,6 +33,8 @@ internal object TestConfig {
                 issuer = "tokenx",
                 jwks = "http://localhost:${fakes.tokenx.port()}"
             ),
+            pdfGenHost = "http://localhost:${fakes.pdfGen.port()}",
+            virusScanHost = "http://localhost:${fakes.virusScan.port()}"
         )
     }
 }

@@ -1,5 +1,6 @@
 package innsending
 
+import innsending.antivirus.ScanResult
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
@@ -15,11 +16,15 @@ class Fakes : AutoCloseable {
     val azure = embeddedServer(Netty, port = 0, module = Application::azure).apply { start() }
     val tokenx = embeddedServer(Netty, port = 0, module = Application::tokenx).apply { start() }
     val joark = embeddedServer(Netty, port = 0, module = Application::joark).apply { start() }
+    val pdfGen = embeddedServer(Netty, port = 0, module = Application::pdfGen).apply { start() }
+    val virusScan = embeddedServer(Netty, port = 0, module = Application::virusScan).apply { start() }
 
     override fun close() {
         azure.stop(0L, 0L)
         tokenx.stop(0L, 0L)
         joark.stop(0L, 0L)
+        pdfGen.stop(0L, 0L)
+        virusScan.stop(0L, 0L)
     }
 }
 
@@ -57,4 +62,33 @@ fun Application.azure() {
     }
 }
 
+fun Application.pdfGen() {
+    install(ContentNegotiation) { jackson() }
+    routing {
+        post("/api/v1/genpdf/image/fillager") {
+            val res = Resource.read("/resources/pdf/minimal.pdf")
+            call.respond(res)
+        }
+        post("/api/v1/genpdf/aap-pdfgen/soknad") {
+            val res = Resource.read("/resources/pdf/minimal.pdf")
+            call.respond(res)
+        }
+    }
+}
+
+fun Application.virusScan() {
+    install(ContentNegotiation) { jackson() }
+    routing {
+        put("/scan") {
+            call.respondText(
+                """[{"result": "OK"}]""",
+                ContentType.Application.Json
+            )
+        }
+    }
+}
+
+object Resource{
+    fun read(path: String): ByteArray = requireNotNull(this::class.java.getResource(path)).readBytes()
+}
 fun NettyApplicationEngine.port() = runBlocking { resolvedConnectors() }.first { it.type == ConnectorType.HTTP }.port

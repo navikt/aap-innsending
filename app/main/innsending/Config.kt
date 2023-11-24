@@ -1,5 +1,6 @@
 package innsending
 
+import innsending.pdf.PdfGen
 import no.nav.aap.ktor.client.AzureConfig
 import java.net.URI
 
@@ -13,6 +14,8 @@ data class Config(
     ),
     val joark: JoarkConfig = JoarkConfig(),
     val tokenx: TokenXConfig = TokenXConfig(),
+    val pdfGenHost: String = "http://pdfgen",
+    val virusScanHost: String = "http://clamav.nais-system"
 )
 
 data class RedisConfig(

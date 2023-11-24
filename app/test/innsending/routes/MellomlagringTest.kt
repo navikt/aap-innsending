@@ -1,15 +1,17 @@
 package innsending.routes
 
-import innsending.Fakes
-import innsending.TokenXJwksGenerator
+import innsending.*
 import innsending.TestConfig
+import innsending.TokenXJwksGenerator
 import innsending.redis.JedisRedisFake
-import innsending.server
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
+import io.ktor.util.*
 import org.junit.jupiter.api.Test
+import java.util.UUID
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
@@ -17,7 +19,7 @@ import kotlin.test.assertNull
 class MellomlagringTest {
 
     @Test
-    fun `kan mellomlagre`() {
+    fun `kan mellomlagre søknad`() {
         Fakes().use { fakes ->
             val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
@@ -37,7 +39,7 @@ class MellomlagringTest {
     }
 
     @Test
-    fun `kan hente mellomlagring`() {
+    fun `kan hente mellomlagring søknad`() {
         Fakes().use { fakes ->
             val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
@@ -59,7 +61,7 @@ class MellomlagringTest {
 
 
     @Test
-    fun `kan slette mellomlagring`() {
+    fun `kan slette mellomlagret søknad`() {
         Fakes().use { fakes ->
             val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
@@ -95,6 +97,50 @@ class MellomlagringTest {
                     bearerAuth(jwkGen.generateTokenX("12345678910").serialize())
                 }
                 assertEquals(res.status, HttpStatusCode.NotFound)
+            }
+        }
+    }
+
+    @Test
+    fun `kan mellomlagre vedlegg`() {
+        Fakes().use { fakes ->
+            val jedis = JedisRedisFake()
+            val config = TestConfig.default(fakes)
+            val jwkGen = TokenXJwksGenerator(config.tokenx)
+
+            testApplication {
+                application { server(config, jedis) }
+                val res = client.post("/mellomlagring/vedlegg") {
+                    contentType(ContentType.Image.JPEG)
+                    bearerAuth(jwkGen.generateTokenX("12345678910").serialize())
+                    setBody(Resource.read("/resources/images/bilde.jpg"))
+                }
+                assertEquals(HttpStatusCode.Created, res.status)
+                assertEquals(String(Resource.read("/resources/pdf/minimal.pdf")), String(jedis.get(res.bodyAsText())!!))
+            }
+        }
+    }
+
+    @Test
+    fun `kan hente mellomlagret vedlegg`() {
+        Fakes().use { fakes ->
+            val jedis = JedisRedisFake()
+            val config = TestConfig.default(fakes)
+            val jwkGen = TokenXJwksGenerator(config.tokenx)
+            val id = UUID.randomUUID()
+            testApplication {
+                application { server(config, jedis) }
+                jedis.set(
+                    id.toString(),
+                    String(Resource.read("/resources/pdf/minimal.pdf")).toByteArray()
+                )
+
+                val res = client.get("/mellomlagring/vedlegg/$id") {
+                    accept(ContentType.Application.Pdf)
+                    bearerAuth(jwkGen.generateTokenX("12345678910").serialize())
+                }
+                assertEquals(HttpStatusCode.OK, res.status)
+                assertEquals(String(Resource.read("/resources/pdf/minimal.pdf")), String(res.readBytes()))
             }
         }
     }

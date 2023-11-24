@@ -15,19 +15,20 @@ private val clientLatencyStats: Summary = Summary.build()
     .help("Latency clamav, in seconds")
     .register()
 
-class ClamAVClient {
+class ClamAVClient(private val host:String) {
     private val httpClient = HttpClientFactory.create()
-    suspend fun scan(fil: ByteArray): ScanResult =
+    suspend fun hasVirus(fil: ByteArray, contentType: ContentType): Boolean =
         clientLatencyStats.startTimer().use {
-            httpClient.put("http://clamav.nais-system/scan") {
+            httpClient.put("$host/scan") {
                 accept(ContentType.Application.Json)
                 setBody(fil)
-                contentType(ContentType.Application.Json)
+                contentType(contentType)
             }
         }
             .body<List<ScanResult>>()
-            .first()
+            .any{ it.result == ScanResult.Result.FOUND }
 }
+
 
 data class ScanResult(val result: Result) {
     enum class Result {

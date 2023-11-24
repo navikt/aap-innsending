@@ -3,7 +3,6 @@ package innsending.routes
 import innsending.antivirus.ClamAVClient
 import innsending.antivirus.ScanResult
 import innsending.pdf.PdfGen
-import innsending.redis.JedisRedis
 import innsending.redis.Redis
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -56,24 +55,23 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
         post {
             val vedleggId = UUID.randomUUID().toString()
             val fil = call.receive<ByteArray>()
-            val contentType = call.request.header(HttpHeaders.ContentType)
+            val contentType = ContentType.parse(requireNotNull(call.request.header(HttpHeaders.ContentType)))
+            val acceptedContentType = listOf(ContentType.Image.JPEG, ContentType.Image.PNG, ContentType.Application.Pdf)
 
-            if (virusScanClient.scan(fil).result == ScanResult.Result.FOUND) {
-                call.respond(HttpStatusCode.NotAcceptable, "Fant virus i fil")
+            val pdf: ByteArray = when (contentType){
+                 in acceptedContentType -> {
+                    if (virusScanClient.hasVirus(fil, contentType)) {
+                        call.respond(HttpStatusCode.NotAcceptable, "Fant virus i fil")
+                    }
+
+                    pdfGen.bildeTilPfd(fil, contentType)
+                }
+                else -> {
+                    return@post call.respond(HttpStatusCode.NotAcceptable, "Filtype ikke støttet")
+                }
             }
 
-            val pdf: ByteArray? = when (contentType) {
-                "application/pdf" -> fil
-                "image/jpeg" -> pdfGen.bildeTilPfd(fil)
-                "image/png" -> pdfGen.bildeTilPfd(fil)
-                else -> null
-            }
-
-            if (pdf == null) {
-                call.respond(HttpStatusCode.NotAcceptable, "Filtype ikke støttet")
-            }
-
-            if (!sjekkPdf(pdf!!)) {
+            if (!sjekkPdf(pdf)) {
                 call.respond(HttpStatusCode.NotAcceptable, "PDF er kryptert")
             }
 
