@@ -27,7 +27,7 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
             }
 
             if(vedleggMedDataPairs.size != innsending.vedlegg.size ){
-                call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret vedlegg")
+                return@post call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret vedlegg")
             }
 
             postgres.lagreSøknadMedVedlegg(

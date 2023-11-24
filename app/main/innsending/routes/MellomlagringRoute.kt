@@ -61,7 +61,7 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
             val pdf: ByteArray = when (contentType){
                  in acceptedContentType -> {
                     if (virusScanClient.hasVirus(fil, contentType)) {
-                        call.respond(HttpStatusCode.NotAcceptable, "Fant virus i fil")
+                        return@post call.respond(HttpStatusCode.NotAcceptable, "Fant virus i fil")
                     }
 
                     pdfGen.bildeTilPfd(fil, contentType)
@@ -72,7 +72,7 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
             }
 
             if (!sjekkPdf(pdf)) {
-                call.respond(HttpStatusCode.NotAcceptable, "PDF er kryptert")
+                return@post call.respond(HttpStatusCode.NotAcceptable, "PDF er kryptert")
             }
 
             redis[vedleggId] = pdf
