@@ -17,7 +17,7 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
     route("/innsending") {
 
         post("/søknad") {
-            val personIdent = "<personIdent>"
+            val personIdent = call.personident()
             val innsending = call.receive<Innsending>()
             val søknadId = UUID.randomUUID()
             logger.trace("Mottok søknad med id")

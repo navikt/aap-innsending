@@ -40,8 +40,7 @@ fun main() {
     embeddedServer(Netty, port = 8080, module = Application::server).start(wait = true)
 }
 
-fun Application.server(config: Config = Config(), redis: Redis = JedisRedis(config.redis)) {
-    val postgres = PostgresRepo(config.postgres)
+fun Application.server(config: Config = Config(), redis: Redis = JedisRedis(config.redis), postgres: PostgresRepo = PostgresRepo(config.postgres)) {
     val antivirus = ClamAVClient(config.virusScanHost)
     val pdfGen = PdfGen(config.pdfGenHost)
 

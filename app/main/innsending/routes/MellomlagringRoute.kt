@@ -16,7 +16,7 @@ import java.util.*
 
 const val EnDag: Long = 60 * 60 * 24
 
-private fun ApplicationCall.personident(): String {
+internal fun ApplicationCall.personident(): String {
     return requireNotNull(principal<JWTPrincipal>()) {
         "principal mangler i ktor auth"
     }.getClaim("pid", String::class)
