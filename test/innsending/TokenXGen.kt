@@ -11,7 +11,7 @@ import com.nimbusds.jwt.SignedJWT
 import org.intellij.lang.annotations.Language
 import java.util.*
 
-internal class TokenXJwksGenerator(private val config: TokenXConfig) {
+internal class TokenXGen(private val config: TokenXConfig) {
     private val rsaKey: RSAKey get() = JWKSet.parse(TOKEN_X_JWKS).getKeyByKeyId("localhost-signer") as RSAKey
 
     private fun signed(claims: JWTClaimsSet): SignedJWT {
@@ -28,7 +28,7 @@ internal class TokenXJwksGenerator(private val config: TokenXConfig) {
         .claim("pid", personident)
         .build()
 
-    fun generateTokenX(personident: String): SignedJWT = signed(claims(personident))
+    fun generate(personident: String): String = signed(claims(personident)).serialize()
 }
 
 @Language("JSON")

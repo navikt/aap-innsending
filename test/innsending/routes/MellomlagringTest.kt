@@ -18,13 +18,13 @@ class MellomlagringTest {
         Fakes().use { fakes ->
             val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
-            val jwkGen = TokenXJwksGenerator(config.tokenx)
+            val jwkGen = TokenXGen(config.tokenx)
 
             testApplication {
                 application { server(config, jedis) }
                 val res = client.post("/mellomlagring/søknad") {
                     contentType(ContentType.Application.Json)
-                    bearerAuth(jwkGen.generateTokenX("12345678910").serialize())
+                    bearerAuth(jwkGen.generate("12345678910"))
                     setBody("""{"soknadId":"1234"}""")
                 }
                 assertEquals(HttpStatusCode.OK, res.status)
@@ -38,7 +38,7 @@ class MellomlagringTest {
         Fakes().use { fakes ->
             val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
-            val jwkGen = TokenXJwksGenerator(config.tokenx)
+            val jwkGen = TokenXGen(config.tokenx)
 
             testApplication {
                 application { server(config, jedis) }
@@ -46,7 +46,7 @@ class MellomlagringTest {
 
                 val res = client.get("/mellomlagring/søknad") {
                     accept(ContentType.Application.Json)
-                    bearerAuth(jwkGen.generateTokenX("12345678910").serialize())
+                    bearerAuth(jwkGen.generate("12345678910"))
                 }
                 assertEquals(HttpStatusCode.OK, res.status)
                 assertEquals("""{"søknadId":"1234"}""", res.bodyAsText())
@@ -60,7 +60,7 @@ class MellomlagringTest {
         Fakes().use { fakes ->
             val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
-            val jwkGen = TokenXJwksGenerator(config.tokenx)
+            val jwkGen = TokenXGen(config.tokenx)
 
             testApplication {
                 application { server(config, jedis) }
@@ -68,7 +68,7 @@ class MellomlagringTest {
 
                 val del = client.delete("/mellomlagring/søknad") {
                     accept(ContentType.Application.Json)
-                    bearerAuth(jwkGen.generateTokenX("12345678910").serialize())
+                    bearerAuth(jwkGen.generate("12345678910"))
                 }
                 assertEquals(HttpStatusCode.OK, del.status)
 
@@ -82,14 +82,14 @@ class MellomlagringTest {
         Fakes().use { fakes ->
             val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
-            val jwkGen = TokenXJwksGenerator(config.tokenx)
+            val jwkGen = TokenXGen(config.tokenx)
 
             testApplication {
                 application { server(config, jedis) }
 
                 val res = client.get("/mellomlagring/søknad") {
                     accept(ContentType.Application.Json)
-                    bearerAuth(jwkGen.generateTokenX("12345678910").serialize())
+                    bearerAuth(jwkGen.generate("12345678910"))
                 }
                 assertEquals(res.status, HttpStatusCode.NotFound)
             }
@@ -101,13 +101,13 @@ class MellomlagringTest {
         Fakes().use { fakes ->
             val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
-            val jwkGen = TokenXJwksGenerator(config.tokenx)
+            val jwkGen = TokenXGen(config.tokenx)
 
             testApplication {
                 application { server(config, jedis) }
                 val res = client.post("/mellomlagring/vedlegg") {
                     contentType(ContentType.Image.JPEG)
-                    bearerAuth(jwkGen.generateTokenX("12345678910").serialize())
+                    bearerAuth(jwkGen.generate("12345678910"))
                     setBody(Resource.read("/resources/images/bilde.jpg"))
                 }
                 assertEquals(HttpStatusCode.Created, res.status)
@@ -121,7 +121,7 @@ class MellomlagringTest {
         Fakes().use { fakes ->
             val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
-            val jwkGen = TokenXJwksGenerator(config.tokenx)
+            val tokenx = TokenXGen(config.tokenx)
             val id = UUID.randomUUID()
             testApplication {
                 application { server(config, jedis) }
@@ -129,7 +129,7 @@ class MellomlagringTest {
 
                 val res = client.get("/mellomlagring/vedlegg/$id") {
                     accept(ContentType.Application.Pdf)
-                    bearerAuth(jwkGen.generateTokenX("12345678910").serialize())
+                    bearerAuth(tokenx.generate("12345678910"))
                 }
                 assertEquals(HttpStatusCode.OK, res.status)
                 assertEquals(String(Resource.read("/resources/pdf/minimal.pdf")), String(res.readBytes()))

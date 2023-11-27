@@ -2,12 +2,15 @@ package innsending.routes
 
 import innsending.Fakes
 import innsending.TestConfig
-import innsending.TokenXJwksGenerator
+import innsending.TokenXGen
 import innsending.postgres.H2TestBase
 import innsending.redis.JedisRedisFake
 import innsending.server
+import io.ktor.client.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.serialization.jackson.*
 import io.ktor.server.testing.*
 import org.junit.jupiter.api.Test
 import java.util.*
@@ -20,7 +23,7 @@ class InnsendingTest : H2TestBase() {
         Fakes().use { fakes ->
             val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
-            val jwkGen = TokenXJwksGenerator(config.tokenx)
+            val tokenx = TokenXGen(config.tokenx)
             val vedleggId1 = UUID.randomUUID()
             val vedleggId2 = UUID.randomUUID()
 
@@ -29,23 +32,23 @@ class InnsendingTest : H2TestBase() {
                 jedis[vedleggId1.toString()] = byteArrayOf()
                 jedis[vedleggId2.toString()] = byteArrayOf()
 
-                val res = client.post("/innsending/søknad") {
-                    bearerAuth(jwkGen.generateTokenX("12345678910").serialize())
+                val res = jsonHttpClient.post("/innsending/søknad") {
+                    bearerAuth(tokenx.generate("12345678910"))
                     contentType(ContentType.Application.Json)
                     setBody(
-                        """{
-                                "soknad":"1234",
-                                "vedlegg":[
-                                    {
-                                    "id":"$vedleggId1",
-                                    "tittel":"tittel1"
-                                    },
-                                    {
-                                    "id":"$vedleggId2",
-                                    "tittel":"tittel2"
-                                    }
-                                ]
-                                }""".trimMargin()
+                        Innsending(
+                            soknad = "help me".toByteArray(),
+                            vedlegg = listOf(
+                                Vedlegg(
+                                    id = vedleggId1.toString(),
+                                    tittel = "important"
+                                ),
+                                Vedlegg(
+                                    id = vedleggId2.toString(),
+                                    tittel = "nice to have"
+                                )
+                            )
+                        )
                     )
                 }
 
@@ -63,24 +66,24 @@ class InnsendingTest : H2TestBase() {
         Fakes().use { fakes ->
             val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
-            val jwkGen = TokenXJwksGenerator(config.tokenx)
+            val jwkGen = TokenXGen(config.tokenx)
 
             testApplication {
                 application { server(config, jedis, h2) }
 
-                val res = client.post("/innsending/søknad") {
-                    bearerAuth(jwkGen.generateTokenX("12345678910").serialize())
+                val res = jsonHttpClient.post("/innsending/søknad") {
+                    bearerAuth(jwkGen.generate("12345678910"))
                     contentType(ContentType.Application.Json)
                     setBody(
-                        """{
-                                "soknad":"1234",
-                                "vedlegg":[
-                                    {
-                                    "id":"${UUID.randomUUID()}",
-                                    "tittel":"tittel1"
-                                    }
-                                ]
-                                }""".trimMargin()
+                        Innsending(
+                            soknad = "søknad".toByteArray(),
+                            vedlegg = listOf(
+                                Vedlegg(
+                                    id = UUID.randomUUID().toString(),
+                                    tittel = " tittel1"
+                                )
+                            )
+                        )
                     )
                 }
 
@@ -95,4 +98,9 @@ class InnsendingTest : H2TestBase() {
     fun `kan sende inn vedlegg`() {
         assert(true)
     }
+
+    private val ApplicationTestBuilder.jsonHttpClient: HttpClient get() =
+        createClient {
+            install(ContentNegotiation) { jackson() }
+        }
 }
