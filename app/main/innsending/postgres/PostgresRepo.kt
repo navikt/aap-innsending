@@ -24,41 +24,29 @@ class PostgresRepo(
         PostgresDAO.deleteInnsending(id, con)
     }
 
-    fun lagreSøknadMedVedlegg(
-        søknadId: UUID,
+    fun lagreInnsending(
+        innsendingId: UUID,
         personIdent: String,
         innsending: Innsending,
         vedlegg: List<Pair<Vedlegg, ByteArray>>
     ) {
         hikari.transaction { con ->
             PostgresDAO.insertInnsending(
-                søknadId = søknadId,
+                innsendingId = innsendingId,
                 personident = personIdent,
-                søknad = innsending.soknad,
+                data = innsending.soknad,
                 con = con,
             )
 
             vedlegg.forEach { (vedlegg, data) ->
                 PostgresDAO.insertVedlegg(
-                    søknadId = søknadId,
+                    innsendingId = innsendingId,
                     vedleggId = UUID.fromString(vedlegg.id),
                     tittel = vedlegg.tittel,
                     vedlegg = data,
                     con = con,
                 )
             }
-        }
-    }
-
-    fun lagreVedlegg(søknadId: UUID, vedleggId: UUID, vedlegg: ByteArray, tittel: String) {
-        hikari.transaction { con ->
-            PostgresDAO.insertVedlegg(
-                søknadId = søknadId,
-                vedleggId = vedleggId,
-                vedlegg = vedlegg,
-                tittel = tittel,
-                con = con,
-            )
         }
     }
 }

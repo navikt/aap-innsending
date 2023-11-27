@@ -26,7 +26,7 @@ internal class PostgresRepoTest : H2TestBase() {
             Pair(vedlegg2, "vedlegg2".toByteArray()),
         )
 
-        repo.lagreSøknadMedVedlegg(søknadId, "12345678910", innsending, vedleggListe)
+        repo.lagreInnsending(søknadId, "12345678910", innsending, vedleggListe)
 
         assertEquals(1, countInnsending())
         assertEquals(2, countVedlegg())
@@ -48,7 +48,7 @@ internal class PostgresRepoTest : H2TestBase() {
         )
 
         try {
-            repo.lagreSøknadMedVedlegg(søknadId, "12345678910", innsending, vedleggListe)
+            repo.lagreInnsending(søknadId, "12345678910", innsending, vedleggListe)
         } catch (ignore: Throwable) {
             // Feilen skal boble opp til toppen av ktor og returneres til frontend, her ignorer vi
         }

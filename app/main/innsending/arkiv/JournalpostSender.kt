@@ -31,6 +31,7 @@ class JournalpostSender(
     }
 
     private fun lagDokumentliste(innsending: InnsendingMedFiler): List<Journalpost.Dokument> {
+        // TODO Hva om søknad er tom? (Ettersending)
         val søknad =
             Journalpost.Dokument(
                 tittel = "Søknad",

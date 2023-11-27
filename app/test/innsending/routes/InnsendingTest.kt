@@ -32,7 +32,7 @@ class InnsendingTest : H2TestBase() {
                 jedis[vedleggId1.toString()] = byteArrayOf()
                 jedis[vedleggId2.toString()] = byteArrayOf()
 
-                val res = jsonHttpClient.post("/innsending/søknad") {
+                val res = jsonHttpClient.post("/innsending") {
                     bearerAuth(tokenx.generate("12345678910"))
                     contentType(ContentType.Application.Json)
                     setBody(
@@ -71,7 +71,7 @@ class InnsendingTest : H2TestBase() {
             testApplication {
                 application { server(config, jedis, h2) }
 
-                val res = jsonHttpClient.post("/innsending/søknad") {
+                val res = jsonHttpClient.post("/innsending") {
                     bearerAuth(jwkGen.generate("12345678910"))
                     contentType(ContentType.Application.Json)
                     setBody(
@@ -95,8 +95,45 @@ class InnsendingTest : H2TestBase() {
     }
 
     @Test
-    fun `kan sende inn vedlegg`() {
-        assert(true)
+    fun `kan sende inn ettersending`() {
+        Fakes().use { fakes ->
+            val jedis = JedisRedisFake()
+            val config = TestConfig.default(fakes)
+            val tokenx = TokenXGen(config.tokenx)
+            val vedleggId1 = UUID.randomUUID()
+            val vedleggId2 = UUID.randomUUID()
+
+            testApplication {
+                application { server(config, jedis, h2) }
+                jedis[vedleggId1.toString()] = byteArrayOf()
+                jedis[vedleggId2.toString()] = byteArrayOf()
+
+                val res = jsonHttpClient.post("/innsending") {
+                    bearerAuth(tokenx.generate("12345678910"))
+                    contentType(ContentType.Application.Json)
+                    setBody(
+                        Innsending(
+                            vedlegg = listOf(
+                                Vedlegg(
+                                    id = vedleggId1.toString(),
+                                    tittel = "important"
+                                ),
+                                Vedlegg(
+                                    id = vedleggId2.toString(),
+                                    tittel = "nice to have"
+                                )
+                            )
+                        )
+                    )
+                }
+
+                assertEquals(HttpStatusCode.OK, res.status)
+
+                assertEquals(1, countInnsending())
+                assertEquals(2, countVedlegg())
+                assertEquals(1, getAllInnsendinger().size)
+            }
+        }
     }
 
     private val ApplicationTestBuilder.jsonHttpClient: HttpClient get() =

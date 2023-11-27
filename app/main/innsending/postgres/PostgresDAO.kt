@@ -2,6 +2,7 @@ package innsending.postgres
 
 import java.sql.Connection
 import java.sql.Timestamp
+import java.sql.Types
 import java.time.LocalDateTime
 import java.util.*
 
@@ -10,17 +11,17 @@ object PostgresDAO {
     private const val INSERT_VEDLEGG = """INSERT INTO fil (id, innsending_id, tittel, data) VALUES (?, ?, ?, ?)"""
     private const val SELECT_INNSENDING_IDS = """SELECT id FROM innsending"""
     private const val SELECT_INNSENDINGER = """SELECT * FROM innsending WHERE id = ?"""
-    private const val SELECT_FILER = """SELECT * from fil WHERE innsending_id = ?"""
+    private const val SELECT_FILER = """SELECT * FROM fil WHERE innsending_id = ?"""
     private const val INSERT_INNSENDING = """
         INSERT INTO innsending (id, opprettet, personident, data) VALUES (?, ?, ?, ?)
     """
 
-    fun insertInnsending(søknadId: UUID, personident: String, søknad: ByteArray, con: Connection) {
+    fun insertInnsending(innsendingId: UUID, personident: String, data: ByteArray?, con: Connection) {
         val stmt = con.prepareStatement(INSERT_INNSENDING)
-        stmt.setObject(1, søknadId)
+        stmt.setObject(1, innsendingId)
         stmt.setObject(2, Timestamp.valueOf(LocalDateTime.now()))
         stmt.setObject(3, personident)
-        stmt.setObject(4, søknad)
+        stmt.setNullableObject(4, data, Types.BINARY)
         stmt.execute()
     }
 
@@ -30,10 +31,10 @@ object PostgresDAO {
         stmt.execute()
     }
 
-    fun insertVedlegg(søknadId: UUID, vedleggId: UUID, vedlegg: ByteArray, tittel: String, con: Connection) {
+    fun insertVedlegg(innsendingId: UUID, vedleggId: UUID, vedlegg: ByteArray, tittel: String, con: Connection) {
         val stmt = con.prepareStatement(INSERT_VEDLEGG)
         stmt.setObject(1, vedleggId)
-        stmt.setObject(2, søknadId)
+        stmt.setObject(2, innsendingId)
         stmt.setObject(3, tittel)
         stmt.setObject(4, vedlegg)
         stmt.execute()
@@ -45,9 +46,9 @@ object PostgresDAO {
         return resultat.map { row -> row.getUUID("id") }
     }
 
-    fun selectInnsendingMedVedlegg(søknadId: UUID, con: Connection): InnsendingMedFiler {
+    fun selectInnsendingMedVedlegg(innsendingId: UUID, con: Connection): InnsendingMedFiler {
         val innsending = con.prepareStatement(SELECT_INNSENDINGER).use { stmt ->
-            stmt.setObject(1, søknadId)
+            stmt.setObject(1, innsendingId)
             val resultSet = stmt.executeQuery()
 
             resultSet.map { row ->
@@ -61,7 +62,7 @@ object PostgresDAO {
         }
 
         val vedleggListe = con.prepareStatement(SELECT_FILER).use { preparedStatement ->
-            preparedStatement.setObject(1, søknadId)
+            preparedStatement.setObject(1, innsendingId)
             val resultSet = preparedStatement.executeQuery()
 
             resultSet.map { row ->

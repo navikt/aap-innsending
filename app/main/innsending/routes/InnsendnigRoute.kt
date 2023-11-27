@@ -15,11 +15,11 @@ private val logger = LoggerFactory.getLogger("App")
 fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
     route("/innsending") {
 
-        post("/søknad") {
+        post {
             val personIdent = call.personident()
             val innsending = call.receive<Innsending>()
-            val søknadId = UUID.randomUUID()
-            logger.trace("Mottok søknad med id")
+            val innsendingId = UUID.randomUUID()
+            logger.trace("Mottok innsending med id {}", innsendingId)
 
             val vedleggMedDataPairs = innsending.vedlegg.mapNotNull { vedlegg ->
                 redis[vedlegg.id]?.let { Pair(vedlegg, it) }
@@ -29,8 +29,8 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
                 return@post call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret vedlegg")
             }
 
-            postgres.lagreSøknadMedVedlegg(
-                søknadId = søknadId,
+            postgres.lagreInnsending(
+                innsendingId = innsendingId,
                 personIdent = personIdent,
                 innsending = innsending,
                 vedlegg = vedleggMedDataPairs
@@ -41,36 +41,13 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
             }
             redis.del(personIdent)
 
-            call.respond(HttpStatusCode.OK, "Vi har mottatt søknaden din")
-        }
-
-        post("/vedlegg") {
-            val innsending = call.receive<InnsendingVedlegg>()
-            val vedlegg = redis[innsending.vedleggId]
-                ?: return@post call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret vedlegg")
-
-            postgres.lagreVedlegg(
-                søknadId = UUID.fromString(innsending.soknadId),
-                vedleggId = UUID.fromString(innsending.vedleggId),
-                tittel = innsending.tittel,
-                vedlegg = vedlegg
-            )
-
-            redis.del(innsending.vedleggId)
-
-            call.respond(HttpStatusCode.OK, "Vedlegg ble slettet fra mellomlageret og lagret i databasen")
+            call.respond(HttpStatusCode.OK, "Vi har mottatt innsendingen din")
         }
     }
 }
 
-data class InnsendingVedlegg(
-    val soknadId: String,
-    val vedleggId: String,
-    val tittel: String,
-)
-
 data class Innsending(
-    val soknad: ByteArray,
+    val soknad: ByteArray? = null,
     val vedlegg: List<Vedlegg>,
 )
 

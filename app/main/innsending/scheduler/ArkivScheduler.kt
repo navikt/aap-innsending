@@ -18,6 +18,7 @@ class ArkivScheduler(
                 val liste = repo.hentAlleInnsendinger()
                 liste.forEach {  søknadId ->
                     logger.info("Prøver å arkivere....")
+                    // TODO Lage PDF av søknaden
                     journalpostSender.arkiverAltSomKanArkiveres(søknadId)
                 }
             } catch (t: Throwable) {
