@@ -10,21 +10,20 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import junit.framework.TestCase.assertEquals
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
-import java.util.*
 
 class Fakes : AutoCloseable {
     val azure = embeddedServer(Netty, port = 0, module = Application::azure).apply { start() }
     val tokenx = embeddedServer(Netty, port = 0, module = Application::tokenx).apply { start() }
-    val joark = embeddedServer(Netty, port = 0, module = Application::joark).apply { start() }
+    val joark = JoarkFake()
     val pdfGen = embeddedServer(Netty, port = 0, module = Application::pdfGen).apply { start() }
     val virusScan = embeddedServer(Netty, port = 0, module = Application::virusScan).apply { start() }
 
     override fun close() {
         azure.stop(0L, 0L)
         tokenx.stop(0L, 0L)
-        joark.stop(0L, 0L)
+        joark.close()
         pdfGen.stop(0L, 0L)
         virusScan.stop(0L, 0L)
     }
@@ -39,52 +38,24 @@ fun Application.tokenx() {
     }
 }
 
-fun Application.joark() {
-    install(ContentNegotiation) { jackson() }
-    routing {
-        post("/rest/journalpostapi/v1/journalpost") {
-            val actual = call.receive<Journalpost>()
-            val expected = Journalpost(
-                tittel = "Søknad om AAP",
-                avsenderMottaker = Journalpost.AvsenderMottaker(
-                    id = Journalpost.Fødselsnummer("12345678910"),
-                    navn = "Kari Nordmann"
-                ),
-                bruker = Journalpost.Bruker(
-                    id = Journalpost.Fødselsnummer("12345678910")
-                ),
-                dokumenter = listOf(
-                    Journalpost.Dokument(
-                        tittel = "Søknad om AAP",
-                        dokumentVarianter = listOf(
-                            Journalpost.DokumentVariant(
-                                fysiskDokument = Base64.getEncoder().encodeToString(
-                                    Resource.read(
-                                        "/resources/pdf/minimal.pdf"
-                                    )
-                                ),
-                            )
-                        )
-                    )
-                ),
-                eksternReferanseId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000").toString(),
-                kanal = "NAV_NO",
-                journalposttype = "INNGAAENDE",
-                tilleggsopplysninger = listOf(
-                    Journalpost.Tilleggsopplysning(
-                        nokkel = "versjon",
-                        verdi = "1.0"
-                    )
-                ),
-                tema = "AAP"
-            )
+class JoarkFake : AutoCloseable {
+    private val server = create().apply { start() }
+    val port = server.port()
+    val receivedRequest = CompletableDeferred<Journalpost>()
 
-            assertEquals(expected, actual)
+    private fun create(): NettyApplicationEngine =
+        embeddedServer(Netty, port = 0, module = {
+            install(ContentNegotiation) { jackson() }
 
-            call.respond(HttpStatusCode.OK, "OK")
-        }
+            routing {
+                post("/rest/journalpostapi/v1/journalpost") {
+                    receivedRequest.complete(call.receive())
+                    call.respond(HttpStatusCode.OK, "OK")
+                }
+            }
+        })
 
-    }
+    override fun close() = server.stop(0, 0)
 }
 
 fun Application.azure() {
