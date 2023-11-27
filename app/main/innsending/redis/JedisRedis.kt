@@ -18,11 +18,7 @@ class JedisRedis(config: RedisConfig): Redis {
     private val pool = JedisPool(
         JedisPoolConfig(),
         HostAndPort(config.uri.host, config.uri.port),
-        DefaultJedisClientConfig.builder()
-            .ssl(true)
-            .user(config.username)
-            .password(config.password)
-            .build()
+        DefaultJedisClientConfig.builder().ssl(true).user(config.username).password(config.password).build()
     )
 
     override operator fun set(key: String, value: ByteArray) {

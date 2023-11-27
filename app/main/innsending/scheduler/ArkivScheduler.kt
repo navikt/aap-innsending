@@ -4,19 +4,18 @@ import innsending.arkiv.JournalpostSender
 import innsending.postgres.PostgresRepo
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
-import kotlin.coroutines.CoroutineContext
 
 private val logger = LoggerFactory.getLogger("Scheduler")
 private const val TI_SEKUNDER = 10_000L
 
 class ArkivScheduler(
-    private val postgresRepo: PostgresRepo,
+    private val repo: PostgresRepo,
     private val journalpostSender: JournalpostSender
 ): AutoCloseable {
     private val job: Job = CoroutineScope(Dispatchers.Default).launch {
         while (this.isActive) {
             try {
-                val liste = postgresRepo.hentAlleInnsendinger()
+                val liste = repo.hentAlleInnsendinger()
                 liste.forEach {  søknadId ->
                     logger.info("Prøver å arkivere....")
                     journalpostSender.arkiverAltSomKanArkiveres(søknadId)

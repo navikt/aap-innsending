@@ -4,28 +4,24 @@ import innsending.PostgresConfig
 import innsending.postgres.Hikari.flywayMigration
 import innsending.routes.Innsending
 import innsending.routes.Vedlegg
-import java.sql.Connection
 import java.util.*
 import javax.sql.DataSource
 
 class PostgresRepo(
     config: PostgresConfig,
     private val hikari: DataSource = Hikari.createDatasource(config).apply(::flywayMigration),
-    private val innsendingDAO: InnsendingDAO = InnsendingDAO(hikari),
 ) {
 
-    private fun transaction(block: Connection.(InnsendingDAO) -> Unit) {
-        hikari.connection.transaction {
-            block(it, innsendingDAO)
-        }
+    fun hentAlleInnsendinger(): List<UUID> = hikari.transaction { con ->
+        PostgresDAO.selectInnsendinger(con)
     }
 
-    fun hentAlleInnsendinger() = innsendingDAO.selectInnsendinger()
+    fun hentInnsending(søknadId: UUID): InnsendingMedFiler = hikari.transaction { con ->
+        PostgresDAO.selectInnsendingMedVedlegg(søknadId, con)
+    }
 
-    fun hentInnsending(søknadId: UUID) = innsendingDAO.selectInnsendingMedVedlegg(søknadId)
-
-    fun slettInnsending(id: UUID) {
-        innsendingDAO.deleteInnsending(id)
+    fun slettInnsending(id: UUID) = hikari.transaction { con ->
+        PostgresDAO.deleteInnsending(id, con)
     }
 
     fun lagreSøknadMedVedlegg(
@@ -34,32 +30,35 @@ class PostgresRepo(
         innsending: Innsending,
         vedlegg: List<Pair<Vedlegg, ByteArray>>
     ) {
-        transaction { dao ->
-            dao.insertInnsendingStatement(
+        hikari.transaction { con ->
+            PostgresDAO.insertInnsending(
                 søknadId = søknadId,
                 personident = personIdent,
                 søknad = innsending.soknad,
-                connection = this
+                con = con,
             )
 
             vedlegg.forEach { (vedlegg, data) ->
-                dao.insertVedleggStatement(
+                PostgresDAO.insertVedlegg(
                     søknadId = søknadId,
                     vedleggId = UUID.fromString(vedlegg.id),
                     tittel = vedlegg.tittel,
                     vedlegg = data,
-                    connection = this
+                    con = con,
                 )
             }
         }
     }
 
     fun lagreVedlegg(søknadId: UUID, vedleggId: UUID, vedlegg: ByteArray, tittel: String) {
-        innsendingDAO.insertVedlegg(
-            søknadId = søknadId,
-            vedleggId = vedleggId,
-            vedlegg = vedlegg,
-            tittel = tittel,
-        )
+        hikari.transaction { con ->
+            PostgresDAO.insertVedlegg(
+                søknadId = søknadId,
+                vedleggId = vedleggId,
+                vedlegg = vedlegg,
+                tittel = tittel,
+                con = con,
+            )
+        }
     }
 }

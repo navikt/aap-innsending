@@ -1,17 +1,14 @@
 package innsending.postgres
 
-import innsending.postgres.InitH2.dataSource
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.*
 
 class InnsendingDAOTest : H2TestBase() {
-    private val dao = InnsendingDAO(dataSource)
-
     @Test
     fun `Inserter en innsending`() {
         val søknadId = UUID.randomUUID()
-        dao.insertInnsending(søknadId, "12345678910", "søknad".toByteArray())
+        PostgresDAO.insertInnsending(søknadId, "12345678910", "søknad".toByteArray(), h2.connection)
 
         assertEquals(1, countInnsending())
     }
@@ -19,9 +16,10 @@ class InnsendingDAOTest : H2TestBase() {
     @Test
     fun `Inserter vedlegg`() {
         val søknadId = UUID.randomUUID()
-        dao.insertInnsending(søknadId, "12345678910", "søknad".toByteArray())
-
-        dao.insertVedlegg(søknadId, UUID.randomUUID(), "vedlegg".toByteArray(), "tittel")
+        h2.transaction {
+            PostgresDAO.insertInnsending(søknadId, "12345678910", "søknad".toByteArray(), it)
+            PostgresDAO.insertVedlegg(søknadId, UUID.randomUUID(), "vedlegg".toByteArray(), "tittel", it)
+        }
 
         assertEquals(1, countVedlegg())
     }
@@ -29,13 +27,14 @@ class InnsendingDAOTest : H2TestBase() {
     @Test
     fun `Sletting av innsending sletter også vedlegg`() {
         val søknadId = UUID.randomUUID()
-        dao.insertInnsending(søknadId, "12345678910", "søknad".toByteArray())
-
-        dao.insertVedlegg(søknadId, UUID.randomUUID(), "vedlegg".toByteArray(), "tittel")
+        h2.transaction {
+            PostgresDAO.insertInnsending(søknadId, "12345678910", "søknad".toByteArray(), it)
+            PostgresDAO.insertVedlegg(søknadId, UUID.randomUUID(), "vedlegg".toByteArray(), "tittel", it)
+        }
 
         assertEquals(1, countVedlegg())
 
-        dao.deleteInnsending(søknadId)
+        PostgresDAO.deleteInnsending(søknadId, h2.connection)
 
         assertEquals(0, countInnsending())
         assertEquals(0, countVedlegg())
@@ -44,15 +43,16 @@ class InnsendingDAOTest : H2TestBase() {
     @Test
     fun `Henter en komplett innsending med vedlegg`() {
         val søknadId = UUID.randomUUID()
-        dao.insertInnsending(søknadId, "12345678910", "søknad".toByteArray())
+        h2.transaction {
+            PostgresDAO.insertInnsending(søknadId, "12345678910", "søknad".toByteArray(), it)
+            PostgresDAO.insertVedlegg(søknadId, UUID.randomUUID(), "vedlegg1".toByteArray(), "tittel1", it)
+            PostgresDAO.insertVedlegg(søknadId, UUID.randomUUID(), "vedlegg2".toByteArray(), "tittel2", it)
+            PostgresDAO.insertVedlegg(søknadId, UUID.randomUUID(), "vedlegg3".toByteArray(), "tittel3", it)
+            PostgresDAO.insertVedlegg(søknadId, UUID.randomUUID(), "vedlegg4".toByteArray(), "tittel4", it)
+            PostgresDAO.insertVedlegg(søknadId, UUID.randomUUID(), "vedlegg5".toByteArray(), "tittel5", it)
+        }
 
-        dao.insertVedlegg(søknadId, UUID.randomUUID(), "vedlegg1".toByteArray(), "tittel1")
-        dao.insertVedlegg(søknadId, UUID.randomUUID(), "vedlegg2".toByteArray(), "tittel2")
-        dao.insertVedlegg(søknadId, UUID.randomUUID(), "vedlegg3".toByteArray(), "tittel3")
-        dao.insertVedlegg(søknadId, UUID.randomUUID(), "vedlegg4".toByteArray(), "tittel4")
-        dao.insertVedlegg(søknadId, UUID.randomUUID(), "vedlegg5".toByteArray(), "tittel5")
-
-        val innsending = dao.selectInnsendingMedVedlegg(søknadId)
+        val innsending = PostgresDAO.selectInnsendingMedVedlegg(søknadId, h2.connection)
 
         assertEquals(søknadId, innsending.id)
         assertEquals(5, innsending.vedlegg.size)

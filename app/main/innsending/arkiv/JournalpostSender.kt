@@ -6,11 +6,11 @@ import java.util.*
 
 class JournalpostSender(
     private val client: JoarkClient,
-    private val postgresRepo: PostgresRepo
+    private val repo: PostgresRepo
 ) {
 
     fun arkiverAltSomKanArkiveres(søknadId: UUID) {
-        val innsending: InnsendingMedFiler = postgresRepo.hentInnsending(søknadId)
+        val innsending: InnsendingMedFiler = repo.hentInnsending(søknadId)
 
         val journalpost = Journalpost(
             tittel = "Søknad AAP",
@@ -26,7 +26,7 @@ class JournalpostSender(
 
         val journalført = client.opprettJournalpost(journalpost, innsending.id.toString())
         if (journalført) {
-            postgresRepo.slettInnsending(innsending.id)
+            repo.slettInnsending(innsending.id)
         }
     }
 

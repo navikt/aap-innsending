@@ -1,7 +1,6 @@
 package innsending.postgres
 
 import innsending.PostgresConfig
-import innsending.postgres.InitH2.dataSource
 import innsending.routes.Innsending
 import innsending.routes.Vedlegg
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -10,7 +9,7 @@ import java.util.*
 
 internal class PostgresRepoTest : H2TestBase() {
     private val config = PostgresConfig("", "", "", "", "")
-    private val repo = PostgresRepo(config, dataSource)
+    private val repo = PostgresRepo(config, h2)
 
     @Test
     fun `Insert en innsending med vedlegg`() {

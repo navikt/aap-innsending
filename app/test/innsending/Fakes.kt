@@ -1,6 +1,5 @@
 package innsending
 
-import innsending.antivirus.ScanResult
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
@@ -88,7 +87,8 @@ fun Application.virusScan() {
     }
 }
 
-object Resource{
+object Resource {
     fun read(path: String): ByteArray = requireNotNull(this::class.java.getResource(path)).readBytes()
 }
+
 fun NettyApplicationEngine.port() = runBlocking { resolvedConnectors() }.first { it.type == ConnectorType.HTTP }.port

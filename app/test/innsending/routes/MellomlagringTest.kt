@@ -1,20 +1,15 @@
 package innsending.routes
 
 import innsending.*
-import innsending.TestConfig
-import innsending.TokenXJwksGenerator
 import innsending.redis.JedisRedisFake
-import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
-import io.ktor.util.*
 import org.junit.jupiter.api.Test
-import java.util.UUID
+import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
-
 
 class MellomlagringTest {
 
@@ -47,7 +42,7 @@ class MellomlagringTest {
 
             testApplication {
                 application { server(config, jedis) }
-                jedis.set("12345678910", """{"søknadId":"1234"}""".toByteArray())
+                jedis["12345678910"] = """{"søknadId":"1234"}""".toByteArray()
 
                 val res = client.get("/mellomlagring/søknad") {
                     accept(ContentType.Application.Json)
@@ -69,7 +64,7 @@ class MellomlagringTest {
 
             testApplication {
                 application { server(config, jedis) }
-                jedis.set("12345678910", """{"søknadId":"1234"}""".toByteArray())
+                jedis["12345678910"] = """{"søknadId":"1234"}""".toByteArray()
 
                 val del = client.delete("/mellomlagring/søknad") {
                     accept(ContentType.Application.Json)
@@ -130,10 +125,7 @@ class MellomlagringTest {
             val id = UUID.randomUUID()
             testApplication {
                 application { server(config, jedis) }
-                jedis.set(
-                    id.toString(),
-                    String(Resource.read("/resources/pdf/minimal.pdf")).toByteArray()
-                )
+                jedis[id.toString()] = String(Resource.read("/resources/pdf/minimal.pdf")).toByteArray()
 
                 val res = client.get("/mellomlagring/vedlegg/$id") {
                     accept(ContentType.Application.Pdf)

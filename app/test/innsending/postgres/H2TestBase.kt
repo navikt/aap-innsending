@@ -1,62 +1,41 @@
 package innsending.postgres
 
-import com.zaxxer.hikari.HikariConfig
-import com.zaxxer.hikari.HikariDataSource
-import org.flywaydb.core.Flyway
+import innsending.TestConfig
 import org.junit.jupiter.api.BeforeEach
+import java.util.*
 import javax.sql.DataSource
 
-
-object InitH2 {
-    val dataSource: DataSource
-    private val flyway: Flyway
-
-    init {
-        dataSource = HikariDataSource(HikariConfig().apply {
-            jdbcUrl = "jdbc:h2:mem:request_no;MODE=PostgreSQL"
-            username = "sa"
-            password = ""
-            maximumPoolSize = 3
-        })
-
-        flyway = Flyway.configure()
-            .dataSource(dataSource)
-            .load()
-            .apply { migrate() }
-    }
-}
-
 abstract class H2TestBase {
+    protected val h2: DataSource = Hikari.createDatasource(TestConfig.postgres).apply(Hikari::flywayMigration)
+
     @BeforeEach
     fun clearTables() {
-        InitH2.dataSource.connection.use { connection ->
-            connection.prepareStatement("DELETE FROM innsending").use { preparedStatement ->
-                preparedStatement.execute()
-            }
+        h2.transaction { con ->
+            con.prepareStatement("SET REFERENTIAL_INTEGRITY FALSE").execute()
+            con.prepareStatement("TRUNCATE TABLE innsending").execute()
+            con.prepareStatement("TRUNCATE TABLE fil").execute()
+            con.prepareStatement("SET REFERENTIAL_INTEGRITY TRUE").execute()
         }
     }
 
     fun countInnsending(): Int? =
-        InitH2.dataSource.connection.use { connection ->
-            connection.prepareStatement("SELECT count(*) FROM innsending")
-                .use { preparedStatement ->
-                    val resultSet = preparedStatement.executeQuery()
-
-                    resultSet.map { row ->
-                        row.getInt(1)
-                    }.singleOrNull()
-                }
+        h2.transaction { con ->
+            val stmt = con.prepareStatement("SELECT count(*) FROM innsending")
+            val resultSet = stmt.executeQuery()
+            resultSet.map { row -> row.getInt(1) }.singleOrNull()
         }
 
     fun countVedlegg(): Int? =
-        InitH2.dataSource.connection.use { connection ->
-            connection.prepareStatement("SELECT count(*) FROM fil")
-                .use { preparedStatement ->
-                    val resultSet = preparedStatement.executeQuery()
+        h2.transaction { con ->
+            val stmt = con.prepareStatement("SELECT count(*) FROM fil")
+            val resultSet = stmt.executeQuery()
+            resultSet.map { row -> row.getInt(1) }.singleOrNull()
+        }
 
-                    resultSet.map { row ->
-                        row.getInt(1)
-                    }.singleOrNull()
-                }
+    fun getAllInnsendinger(): List<UUID> =
+        h2.transaction { con ->
+            val stmt = con.prepareStatement("SELECT * FROM innsending")
+            val result = stmt.executeQuery()
+            result.map { it.getUUID("id") }
         }
 }

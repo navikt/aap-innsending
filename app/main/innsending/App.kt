@@ -33,7 +33,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 import javax.sql.DataSource
-import javax.xml.crypto.Data
 
 val SECURE_LOGGER: Logger = LoggerFactory.getLogger("secureLog")
 
@@ -42,10 +41,14 @@ fun main() {
     embeddedServer(Netty, port = 8080, module = Application::server).start(wait = true)
 }
 
-fun Application.server(config: Config = Config(), redis: Redis = JedisRedis(config.redis), dataSource: DataSource?=null ) {
+fun Application.server(
+    config: Config = Config(),
+    redis: Redis = JedisRedis(config.redis),
+    dataSource: DataSource? = null
+) {
     val antivirus = ClamAVClient(config.virusScanHost)
     val pdfGen = PdfGen(config.pdfGenHost)
-    val postgres = dataSource?.let {PostgresRepo(config.postgres, it)} ?: PostgresRepo(config.postgres)
+    val postgres = dataSource?.let { PostgresRepo(config.postgres, it) } ?: PostgresRepo(config.postgres)
     val joarkClient = JoarkClient(config.azure, config.joark)
     val journalpostSender = JournalpostSender(joarkClient, postgres)
     val arkivScheduler = ArkivScheduler(postgres, journalpostSender)
@@ -88,8 +91,8 @@ fun Application.server(config: Config = Config(), redis: Redis = JedisRedis(conf
 
     routing {
         authenticate("tokenx") {
-        innsendingRoute(postgres, redis)
-        mellomlagerRoute(redis, antivirus, pdfGen)
+            innsendingRoute(postgres, redis)
+            mellomlagerRoute(redis, antivirus, pdfGen)
         }
 
         actuator(prometheus, redis)

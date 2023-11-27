@@ -12,7 +12,11 @@ import java.util.logging.Logger
 import javax.sql.DataSource
 
 private val logger = Logger.getLogger("App")
+
+// TODO: husk å skru på denne før prod
 private const val DISABLE_FLYWAY_CLEAN = false
+
+// TODO: husk å skru av denne før prod
 private const val ENABLE_FLYWAY_CLEAN_ON_VALIDATION_ERROR = true
 
 internal object Hikari {
@@ -36,24 +40,24 @@ internal object Hikari {
 
         Flyway
             .configure()
-            .cleanDisabled(DISABLE_FLYWAY_CLEAN) // TODO: husk å skru av denne før prod
-            .cleanOnValidationError(ENABLE_FLYWAY_CLEAN_ON_VALIDATION_ERROR) // TODO: husk å skru av denne før prod
+            .cleanDisabled(DISABLE_FLYWAY_CLEAN)
+            .cleanOnValidationError(ENABLE_FLYWAY_CLEAN_ON_VALIDATION_ERROR)
             .dataSource(ds)
             .load()
             .migrate()
     }
 }
 
-fun <T : Any> ResultSet.map(block: (rs: ResultSet) -> T): List<T> =
+fun <T : Any> ResultSet.map(block: (ResultSet) -> T): List<T> =
     sequence {
         while (next()) yield(block(this@map))
     }.toList()
 
-fun <T> Connection.transaction(block: (connection: Connection) -> T): T {
-    return this.use { connection ->
+fun <T> DataSource.transaction(block: (Connection) -> T): T {
+    return this.connection.use { connection ->
         try {
             connection.autoCommit = false
-            val result = block(this)
+            val result = block(connection)
             connection.commit()
             result
         } catch (e: Throwable) {

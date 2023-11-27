@@ -1,7 +1,6 @@
 package innsending.routes
 
 import innsending.postgres.PostgresRepo
-import innsending.redis.JedisRedis
 import innsending.redis.Redis
 import io.ktor.http.*
 import io.ktor.server.application.*
