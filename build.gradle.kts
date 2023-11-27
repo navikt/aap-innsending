@@ -29,28 +29,21 @@ dependencies {
     implementation("io.ktor:ktor-client-jackson:$ktorVersion")
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
 
-    implementation("redis.clients:jedis:5.0.2")
-
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
-
+    implementation("redis.clients:jedis:5.0.2")
     implementation("io.micrometer:micrometer-registry-prometheus:1.11.2")
     implementation("ch.qos.logback:logback-classic:1.4.11")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2")
     implementation("org.apache.pdfbox:pdfbox:3.0.0")
-    implementation("io.ktor:ktor-server-auth-jvm:2.3.4")
-    implementation("io.ktor:ktor-server-core-jvm:2.3.4")
-    implementation("io.ktor:ktor-server-auth-jwt-jvm:2.3.4")
-    runtimeOnly("net.logstash.logback:logstash-logback-encoder:7.4")
-
     implementation("com.zaxxer:HikariCP:5.0.1")
     implementation("org.flywaydb:flyway-core:9.21.1")
+    runtimeOnly("net.logstash.logback:logstash-logback-encoder:7.4")
     runtimeOnly("org.postgresql:postgresql:42.6.0")
 
     testImplementation(kotlin("test"))
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     testImplementation("com.h2database:h2:2.2.224")
     testImplementation("com.nimbusds:nimbus-jose-jwt:9.37.1")
-    testImplementation("com.github.seratch:kotliquery:1.9.0")
 }
 
 repositories {
