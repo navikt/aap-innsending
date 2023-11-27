@@ -1,5 +1,6 @@
 package innsending
 
+import innsending.arkiv.Journalpost
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
@@ -9,7 +10,9 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.runBlocking
+import java.util.*
 
 class Fakes : AutoCloseable {
     val azure = embeddedServer(Netty, port = 0, module = Application::azure).apply { start() }
@@ -40,8 +43,47 @@ fun Application.joark() {
     install(ContentNegotiation) { jackson() }
     routing {
         post("/rest/journalpostapi/v1/journalpost") {
+            val actual = call.receive<Journalpost>()
+            val expected = Journalpost(
+                tittel = "Søknad om AAP",
+                avsenderMottaker = Journalpost.AvsenderMottaker(
+                    id = Journalpost.Fødselsnummer("12345678910"),
+                    navn = "Kari Nordmann"
+                ),
+                bruker = Journalpost.Bruker(
+                    id = Journalpost.Fødselsnummer("12345678910")
+                ),
+                dokumenter = listOf(
+                    Journalpost.Dokument(
+                        tittel = "Søknad om AAP",
+                        dokumentVarianter = listOf(
+                            Journalpost.DokumentVariant(
+                                fysiskDokument = Base64.getEncoder().encodeToString(
+                                    Resource.read(
+                                        "/resources/pdf/minimal.pdf"
+                                    )
+                                ),
+                            )
+                        )
+                    )
+                ),
+                eksternReferanseId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000").toString(),
+                kanal = "NAV_NO",
+                journalposttype = "INNGAAENDE",
+                tilleggsopplysninger = listOf(
+                    Journalpost.Tilleggsopplysning(
+                        nokkel = "versjon",
+                        verdi = "1.0"
+                    )
+                ),
+                tema = "AAP"
+            )
+
+            assertEquals(expected, actual)
+
             call.respond(HttpStatusCode.OK, "OK")
         }
+
     }
 }
 

@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger("Scheduler")
 private const val TI_SEKUNDER = 10_000L
-
+ // TODO skal lese fra database og sende til arkiv
 class ArkivScheduler(
     private val repo: PostgresRepo,
     private val journalpostSender: JournalpostSender
