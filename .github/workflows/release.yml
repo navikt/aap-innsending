@@ -3,9 +3,9 @@ name: release
 on:
   push:
     branches: [ main ]
-    paths:
-      - 'app/**'
-      - 'Dockerfile'
+    paths-ignore:
+      - '.nais/redis-dev.yml'
+      - '.github/**'
 
 jobs:
   gradle:
