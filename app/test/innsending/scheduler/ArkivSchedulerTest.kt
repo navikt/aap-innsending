@@ -38,12 +38,12 @@ class ArkivSchedulerTest : H2TestBase() {
                 application { server(config, jedis, h2) }
             }
 
-            runBlocking {
+            val actual = runBlocking {
                 withTimeout(10000) {
-                    val actual = fakes.joark.receivedRequest.await()
-                    assertEquals(expected, actual)
+                    fakes.joark.receivedRequest.await()
                 }
             }
+            assertEquals(expected, actual)
         }
     }
 

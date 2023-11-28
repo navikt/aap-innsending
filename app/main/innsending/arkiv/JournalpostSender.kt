@@ -2,15 +2,18 @@ package innsending.arkiv
 
 import innsending.postgres.InnsendingMedFiler
 import innsending.postgres.PostgresRepo
+import kotlinx.coroutines.runBlocking
 import java.util.*
 
 class JournalpostSender(
     private val client: JoarkClient,
-    private val repo: PostgresRepo
-) {
+    private val repo: PostgresRepo,
 
-    fun arkiverAltSomKanArkiveres(søknadId: UUID) {
-        val innsending: InnsendingMedFiler = repo.hentInnsending(søknadId)
+    ) {
+
+    fun arkiverAltSomKanArkiveres(søknadSomPdf: ByteArray, innsending: InnsendingMedFiler) {
+        val søknadDokument = lagSøknadDokument(søknadSomPdf)
+        val vedleggDokumenter = lagVedleggDokumenter(innsending)
 
         val journalpost = Journalpost(
             tittel = "Søknad AAP",
@@ -20,7 +23,7 @@ class JournalpostSender(
             bruker = Journalpost.Bruker(
                 id = Journalpost.Fødselsnummer(innsending.personident)
             ),
-            dokumenter = lagDokumentliste(innsending),
+            dokumenter = listOf(søknadDokument) + vedleggDokumenter,
             eksternReferanseId = innsending.id.toString()
         )
 
@@ -30,30 +33,27 @@ class JournalpostSender(
         }
     }
 
-    private fun lagDokumentliste(innsending: InnsendingMedFiler): List<Journalpost.Dokument> {
-        // TODO Hva om søknad er tom? (Ettersending)
-        val søknad =
-            Journalpost.Dokument(
-                tittel = "Søknad",
-                brevkode = "NAV 11-13.05",
-                dokumentVarianter = listOf(
-                    Journalpost.DokumentVariant(
-                        fysiskDokument = Base64.getEncoder().encodeToString(innsending.data)
-                    )
-                )
-            )
+    private fun lagSøknadDokument(søknad: ByteArray): Journalpost.Dokument {
+        val søknadSomPdf = runBlocking {
+            Base64.getEncoder().encodeToString(søknad)
+        }
 
-        val vedlegg = innsending.vedlegg.map { vedlegg ->
+        return Journalpost.Dokument(
+            tittel = "Søknad",
+            brevkode = "NAV 11-13.05",
+            dokumentVarianter = listOf(Journalpost.DokumentVariant(fysiskDokument = søknadSomPdf))
+        )
+    }
+
+    private fun lagVedleggDokumenter(innsending: InnsendingMedFiler): List<Journalpost.Dokument> {
+        return innsending.vedlegg.map { vedlegg ->
             Journalpost.Dokument(
                 tittel = vedlegg.tittel,
                 brevkode = "NAV 11-13.05",
                 dokumentVarianter = listOf(
-                    Journalpost.DokumentVariant(
-                        fysiskDokument = Base64.getEncoder().encodeToString(vedlegg.data)
-                    )
+                    Journalpost.DokumentVariant(fysiskDokument = Base64.getEncoder().encodeToString(vedlegg.data))
                 )
             )
         }
-        return listOf(søknad) + vedlegg
     }
 }
