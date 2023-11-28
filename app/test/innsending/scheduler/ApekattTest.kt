@@ -17,7 +17,7 @@ import java.util.*
 import kotlin.test.assertEquals
 
 
-class ArkivSchedulerTest : H2TestBase() {
+class ApekattTest : H2TestBase() {
 
     @Test
     fun `should send journalpost`() {
@@ -48,15 +48,15 @@ class ArkivSchedulerTest : H2TestBase() {
     }
 
     private val expected = Journalpost(
-        tittel = "Søknad om AAP",
+        tittel = "Søknad AAP",
         avsenderMottaker = Journalpost.AvsenderMottaker(
-            id = Journalpost.Fødselsnummer("12345678910"),
-            navn = "Kari Nordmann"
+            id = Journalpost.Fødselsnummer("12345678910")
         ),
         bruker = Journalpost.Bruker(id = Journalpost.Fødselsnummer("12345678910")),
         dokumenter = listOf(
             Journalpost.Dokument(
-                tittel = "Søknad om AAP",
+                tittel = "Søknad",
+                brevkode = "NAV 11-13.05",
                 dokumentVarianter = listOf(
                     Journalpost.DokumentVariant(
                         fysiskDokument = Base64.getEncoder().encodeToString(

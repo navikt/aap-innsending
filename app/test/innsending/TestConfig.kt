@@ -24,11 +24,11 @@ internal object TestConfig {
         return Config(
             postgres = postgres,
             redis = redis,
-            joark = JoarkConfig("localhost:${fakes.joark.port}"),
+            joark = JoarkConfig("http://localhost:${fakes.joark.port}"),
             pdfGenHost = "http://localhost:${fakes.pdfGen.port()}",
             virusScanHost = "http://localhost:${fakes.virusScan.port()}",
             azure = AzureConfig(
-                tokenEndpoint = URI.create("http://127.0.0.1:${fakes.azure.port()}").toURL(),
+                tokenEndpoint = URI.create("http://localhost:${fakes.azure.port()}/token").toURL(),
                 clientId = "test",
                 clientSecret = "test"
             ),

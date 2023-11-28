@@ -63,16 +63,15 @@ fun Application.azure() {
     routing {
         post("/token") {
             require(call.receiveText() == "client_id=test&client_secret=test&scope=fillagerScope&grant_type=client_credentials")
-            call.respondText(
-                """{
-                    "token_type": "Bearer",
-                    "expires_in": 3599,
-                    "access_token": "very.secure.token" 
-                }"""
-            )
+            call.respond(Token(
+                expires_in = 3599,
+                access_token = "very.secure.token"
+            ))
         }
     }
 }
+
+data class Token(val expires_in: Long, val access_token: String)
 
 fun Application.pdfGen() {
     install(ContentNegotiation) { jackson() }

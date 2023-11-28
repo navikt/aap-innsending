@@ -13,7 +13,7 @@ import innsending.redis.Redis
 import innsending.routes.actuator
 import innsending.routes.innsendingRoute
 import innsending.routes.mellomlagerRoute
-import innsending.scheduler.ArkivScheduler
+import innsending.scheduler.Apekatt
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
@@ -51,7 +51,7 @@ fun Application.server(
     val postgres = dataSource?.let { PostgresRepo(config.postgres, it) } ?: PostgresRepo(config.postgres)
     val joarkClient = JoarkClient(config.azure, config.joark)
     val journalpostSender = JournalpostSender(joarkClient, postgres)
-    val arkivScheduler = ArkivScheduler(postgres, journalpostSender)
+    val arkivScheduler = Apekatt(pdfGen, postgres, journalpostSender)
 
     val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
 

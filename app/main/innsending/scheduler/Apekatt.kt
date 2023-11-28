@@ -2,7 +2,6 @@ package innsending.scheduler
 
 import innsending.arkiv.JournalpostSender
 import innsending.pdf.PdfGen
-import innsending.postgres.InnsendingMedFiler
 import innsending.postgres.PostgresRepo
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
@@ -10,7 +9,7 @@ import org.slf4j.LoggerFactory
 private val logger = LoggerFactory.getLogger("Scheduler")
 private const val TI_SEKUNDER = 10_000L
 
-class ArkivScheduler(
+class Apekatt(
     private val pdfGen: PdfGen,
     private val repo: PostgresRepo,
     private val journalpostSender: JournalpostSender
@@ -19,6 +18,7 @@ class ArkivScheduler(
         while (this.isActive) {
             try {
                 val liste = repo.hentAlleInnsendinger()
+                logger.info("Fant {} usendte innsendinger", liste.size)
                 liste.forEach { søknadId ->
                     logger.info("Prøver å arkivere....")
 
