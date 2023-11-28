@@ -2,13 +2,19 @@ package innsending.postgres
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.time.LocalDateTime
 import java.util.*
 
 class InnsendingDAOTest : H2TestBase() {
     @Test
     fun `Inserter en innsending`() {
-        val søknadId = UUID.randomUUID()
-        PostgresDAO.insertInnsending(søknadId, "12345678910", "søknad".toByteArray(), h2.connection)
+        PostgresDAO.insertInnsending(
+            UUID.randomUUID(),
+            "12345678910",
+            LocalDateTime.now(),
+            "søknad".toByteArray(),
+            h2.connection
+        )
 
         assertEquals(1, countInnsending())
     }
@@ -17,8 +23,20 @@ class InnsendingDAOTest : H2TestBase() {
     fun `Inserter vedlegg`() {
         val søknadId = UUID.randomUUID()
         h2.transaction {
-            PostgresDAO.insertInnsending(søknadId, "12345678910", "søknad".toByteArray(), it)
-            PostgresDAO.insertVedlegg(søknadId, UUID.randomUUID(), "vedlegg".toByteArray(), "tittel", it)
+            PostgresDAO.insertInnsending(
+                søknadId,
+                "12345678910",
+                LocalDateTime.now(),
+                "søknad".toByteArray(),
+                it
+            )
+            PostgresDAO.insertVedlegg(
+                søknadId,
+                UUID.randomUUID(),
+                "vedlegg".toByteArray(),
+                "tittel",
+                it
+            )
         }
 
         assertEquals(1, countVedlegg())
@@ -28,8 +46,20 @@ class InnsendingDAOTest : H2TestBase() {
     fun `Sletting av innsending sletter også vedlegg`() {
         val søknadId = UUID.randomUUID()
         h2.transaction {
-            PostgresDAO.insertInnsending(søknadId, "12345678910", "søknad".toByteArray(), it)
-            PostgresDAO.insertVedlegg(søknadId, UUID.randomUUID(), "vedlegg".toByteArray(), "tittel", it)
+            PostgresDAO.insertInnsending(
+                søknadId,
+                "12345678910",
+                LocalDateTime.now(),
+                "søknad".toByteArray(),
+                it
+            )
+            PostgresDAO.insertVedlegg(
+                søknadId,
+                UUID.randomUUID(),
+                "vedlegg".toByteArray(),
+                "tittel",
+                it
+            )
         }
 
         assertEquals(1, countVedlegg())
@@ -44,7 +74,13 @@ class InnsendingDAOTest : H2TestBase() {
     fun `Henter en komplett innsending med vedlegg`() {
         val søknadId = UUID.randomUUID()
         h2.transaction {
-            PostgresDAO.insertInnsending(søknadId, "12345678910", "søknad".toByteArray(), it)
+            PostgresDAO.insertInnsending(
+                søknadId,
+                "12345678910",
+                LocalDateTime.now(),
+                "søknad".toByteArray(),
+                it
+            )
             PostgresDAO.insertVedlegg(søknadId, UUID.randomUUID(), "vedlegg1".toByteArray(), "tittel1", it)
             PostgresDAO.insertVedlegg(søknadId, UUID.randomUUID(), "vedlegg2".toByteArray(), "tittel2", it)
             PostgresDAO.insertVedlegg(søknadId, UUID.randomUUID(), "vedlegg3".toByteArray(), "tittel3", it)

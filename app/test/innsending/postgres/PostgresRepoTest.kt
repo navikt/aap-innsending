@@ -5,6 +5,7 @@ import innsending.routes.Innsending
 import innsending.routes.Vedlegg
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.time.LocalDateTime
 import java.util.*
 
 internal class PostgresRepoTest : H2TestBase() {
@@ -26,7 +27,7 @@ internal class PostgresRepoTest : H2TestBase() {
             Pair(vedlegg2, "vedlegg2".toByteArray()),
         )
 
-        repo.lagreInnsending(søknadId, "12345678910", innsending, vedleggListe)
+        repo.lagreInnsending(søknadId, "12345678910", LocalDateTime.now(), innsending, vedleggListe)
 
         assertEquals(1, countInnsending())
         assertEquals(2, countVedlegg())
@@ -48,7 +49,7 @@ internal class PostgresRepoTest : H2TestBase() {
         )
 
         try {
-            repo.lagreInnsending(søknadId, "12345678910", innsending, vedleggListe)
+            repo.lagreInnsending(søknadId, "12345678910", LocalDateTime.now(), innsending, vedleggListe)
         } catch (ignore: Throwable) {
             // Feilen skal boble opp til toppen av ktor og returneres til frontend, her ignorer vi
         }

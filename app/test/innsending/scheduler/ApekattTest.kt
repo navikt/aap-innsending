@@ -12,10 +12,11 @@ import innsending.server
 import io.ktor.server.testing.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import java.time.LocalDateTime
 import java.util.*
 import kotlin.test.assertEquals
-
 
 class ApekattTest : H2TestBase() {
 
@@ -29,6 +30,7 @@ class ApekattTest : H2TestBase() {
                 PostgresDAO.insertInnsending(
                     UUID.fromString("123e4567-e89b-12d3-a456-426614174000"),
                     "12345678910",
+                    now,
                     Resource.read("/resources/images/bilde.jpg"),
                     it
                 )
@@ -43,9 +45,18 @@ class ApekattTest : H2TestBase() {
                     fakes.joark.receivedRequest.await()
                 }
             }
-            assertEquals(expected, actual)
+
+            // LocalDateTime.now() blir kalt i InnsendingRoute.
+            // Den vil derfor bli kalt noen tusendeler av et sekund før testen setter expected.datoMottatt=now
+            // Worst case vil testen time ut etter 10 sec, derfor støtter vi opptil en 10sec gammel LocalDateTime.now()
+            assertTrue(expected.datoMottatt.isAfter(now.minusSeconds(10)))
+
+            // Vi bytter actual sin datoMottat med testen sin 'now' for å kunne asserte på hele objektet
+            assertEquals(expected, actual.copy(datoMottatt = now))
         }
     }
+
+    private val now: LocalDateTime by lazy { LocalDateTime.now() }
 
     private val expected = Journalpost(
         tittel = "Søknad AAP",
@@ -67,6 +78,7 @@ class ApekattTest : H2TestBase() {
             )
         ),
         eksternReferanseId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000").toString(),
+        datoMottatt = now,
         kanal = "NAV_NO",
         journalposttype = "INNGAAENDE",
         tilleggsopplysninger = listOf(Journalpost.Tilleggsopplysning(nokkel = "versjon", verdi = "1.0")),

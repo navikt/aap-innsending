@@ -8,6 +8,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.slf4j.LoggerFactory
+import java.time.LocalDateTime
 import java.util.*
 
 private val logger = LoggerFactory.getLogger("App")
@@ -25,13 +26,14 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
                 redis[vedlegg.id]?.let { Pair(vedlegg, it) }
             }
 
-            if(vedleggMedDataPairs.size != innsending.vedlegg.size ){
+            if (vedleggMedDataPairs.size != innsending.vedlegg.size) {
                 return@post call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret vedlegg")
             }
 
             postgres.lagreInnsending(
                 innsendingId = innsendingId,
                 personIdent = personIdent,
+                mottattDato = LocalDateTime.now(),
                 innsending = innsending,
                 vedlegg = vedleggMedDataPairs
             )

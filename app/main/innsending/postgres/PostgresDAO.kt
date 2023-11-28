@@ -3,6 +3,7 @@ package innsending.postgres
 import java.sql.Connection
 import java.sql.Timestamp
 import java.sql.Types
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
@@ -16,10 +17,10 @@ object PostgresDAO {
         INSERT INTO innsending (id, opprettet, personident, data) VALUES (?, ?, ?, ?)
     """
 
-    fun insertInnsending(innsendingId: UUID, personident: String, data: ByteArray?, con: Connection) {
+    fun insertInnsending(innsendingId: UUID, personident: String, mottattDato: LocalDateTime, data: ByteArray?, con: Connection) {
         val stmt = con.prepareStatement(INSERT_INNSENDING)
         stmt.setObject(1, innsendingId)
-        stmt.setObject(2, Timestamp.valueOf(LocalDateTime.now()))
+        stmt.setObject(2, Timestamp.valueOf(mottattDato))
         stmt.setObject(3, personident)
         stmt.setNullableObject(4, data, Types.BINARY)
         stmt.execute()

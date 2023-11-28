@@ -1,5 +1,7 @@
 package innsending
 
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import innsending.arkiv.Journalpost
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
@@ -45,7 +47,12 @@ class JoarkFake : AutoCloseable {
 
     private fun create(): NettyApplicationEngine =
         embeddedServer(Netty, port = 0, module = {
-            install(ContentNegotiation) { jackson() }
+            install(ContentNegotiation) {
+                jackson {
+                    disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                    registerModule(JavaTimeModule())
+                }
+            }
 
             routing {
                 post("/rest/journalpostapi/v1/journalpost") {
@@ -63,10 +70,12 @@ fun Application.azure() {
     routing {
         post("/token") {
             require(call.receiveText() == "client_id=test&client_secret=test&scope=fillagerScope&grant_type=client_credentials")
-            call.respond(Token(
-                expires_in = 3599,
-                access_token = "very.secure.token"
-            ))
+            call.respond(
+                Token(
+                    expires_in = 3599,
+                    access_token = "very.secure.token"
+                )
+            )
         }
     }
 }

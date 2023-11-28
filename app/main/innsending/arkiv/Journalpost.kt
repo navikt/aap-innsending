@@ -2,17 +2,22 @@ package innsending.arkiv
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonValue
+import java.time.LocalDateTime
 
 private const val INNGÅENDE = "INNGAAENDE"
 private const val KANAL = "NAV_NO"
 private const val ID_TYPE = "FNR"
 
+/**
+ * [doc](https://confluence.adeo.no/display/BOA/opprettJournalpost)
+ */
 data class Journalpost(
     val tittel: String,
     val avsenderMottaker: AvsenderMottaker,
     val bruker: Bruker,
     val dokumenter: List<Dokument>,
     val eksternReferanseId: String,
+    val datoMottatt: LocalDateTime,
     val kanal: String = KANAL,
     val journalposttype: String = INNGÅENDE,
     val tilleggsopplysninger: List<Tilleggsopplysning> = listOf(Tilleggsopplysning("versjon", "1.0")),
@@ -29,7 +34,7 @@ data class Journalpost(
         val dokumentVarianter: List<DokumentVariant>
     )
 
-    data class DokumentVariant (
+    data class DokumentVariant(
         val filtype: String = "PDFA",
         val fysiskDokument: String,
         val variantformat: String = "ARKIV"
@@ -53,9 +58,10 @@ data class Journalpost(
 }
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class ArkivResponse(val journalpostId: String,
-                         val journalpostferdigstilt: Boolean,
-                         val dokumenter: List<DokumentId>
+data class ArkivResponse(
+    val journalpostId: String,
+    val journalpostferdigstilt: Boolean,
+    val dokumenter: List<DokumentId>
 ) {
     data class DokumentId(
         val dokumentInfoId: String

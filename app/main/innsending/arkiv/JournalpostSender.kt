@@ -8,8 +8,7 @@ import java.util.*
 class JournalpostSender(
     private val client: JoarkClient,
     private val repo: PostgresRepo,
-
-    ) {
+) {
 
     fun arkiverAltSomKanArkiveres(søknadSomPdf: ByteArray, innsending: InnsendingMedFiler) {
         val søknadDokument = lagSøknadDokument(søknadSomPdf)
@@ -24,7 +23,8 @@ class JournalpostSender(
                 id = Journalpost.Fødselsnummer(innsending.personident)
             ),
             dokumenter = listOf(søknadDokument) + vedleggDokumenter,
-            eksternReferanseId = innsending.id.toString()
+            eksternReferanseId = innsending.id.toString(),
+            datoMottatt = innsending.opprettet
         )
 
         val journalført = client.opprettJournalpost(journalpost, innsending.id.toString())

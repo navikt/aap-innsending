@@ -4,6 +4,7 @@ import innsending.PostgresConfig
 import innsending.postgres.Hikari.flywayMigration
 import innsending.routes.Innsending
 import innsending.routes.Vedlegg
+import java.time.LocalDateTime
 import java.util.*
 import javax.sql.DataSource
 
@@ -27,6 +28,7 @@ class PostgresRepo(
     fun lagreInnsending(
         innsendingId: UUID,
         personIdent: String,
+        mottattDato: LocalDateTime,
         innsending: Innsending,
         vedlegg: List<Pair<Vedlegg, ByteArray>>
     ) {
@@ -34,6 +36,7 @@ class PostgresRepo(
             PostgresDAO.insertInnsending(
                 innsendingId = innsendingId,
                 personident = personIdent,
+                mottattDato = mottattDato,
                 data = innsending.soknad,
                 con = con,
             )
