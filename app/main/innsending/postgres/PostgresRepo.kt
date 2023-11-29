@@ -3,7 +3,7 @@ package innsending.postgres
 import innsending.PostgresConfig
 import innsending.postgres.Hikari.flywayMigration
 import innsending.routes.Innsending
-import innsending.routes.Vedlegg
+import innsending.routes.Fil
 import java.time.LocalDateTime
 import java.util.*
 import javax.sql.DataSource
@@ -35,7 +35,7 @@ class PostgresRepo(
     }
 
     fun hentInnsending(søknadId: UUID): InnsendingMedFiler = hikari.transaction { con ->
-        PostgresDAO.selectInnsendingMedVedlegg(søknadId, con)
+        PostgresDAO.selectInnsendingMedFiler(søknadId, con)
     }
 
     fun slettInnsending(id: UUID) = hikari.transaction { con ->
@@ -47,7 +47,7 @@ class PostgresRepo(
         personIdent: String,
         mottattDato: LocalDateTime,
         innsending: Innsending,
-        vedlegg: List<Pair<Vedlegg, ByteArray>>
+        fil: List<Pair<Fil, ByteArray>>
     ) {
         hikari.transaction { con ->
             PostgresDAO.insertInnsending(
@@ -58,12 +58,12 @@ class PostgresRepo(
                 con = con,
             )
 
-            vedlegg.forEach { (vedlegg, data) ->
-                PostgresDAO.insertVedlegg(
+            fil.forEach { (fil, data) ->
+                PostgresDAO.insertFil(
                     innsendingId = innsendingId,
-                    vedleggId = UUID.fromString(vedlegg.id),
-                    tittel = vedlegg.tittel,
-                    vedlegg = data,
+                    filId = UUID.fromString(fil.id),
+                    tittel = fil.tittel,
+                    fil = data,
                     con = con,
                 )
             }

@@ -8,7 +8,7 @@ import java.util.*
 
 object PostgresDAO {
     private const val DELETE_INNSENDING = """DELETE FROM innsending WHERE id = ?"""
-    private const val INSERT_VEDLEGG = """INSERT INTO fil (id, innsending_id, tittel, data) VALUES (?, ?, ?, ?)"""
+    private const val INSERT_FIL = """INSERT INTO fil (id, innsending_id, tittel, data) VALUES (?, ?, ?, ?)"""
     private const val SELECT_INNSENDING_IDS = """SELECT id FROM innsending"""
     private const val SELECT_INNSENDINGER = """SELECT * FROM innsending WHERE id = ?"""
     private const val SELECT_FILER = """SELECT * FROM fil WHERE innsending_id = ?"""
@@ -43,12 +43,12 @@ object PostgresDAO {
         stmt.execute()
     }
 
-    fun insertVedlegg(innsendingId: UUID, vedleggId: UUID, vedlegg: ByteArray, tittel: String, con: Connection) {
-        val stmt = con.prepareStatement(INSERT_VEDLEGG)
-        stmt.setObject(1, vedleggId)
+    fun insertFil(innsendingId: UUID, filId: UUID, fil: ByteArray, tittel: String, con: Connection) {
+        val stmt = con.prepareStatement(INSERT_FIL)
+        stmt.setObject(1, filId)
         stmt.setObject(2, innsendingId)
         stmt.setObject(3, tittel)
-        stmt.setObject(4, vedlegg)
+        stmt.setObject(4, fil)
         stmt.execute()
     }
 
@@ -58,7 +58,7 @@ object PostgresDAO {
         return resultat.map { row -> row.getUUID("id") }
     }
 
-    fun selectInnsendingMedVedlegg(innsendingId: UUID, con: Connection): InnsendingMedFiler {
+    fun selectInnsendingMedFiler(innsendingId: UUID, con: Connection): InnsendingMedFiler {
         val innsending = con.prepareStatement(SELECT_INNSENDINGER).use { stmt ->
             stmt.setObject(1, innsendingId)
             val resultSet = stmt.executeQuery()
@@ -73,12 +73,12 @@ object PostgresDAO {
             }.single()
         }
 
-        val vedleggListe = con.prepareStatement(SELECT_FILER).use { preparedStatement ->
+        val filer = con.prepareStatement(SELECT_FILER).use { preparedStatement ->
             preparedStatement.setObject(1, innsendingId)
             val resultSet = preparedStatement.executeQuery()
 
             resultSet.map { row ->
-                InnsendingMedFiler.Vedlegg(
+                InnsendingMedFiler.Fil(
                     id = row.getUUID("id"),
                     tittel = row.getString("tittel"),
                     data = row.getBytes("data")
@@ -91,7 +91,7 @@ object PostgresDAO {
             opprettet = innsending.opprettet,
             personident = innsending.personident,
             data = innsending.data,
-            vedlegg = vedleggListe
+            fil = filer
         )
     }
 }

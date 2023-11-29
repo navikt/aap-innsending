@@ -12,7 +12,7 @@ class JournalpostSender(
 
     fun arkiverAltSomKanArkiveres(søknadSomPdf: ByteArray, innsending: InnsendingMedFiler) {
         val søknadDokument = lagSøknadDokument(søknadSomPdf)
-        val vedleggDokumenter = lagVedleggDokumenter(innsending)
+        val vedleggDokumenter = lagDokumenter(innsending)
 
         val journalpost = Journalpost(
             tittel = "Søknad AAP",
@@ -46,13 +46,13 @@ class JournalpostSender(
         )
     }
 
-    private fun lagVedleggDokumenter(innsending: InnsendingMedFiler): List<Journalpost.Dokument> {
-        return innsending.vedlegg.map { vedlegg ->
+    private fun lagDokumenter(innsending: InnsendingMedFiler): List<Journalpost.Dokument> {
+        return innsending.fil.map { fil ->
             Journalpost.Dokument(
-                tittel = vedlegg.tittel,
+                tittel = fil.tittel,
                 brevkode = "NAV 11-13.05",
                 dokumentVarianter = listOf(
-                    Journalpost.DokumentVariant(fysiskDokument = Base64.getEncoder().encodeToString(vedlegg.data))
+                    Journalpost.DokumentVariant(fysiskDokument = Base64.getEncoder().encodeToString(fil.data))
                 )
             )
         }

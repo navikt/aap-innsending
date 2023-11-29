@@ -97,7 +97,7 @@ class MellomlagringTest {
     }
 
     @Test
-    fun `kan mellomlagre vedlegg`() {
+    fun `kan mellomlagre fil`() {
         Fakes().use { fakes ->
             val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
@@ -105,7 +105,7 @@ class MellomlagringTest {
 
             testApplication {
                 application { server(config, jedis) }
-                val res = client.post("/mellomlagring/vedlegg") {
+                val res = client.post("/mellomlagring/fil") {
                     contentType(ContentType.Image.JPEG)
                     bearerAuth(jwkGen.generate("12345678910"))
                     setBody(Resource.read("/resources/images/bilde.jpg"))
@@ -117,7 +117,7 @@ class MellomlagringTest {
     }
 
     @Test
-    fun `kan hente mellomlagret vedlegg`() {
+    fun `kan hente mellomlagret fil`() {
         Fakes().use { fakes ->
             val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
@@ -127,7 +127,7 @@ class MellomlagringTest {
                 application { server(config, jedis) }
                 jedis[id.toString()] = String(Resource.read("/resources/pdf/minimal.pdf")).toByteArray()
 
-                val res = client.get("/mellomlagring/vedlegg/$id") {
+                val res = client.get("/mellomlagring/fil/$id") {
                     accept(ContentType.Application.Pdf)
                     bearerAuth(tokenx.generate("12345678910"))
                 }

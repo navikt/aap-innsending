@@ -22,12 +22,12 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
             val innsendingId = UUID.randomUUID()
             logger.trace("Mottok innsending med id {}", innsendingId)
 
-            val vedleggMedDataPairs = innsending.vedlegg.mapNotNull { vedlegg ->
-                redis[vedlegg.id]?.let { Pair(vedlegg, it) }
+            val filerMedDataPairs = innsending.filer.mapNotNull { fil ->
+                redis[fil.id]?.let { Pair(fil, it) }
             }
 
-            if (vedleggMedDataPairs.size != innsending.vedlegg.size) {
-                return@post call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret vedlegg")
+            if (filerMedDataPairs.size != innsending.filer.size) {
+                return@post call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret fil")
             }
 
             postgres.lagreInnsending(
@@ -35,11 +35,11 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
                 personIdent = personIdent,
                 mottattDato = LocalDateTime.now(),
                 innsending = innsending,
-                vedlegg = vedleggMedDataPairs
+                fil = filerMedDataPairs
             )
 
-            innsending.vedlegg.forEach { vedlegg ->
-                redis.del(vedlegg.id)
+            innsending.filer.forEach { fil ->
+                redis.del(fil.id)
             }
             redis.del(personIdent)
 
@@ -50,10 +50,10 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
 
 data class Innsending(
     val soknad: ByteArray? = null,
-    val vedlegg: List<Vedlegg>,
+    val filer: List<Fil>,
 )
 
-data class Vedlegg(
+data class Fil(
     val id: String,
     val tittel: String,
 )

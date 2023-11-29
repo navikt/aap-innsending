@@ -27,7 +27,7 @@ abstract class H2TestBase {
             resultSet.map { row -> row.getInt(1) }.singleOrNull()
         }
 
-    fun countVedlegg(): Int? =
+    fun countFiler(): Int? =
         h2.transaction { con ->
             val stmt = con.prepareStatement("SELECT count(*) FROM fil")
             val resultSet = stmt.executeQuery()

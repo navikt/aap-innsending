@@ -2,7 +2,7 @@ package innsending.postgres
 
 import innsending.PostgresConfig
 import innsending.routes.Innsending
-import innsending.routes.Vedlegg
+import innsending.routes.Fil
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
@@ -13,48 +13,48 @@ internal class PostgresRepoTest : H2TestBase() {
     private val repo = PostgresRepo(config, "test", h2)
 
     @Test
-    fun `Insert en innsending med vedlegg`() {
+    fun `Insert en innsending med fil`() {
         val søknadId = UUID.randomUUID()
-        val vedlegg1 = Vedlegg(UUID.randomUUID().toString(), "Tittel1")
-        val vedlegg2 = Vedlegg(UUID.randomUUID().toString(), "Tittel2")
+        val fil1 = Fil(UUID.randomUUID().toString(), "Tittel1")
+        val fil2 = Fil(UUID.randomUUID().toString(), "Tittel2")
         val innsending = Innsending(
             soknad = "søknad".toByteArray(),
-            vedlegg = listOf(vedlegg1, vedlegg2)
+            filer = listOf(fil1, fil2)
         )
 
-        val vedleggListe = listOf(
-            Pair(vedlegg1, "vedlegg1".toByteArray()),
-            Pair(vedlegg2, "vedlegg2".toByteArray()),
+        val filer = listOf(
+            Pair(fil1, "fil1".toByteArray()),
+            Pair(fil2, "fil2".toByteArray()),
         )
 
-        repo.lagreInnsending(søknadId, "12345678910", LocalDateTime.now(), innsending, vedleggListe)
+        repo.lagreInnsending(søknadId, "12345678910", LocalDateTime.now(), innsending, filer)
 
         assertEquals(1, countInnsending())
-        assertEquals(2, countVedlegg())
+        assertEquals(2, countFiler())
     }
 
     @Test
     fun `Feil ruller tilbake alt`() {
         val søknadId = UUID.randomUUID()
-        val vedlegg1 = Vedlegg(UUID.randomUUID().toString(), "Tittel1")
-        val vedlegg2 = Vedlegg("Ikke en UUID :)", "Tittel2")
+        val fil1 = Fil(UUID.randomUUID().toString(), "Tittel1")
+        val fil2 = Fil("Ikke en UUID :)", "Tittel2")
         val innsending = Innsending(
             soknad = "søknad".toByteArray(),
-            vedlegg = listOf(vedlegg1, vedlegg2)
+            filer = listOf(fil1, fil2)
         )
 
-        val vedleggListe = listOf(
-            Pair(vedlegg1, "vedlegg1".toByteArray()),
-            Pair(vedlegg2, "vedlegg2".toByteArray()),
+        val filer = listOf(
+            Pair(fil1, "fil1".toByteArray()),
+            Pair(fil2, "fil2".toByteArray()),
         )
 
         try {
-            repo.lagreInnsending(søknadId, "12345678910", LocalDateTime.now(), innsending, vedleggListe)
+            repo.lagreInnsending(søknadId, "12345678910", LocalDateTime.now(), innsending, filer)
         } catch (ignore: Throwable) {
             // Feilen skal boble opp til toppen av ktor og returneres til frontend, her ignorer vi
         }
 
         assertEquals(0, countInnsending())
-        assertEquals(0, countVedlegg())
+        assertEquals(0, countFiler())
     }
 }

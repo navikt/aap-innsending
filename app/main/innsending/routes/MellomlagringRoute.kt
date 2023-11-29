@@ -47,9 +47,9 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
         }
     }
 
-    route("/mellomlagring/vedlegg") {
+    route("/mellomlagring/fil") {
         post {
-            val vedleggId = UUID.randomUUID().toString()
+            val filId = UUID.randomUUID().toString()
             val fil = call.receive<ByteArray>()
             val contentType = ContentType.parse(requireNotNull(call.request.header(HttpHeaders.ContentType)))
             val acceptedContentType = listOf(ContentType.Image.JPEG, ContentType.Image.PNG, ContentType.Application.Pdf)
@@ -71,25 +71,25 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                 return@post call.respond(HttpStatusCode.NotAcceptable, "PDF er kryptert")
             }
 
-            redis[vedleggId] = pdf
-            redis.expire(vedleggId, 3 * EnDag)
+            redis[filId] = pdf
+            redis.expire(filId, 3 * EnDag)
 
-            call.respond(HttpStatusCode.Created, vedleggId)
+            call.respond(HttpStatusCode.Created, filId)
         }
 
-        get("/{vedleggId}") {
-            val vedleggId = requireNotNull(call.parameters["vedleggId"])
+        get("/{filId}") {
+            val filId = requireNotNull(call.parameters["filId"])
 
-            when (val vedlegg = redis[vedleggId]) {
-                null -> call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret vedlegg")
-                else -> call.respond(HttpStatusCode.OK, vedlegg)
+            when (val fil = redis[filId]) {
+                null -> call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret fil")
+                else -> call.respond(HttpStatusCode.OK, fil)
             }
         }
 
-        delete("/{vedleggId}") {
-            val vedleggId = requireNotNull(call.parameters["vedleggId"])
+        delete("/{filId}") {
+            val filId = requireNotNull(call.parameters["filId"])
 
-            redis.del(vedleggId)
+            redis.del(filId)
             call.respond(HttpStatusCode.OK)
         }
     }

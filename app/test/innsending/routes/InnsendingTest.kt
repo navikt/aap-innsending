@@ -19,18 +19,18 @@ import kotlin.test.assertEquals
 class InnsendingTest : H2TestBase() {
 
     @Test
-    fun `kan sende inn søknad med 1 vedlegg`() {
+    fun `kan sende inn søknad med 1 fil`() {
         Fakes().use { fakes ->
             val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
             val tokenx = TokenXGen(config.tokenx)
-            val vedleggId1 = UUID.randomUUID()
-            val vedleggId2 = UUID.randomUUID()
+            val filId1 = UUID.randomUUID()
+            val filId2 = UUID.randomUUID()
 
             testApplication {
                 application { server(config, jedis, h2) }
-                jedis[vedleggId1.toString()] = byteArrayOf()
-                jedis[vedleggId2.toString()] = byteArrayOf()
+                jedis[filId1.toString()] = byteArrayOf()
+                jedis[filId2.toString()] = byteArrayOf()
 
                 val res = jsonHttpClient.post("/innsending") {
                     bearerAuth(tokenx.generate("12345678910"))
@@ -38,13 +38,13 @@ class InnsendingTest : H2TestBase() {
                     setBody(
                         Innsending(
                             soknad = "help me".toByteArray(),
-                            vedlegg = listOf(
-                                Vedlegg(
-                                    id = vedleggId1.toString(),
+                            filer = listOf(
+                                Fil(
+                                    id = filId1.toString(),
                                     tittel = "important"
                                 ),
-                                Vedlegg(
-                                    id = vedleggId2.toString(),
+                                Fil(
+                                    id = filId2.toString(),
                                     tittel = "nice to have"
                                 )
                             )
@@ -55,14 +55,14 @@ class InnsendingTest : H2TestBase() {
                 assertEquals(HttpStatusCode.OK, res.status)
 
                 assertEquals(1, countInnsending())
-                assertEquals(2, countVedlegg())
+                assertEquals(2, countFiler())
                 assertEquals(1, getAllInnsendinger().size)
             }
         }
     }
 
     @Test
-    fun `feiler ved manglende vedlegg`() {
+    fun `feiler ved manglende filer`() {
         Fakes().use { fakes ->
             val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
@@ -77,8 +77,8 @@ class InnsendingTest : H2TestBase() {
                     setBody(
                         Innsending(
                             soknad = "søknad".toByteArray(),
-                            vedlegg = listOf(
-                                Vedlegg(
+                            filer = listOf(
+                                Fil(
                                     id = UUID.randomUUID().toString(),
                                     tittel = " tittel1"
                                 )
@@ -89,7 +89,7 @@ class InnsendingTest : H2TestBase() {
 
                 assertEquals(HttpStatusCode.NotFound, res.status)
                 assertEquals(0, countInnsending())
-                assertEquals(0, countVedlegg())
+                assertEquals(0, countFiler())
             }
         }
     }
@@ -100,26 +100,26 @@ class InnsendingTest : H2TestBase() {
             val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
             val tokenx = TokenXGen(config.tokenx)
-            val vedleggId1 = UUID.randomUUID()
-            val vedleggId2 = UUID.randomUUID()
+            val filId1 = UUID.randomUUID()
+            val filId2 = UUID.randomUUID()
 
             testApplication {
                 application { server(config, jedis, h2) }
-                jedis[vedleggId1.toString()] = byteArrayOf()
-                jedis[vedleggId2.toString()] = byteArrayOf()
+                jedis[filId1.toString()] = byteArrayOf()
+                jedis[filId2.toString()] = byteArrayOf()
 
                 val res = jsonHttpClient.post("/innsending") {
                     bearerAuth(tokenx.generate("12345678910"))
                     contentType(ContentType.Application.Json)
                     setBody(
                         Innsending(
-                            vedlegg = listOf(
-                                Vedlegg(
-                                    id = vedleggId1.toString(),
+                            filer = listOf(
+                                Fil(
+                                    id = filId1.toString(),
                                     tittel = "important"
                                 ),
-                                Vedlegg(
-                                    id = vedleggId2.toString(),
+                                Fil(
+                                    id = filId2.toString(),
                                     tittel = "nice to have"
                                 )
                             )
@@ -130,7 +130,7 @@ class InnsendingTest : H2TestBase() {
                 assertEquals(HttpStatusCode.OK, res.status)
 
                 assertEquals(1, countInnsending())
-                assertEquals(2, countVedlegg())
+                assertEquals(2, countFiler())
                 assertEquals(1, getAllInnsendinger().size)
             }
         }

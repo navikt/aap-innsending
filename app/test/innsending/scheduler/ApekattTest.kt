@@ -56,7 +56,7 @@ class ApekattTest : H2TestBase() {
             assertEquals(expected, actual.copy(datoMottatt = now))
 
             assertEquals(0, countInnsending())
-            assertEquals(0, countVedlegg())
+            assertEquals(0, countFiler())
             assertEquals(1, countLogg())
         }
     }

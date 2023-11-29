@@ -28,9 +28,9 @@ data class InnsendingMedFiler(
     val opprettet: LocalDateTime,
     val personident: String,
     val data: ByteArray,
-    val vedlegg: List<Vedlegg>
+    val fil: List<Fil>
 ) {
-    data class Vedlegg(
+    data class Fil(
         val id: UUID,
         val tittel: String,
         val data: ByteArray
@@ -39,7 +39,7 @@ data class InnsendingMedFiler(
             if (this === other) return true
             if (javaClass != other?.javaClass) return false
 
-            other as Vedlegg
+            other as Fil
 
             return id == other.id
         }

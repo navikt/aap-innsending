@@ -20,7 +20,7 @@ class PostgresDAOTest : H2TestBase() {
     }
 
     @Test
-    fun `Inserter vedlegg`() {
+    fun `Inserter fil`() {
         val søknadId = UUID.randomUUID()
         h2.transaction {
             PostgresDAO.insertInnsending(
@@ -30,20 +30,20 @@ class PostgresDAOTest : H2TestBase() {
                 "søknad".toByteArray(),
                 it
             )
-            PostgresDAO.insertVedlegg(
+            PostgresDAO.insertFil(
                 søknadId,
                 UUID.randomUUID(),
-                "vedlegg".toByteArray(),
+                "fil".toByteArray(),
                 "tittel",
                 it
             )
         }
 
-        assertEquals(1, countVedlegg())
+        assertEquals(1, countFiler())
     }
 
     @Test
-    fun `Sletting av innsending sletter også vedlegg`() {
+    fun `Sletting av innsending sletter også fil`() {
         val søknadId = UUID.randomUUID()
         h2.transaction {
             PostgresDAO.insertInnsending(
@@ -53,25 +53,25 @@ class PostgresDAOTest : H2TestBase() {
                 "søknad".toByteArray(),
                 it
             )
-            PostgresDAO.insertVedlegg(
+            PostgresDAO.insertFil(
                 søknadId,
                 UUID.randomUUID(),
-                "vedlegg".toByteArray(),
+                "fil".toByteArray(),
                 "tittel",
                 it
             )
         }
 
-        assertEquals(1, countVedlegg())
+        assertEquals(1, countFiler())
 
         PostgresDAO.deleteInnsending(søknadId, h2.connection)
 
         assertEquals(0, countInnsending())
-        assertEquals(0, countVedlegg())
+        assertEquals(0, countFiler())
     }
 
     @Test
-    fun `Henter en komplett innsending med vedlegg`() {
+    fun `Henter en komplett innsending med filer`() {
         val søknadId = UUID.randomUUID()
         h2.transaction {
             PostgresDAO.insertInnsending(
@@ -81,17 +81,17 @@ class PostgresDAOTest : H2TestBase() {
                 "søknad".toByteArray(),
                 it
             )
-            PostgresDAO.insertVedlegg(søknadId, UUID.randomUUID(), "vedlegg1".toByteArray(), "tittel1", it)
-            PostgresDAO.insertVedlegg(søknadId, UUID.randomUUID(), "vedlegg2".toByteArray(), "tittel2", it)
-            PostgresDAO.insertVedlegg(søknadId, UUID.randomUUID(), "vedlegg3".toByteArray(), "tittel3", it)
-            PostgresDAO.insertVedlegg(søknadId, UUID.randomUUID(), "vedlegg4".toByteArray(), "tittel4", it)
-            PostgresDAO.insertVedlegg(søknadId, UUID.randomUUID(), "vedlegg5".toByteArray(), "tittel5", it)
+            PostgresDAO.insertFil(søknadId, UUID.randomUUID(), "fil1".toByteArray(), "tittel1", it)
+            PostgresDAO.insertFil(søknadId, UUID.randomUUID(), "fil2".toByteArray(), "tittel2", it)
+            PostgresDAO.insertFil(søknadId, UUID.randomUUID(), "fil3".toByteArray(), "tittel3", it)
+            PostgresDAO.insertFil(søknadId, UUID.randomUUID(), "fil4".toByteArray(), "tittel4", it)
+            PostgresDAO.insertFil(søknadId, UUID.randomUUID(), "fil5".toByteArray(), "tittel5", it)
         }
 
-        val innsending = PostgresDAO.selectInnsendingMedVedlegg(søknadId, h2.connection)
+        val innsending = PostgresDAO.selectInnsendingMedFiler(søknadId, h2.connection)
 
         assertEquals(søknadId, innsending.id)
-        assertEquals(5, innsending.vedlegg.size)
+        assertEquals(5, innsending.fil.size)
     }
 
     @Test
