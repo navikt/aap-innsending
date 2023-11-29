@@ -1,7 +1,6 @@
 package innsending.routes
 
 import innsending.antivirus.ClamAVClient
-import innsending.antivirus.ScanResult
 import innsending.pdf.PdfGen
 import innsending.redis.Redis
 import io.ktor.http.*
@@ -28,7 +27,6 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
 
         post {
             val personIdent = call.personident()
-            //val personIdent = requireNotNull(call.request.headers["NAV-PersonIdent"])
             redis[personIdent] = call.receive()
             redis.expire(personIdent, 3 * EnDag)
             call.respond(HttpStatusCode.OK)
@@ -36,7 +34,6 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
 
         get {
             val personIdent = call.personident()
-            //val personIdent = requireNotNull(call.request.headers["NAV-PersonIdent"])
             when (val soknad = redis[personIdent]) {
                 null -> call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret søknad")
                 else -> call.respond(HttpStatusCode.OK, soknad)
@@ -45,7 +42,6 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
 
         delete {
             val personIdent = call.personident()
-            //val personIdent = requireNotNull(call.request.headers["NAV-PersonIdent"])
             redis.del(personIdent)
             call.respond(HttpStatusCode.OK)
         }
@@ -84,7 +80,7 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
         get("/{vedleggId}") {
             val vedleggId = requireNotNull(call.parameters["vedleggId"])
 
-            when (val vedlegg = redis.get(vedleggId)) {
+            when (val vedlegg = redis[vedleggId]) {
                 null -> call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret vedlegg")
                 else -> call.respond(HttpStatusCode.OK, vedlegg)
             }

@@ -12,6 +12,8 @@ import io.ktor.server.response.*
 import java.util.*
 import java.util.concurrent.TimeUnit
 
+const val TOKENX = "tokenx"
+
 fun Application.authentication(config: TokenXConfig) {
     val idPortenProvider: JwkProvider = JwkProviderBuilder(config.jwks)
         .cached(10, 24, TimeUnit.HOURS)
@@ -19,7 +21,7 @@ fun Application.authentication(config: TokenXConfig) {
         .build()
 
     authentication {
-        jwt("tokenx") {
+        jwt(TOKENX) {
             verifier(idPortenProvider, config.issuer)
             challenge { _, _ -> call.respond(HttpStatusCode.Unauthorized, "TokenX validering feilet") }
             validate { cred ->

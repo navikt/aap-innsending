@@ -14,7 +14,7 @@ internal object TestConfig {
         driver = "org.h2.Driver"
     )
 
-    internal val redis = RedisConfig(
+    private val redis = RedisConfig(
         uri = URI.create("http://127.0.0.1:6379"),
         username = "test",
         password = "test"

@@ -9,10 +9,7 @@ import io.prometheus.client.Summary
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.ktor.client.AzureAdTokenProvider
 import no.nav.aap.ktor.client.AzureConfig
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
-private val secureLog: Logger = LoggerFactory.getLogger("securelog")
 private const val JOARK_CLIENT_SECONDS_METRICNAME = "joark_client_seconds"
 private val clientLatencyStats: Summary = Summary.build()
     .name(JOARK_CLIENT_SECONDS_METRICNAME)

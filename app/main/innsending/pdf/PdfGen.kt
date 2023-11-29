@@ -3,7 +3,6 @@ package innsending.pdf
 import innsending.http.HttpClientFactory
 import io.ktor.client.call.*
 import io.ktor.client.request.*
-import io.ktor.client.utils.EmptyContent.contentType
 import io.ktor.http.*
 import io.prometheus.client.Summary
 

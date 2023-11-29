@@ -5,6 +5,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import innsending.antivirus.ClamAVClient
 import innsending.arkiv.JoarkClient
 import innsending.arkiv.JournalpostSender
+import innsending.auth.TOKENX
 import innsending.auth.authentication
 import innsending.pdf.PdfGen
 import innsending.postgres.PostgresRepo
@@ -90,7 +91,7 @@ fun Application.server(
     }
 
     routing {
-        authenticate("tokenx") {
+        authenticate(TOKENX) {
             innsendingRoute(postgres, redis)
             mellomlagerRoute(redis, antivirus, pdfGen)
         }

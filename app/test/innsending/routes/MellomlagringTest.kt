@@ -72,7 +72,7 @@ class MellomlagringTest {
                 }
                 assertEquals(HttpStatusCode.OK, del.status)
 
-                assertNull(jedis.get("12345678910"))
+                assertNull(jedis["12345678910"])
             }
         }
     }
@@ -111,7 +111,7 @@ class MellomlagringTest {
                     setBody(Resource.read("/resources/images/bilde.jpg"))
                 }
                 assertEquals(HttpStatusCode.Created, res.status)
-                assertEquals(String(Resource.read("/resources/pdf/minimal.pdf")), String(jedis.get(res.bodyAsText())!!))
+                assertEquals(String(Resource.read("/resources/pdf/minimal.pdf")), String(jedis[res.bodyAsText()]!!))
             }
         }
     }

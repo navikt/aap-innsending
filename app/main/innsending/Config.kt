@@ -1,6 +1,5 @@
 package innsending
 
-import innsending.pdf.PdfGen
 import no.nav.aap.ktor.client.AzureConfig
 import java.net.URI
 

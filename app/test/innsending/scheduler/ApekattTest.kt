@@ -10,7 +10,6 @@ import innsending.postgres.transaction
 import innsending.redis.JedisRedisFake
 import innsending.server
 import io.ktor.server.testing.*
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -22,7 +21,7 @@ import kotlin.test.assertEquals
 class ApekattTest : H2TestBase() {
 
     @Test
-    fun `should send journalpost`() {
+    fun `sjekker at apekatten sender journalpost og rydder opp`() {
         Fakes().use { fakes ->
             val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
