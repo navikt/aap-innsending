@@ -2,6 +2,7 @@ package innsending
 
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import innsending.arkiv.ArkivResponse
 import innsending.arkiv.Journalpost
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
@@ -57,7 +58,7 @@ class JoarkFake : AutoCloseable {
             routing {
                 post("/rest/journalpostapi/v1/journalpost") {
                     receivedRequest.complete(call.receive())
-                    call.respond(HttpStatusCode.OK, "OK")
+                    call.respond(HttpStatusCode.OK, ArkivResponse("1234", true, emptyList()))
                 }
             }
         })

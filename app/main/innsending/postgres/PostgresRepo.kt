@@ -12,6 +12,20 @@ class PostgresRepo(
     config: PostgresConfig,
     private val hikari: DataSource = Hikari.createDatasource(config).apply(::flywayMigration),
 ) {
+    fun loggførJournalføring(
+        personIdent: String,
+        mottattDato: LocalDateTime,
+        journalpostId: String
+    ) {
+        hikari.transaction { con ->
+            PostgresDAO.insertLogg(
+                personident = personIdent,
+                mottattDato = mottattDato,
+                journalpostId = journalpostId,
+                con = con
+            )
+        }
+    }
 
     fun hentAlleInnsendinger(): List<UUID> = hikari.transaction { con ->
         PostgresDAO.selectInnsendinger(con)

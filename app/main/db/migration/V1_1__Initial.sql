@@ -13,3 +13,9 @@ CREATE TABLE fil
     tittel                  TEXT,
     data                    BYTEA -- ligger i redis
 );
+
+CREATE TABLE logg(
+    personident         VARCHAR(11) NOT NULL,
+    mottatt_dato        TIMESTAMP NOT NULL,
+    journalpost_id      TEXT UNIQUE NOT NULL
+);

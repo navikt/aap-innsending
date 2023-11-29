@@ -1,5 +1,6 @@
 package innsending.scheduler
 
+import innsending.SECURE_LOGGER
 import innsending.arkiv.JournalpostSender
 import innsending.pdf.PdfGen
 import innsending.postgres.PostgresRepo
@@ -18,9 +19,10 @@ class Apekatt(
         while (this.isActive) {
             try {
                 val liste = repo.hentAlleInnsendinger()
-                logger.info("Fant {} usendte innsendinger", liste.size)
+                logger.trace("Fant {} usendte innsendinger", liste.size)
+                // TODO Metrikk på om køen vokser...
                 liste.forEach { søknadId ->
-                    logger.info("Prøver å arkivere....")
+                    logger.trace("Prøver å arkivere....")
 
                     val innsending = repo.hentInnsending(søknadId)
 
@@ -31,7 +33,7 @@ class Apekatt(
                     journalpostSender.arkiverAltSomKanArkiveres(søknadSomPdf, innsending)
                 }
             } catch (t: Throwable) {
-                logger.error("Klarte ikke å arkivere", t)
+                SECURE_LOGGER.error("Klarte ikke å arkivere", t)
             }
             delay(TI_SEKUNDER)
         }

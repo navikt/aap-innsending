@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 import java.util.*
 
-class InnsendingDAOTest : H2TestBase() {
+class PostgresDAOTest : H2TestBase() {
     @Test
     fun `Inserter en innsending`() {
         PostgresDAO.insertInnsending(
@@ -92,5 +92,20 @@ class InnsendingDAOTest : H2TestBase() {
 
         assertEquals(søknadId, innsending.id)
         assertEquals(5, innsending.vedlegg.size)
+    }
+
+    @Test
+    fun `insert logg ignorerer andre forsøk`() {
+        h2.transaction {
+            PostgresDAO.insertLogg("12345678910", LocalDateTime.now(), "1234", it)
+        }
+
+        assertEquals(1, countLogg())
+
+        h2.transaction {
+            PostgresDAO.insertLogg("12345678910", LocalDateTime.now(), "1234", it)
+        }
+
+        assertEquals(1, countLogg())
     }
 }

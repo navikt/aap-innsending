@@ -29,7 +29,7 @@ class JoarkClient(azureConfig: AzureConfig, private val joarkConfig: JoarkConfig
     fun opprettJournalpost(
         journalpost: Journalpost,
         callId:String
-    ): Boolean =
+    ): ArkivResponse? =
         clientLatencyStats.startTimer().use {
             runBlocking {
                 val token = tokenProvider.getClientCredentialToken()
@@ -40,12 +40,11 @@ class JoarkClient(azureConfig: AzureConfig, private val joarkConfig: JoarkConfig
                     contentType(ContentType.Application.Json)
                     setBody(journalpost)
                 }
-                when(response.status.value) {
-                    409 -> true // Dette betyr at vi allerede har opprettet denne, men lett hos oss feilet
-                    in 200..299 -> true
-                    else -> false.also {
-                        secureLog.error("Feil fra joark: {}, {}", response.status.value, response)
-                    }
+                if (response.status.isSuccess() || response.status.value == 409) {
+                    response.body()
+                } else {
+                    // TODO Metrikk
+                    null
                 }
             }
         }

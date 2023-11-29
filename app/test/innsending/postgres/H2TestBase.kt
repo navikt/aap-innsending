@@ -32,6 +32,13 @@ abstract class H2TestBase {
             resultSet.map { row -> row.getInt(1) }.singleOrNull()
         }
 
+    fun countLogg(): Int? =
+        h2.transaction { con ->
+            val stmt = con.prepareStatement("SELECT count(*) FROM logg")
+            val resultSet = stmt.executeQuery()
+            resultSet.map { row -> row.getInt(1) }.singleOrNull()
+        }
+
     fun getAllInnsendinger(): List<UUID> =
         h2.transaction { con ->
             val stmt = con.prepareStatement("SELECT * FROM innsending")

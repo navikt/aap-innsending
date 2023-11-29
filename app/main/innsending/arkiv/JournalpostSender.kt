@@ -27,8 +27,9 @@ class JournalpostSender(
             datoMottatt = innsending.opprettet
         )
 
-        val journalført = client.opprettJournalpost(journalpost, innsending.id.toString())
-        if (journalført) {
+        val arkivResponse = client.opprettJournalpost(journalpost, innsending.id.toString())
+        if (arkivResponse != null) {
+            repo.loggførJournalføring(innsending.personident, innsending.opprettet, arkivResponse.journalpostId)
             repo.slettInnsending(innsending.id)
         }
     }

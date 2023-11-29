@@ -10,6 +10,7 @@ import innsending.postgres.transaction
 import innsending.redis.JedisRedisFake
 import innsending.server
 import io.ktor.server.testing.*
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -36,6 +37,7 @@ class ApekattTest : H2TestBase() {
                 )
             }
 
+
             testApplication {
                 application { server(config, jedis, h2) }
             }
@@ -53,6 +55,10 @@ class ApekattTest : H2TestBase() {
 
             // Vi bytter actual sin datoMottat med testen sin 'now' for å kunne asserte på hele objektet
             assertEquals(expected, actual.copy(datoMottatt = now))
+
+            assertEquals(0, countInnsending())
+            assertEquals(0, countVedlegg())
+            assertEquals(1, countLogg())
         }
     }
 
