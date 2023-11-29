@@ -5,6 +5,7 @@ import innsending.SECURE_LOGGER
 import innsending.arkiv.JournalpostSender
 import innsending.pdf.PdfGen
 import innsending.postgres.PostgresRepo
+import io.micrometer.core.instrument.MeterRegistry
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
 
@@ -14,6 +15,7 @@ private const val TI_SEKUNDER = 10_000L
 class Apekatt(
     private val pdfGen: PdfGen,
     private val repo: PostgresRepo,
+    private val prometheus: MeterRegistry,
     private val journalpostSender: JournalpostSender
 ) : AutoCloseable {
     private val job: Job = CoroutineScope(Dispatchers.Default).launch {
@@ -21,7 +23,7 @@ class Apekatt(
             try {
                 val innsendingIder = repo.hentAlleInnsendinger()
                 logger.trace("Fant {} usendte innsendinger", innsendingIder.size)
-                // TODO Metrikk på om køen vokser...
+                prometheus.gauge("innsendinger_arkivering", innsendingIder.size)
                 innsendingIder.forEach { innsendingId ->
                     logger.trace("Prøver å arkivere....")
 
@@ -42,6 +44,7 @@ class Apekatt(
                 }
             } catch (t: Throwable) {
                 SECURE_LOGGER.error("Klarte ikke å arkivere", t)
+                prometheus.counter("arkiverings_feil").increment()
             }
             delay(TI_SEKUNDER)
         }
