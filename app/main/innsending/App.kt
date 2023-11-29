@@ -49,7 +49,7 @@ fun Application.server(
 ) {
     val antivirus = ClamAVClient(config.virusScanHost)
     val pdfGen = PdfGen(config.pdfGenHost)
-    val postgres = dataSource?.let { PostgresRepo(config.postgres, it) } ?: PostgresRepo(config.postgres)
+    val postgres = dataSource?.let { PostgresRepo(config.postgres, config.environment, it) } ?: PostgresRepo(config.postgres, config.environment)
     val joarkClient = JoarkClient(config.azure, config.joark)
     val journalpostSender = JournalpostSender(joarkClient, postgres)
     val arkivScheduler = Apekatt(pdfGen, postgres, journalpostSender)

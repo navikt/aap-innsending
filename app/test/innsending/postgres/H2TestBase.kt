@@ -6,7 +6,9 @@ import java.util.*
 import javax.sql.DataSource
 
 abstract class H2TestBase {
-    protected val h2: DataSource = Hikari.createDatasource(TestConfig.postgres).apply(Hikari::flywayMigration)
+    protected val h2: DataSource = Hikari.createDatasource(TestConfig.postgres).apply {
+        Hikari.flywayMigration(this, "test")
+    }
 
     @BeforeEach
     fun clearTables() {

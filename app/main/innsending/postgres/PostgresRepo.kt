@@ -10,7 +10,10 @@ import javax.sql.DataSource
 
 class PostgresRepo(
     config: PostgresConfig,
-    private val hikari: DataSource = Hikari.createDatasource(config).apply(::flywayMigration),
+    environment: String,
+    private val hikari: DataSource = Hikari.createDatasource(config).apply {
+        flywayMigration(this, environment)
+    },
 ) {
     fun loggførJournalføring(
         personIdent: String,

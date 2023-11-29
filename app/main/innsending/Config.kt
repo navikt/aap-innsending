@@ -14,7 +14,8 @@ data class Config(
     val joark: JoarkConfig = JoarkConfig(),
     val tokenx: TokenXConfig = TokenXConfig(),
     val pdfGenHost: String = "http://pdfgen",
-    val virusScanHost: String = "http://clamav.nais-system"
+    val virusScanHost: String = "http://clamav.nais-system",
+    val environment: String = getEnvVar("NAIS_CLUSTER_NAME")
 )
 
 data class RedisConfig(

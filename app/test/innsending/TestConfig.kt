@@ -36,7 +36,8 @@ internal object TestConfig {
                 clientId = "aap-innsending",
                 issuer = "tokenx",
                 jwks = "http://localhost:${fakes.tokenx.port()}"
-            )
+            ),
+            environment = "test"
         )
     }
 }

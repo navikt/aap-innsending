@@ -4,20 +4,14 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import innsending.PostgresConfig
 import org.flywaydb.core.Flyway
+import org.slf4j.LoggerFactory
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.util.*
-import java.util.logging.Logger
 import javax.sql.DataSource
 
-private val logger = Logger.getLogger("App")
-
-// TODO: husk å skru på denne før prod
-private const val DISABLE_FLYWAY_CLEAN = false
-
-// TODO: husk å skru av denne før prod
-private const val ENABLE_FLYWAY_CLEAN_ON_VALIDATION_ERROR = true
+private val logger = LoggerFactory.getLogger("App")
 
 internal object Hikari {
     fun createDatasource(config: PostgresConfig): DataSource =
@@ -34,17 +28,26 @@ internal object Hikari {
             driverClassName = config.driver
         })
 
-    fun flywayMigration(ds: DataSource) {
-        if (!DISABLE_FLYWAY_CLEAN) logger.warning("Flyway.cleanDisabled er satt til false. Husk å skru av i prod")
-        if (ENABLE_FLYWAY_CLEAN_ON_VALIDATION_ERROR) logger.warning("Flyway.cleanOnValidationError er satt til true. Husk å skru av i prod")
-
+    fun flywayMigration(ds: DataSource, environment: String) {
         Flyway
             .configure()
-            .cleanDisabled(DISABLE_FLYWAY_CLEAN)
-            .cleanOnValidationError(ENABLE_FLYWAY_CLEAN_ON_VALIDATION_ERROR)
+            .cleanDisabled(setCleanDisabled(environment))
+            .cleanOnValidationError(setCleanOnValidationError(environment))
             .dataSource(ds)
             .load()
             .migrate()
+    }
+
+    private fun setCleanDisabled(environment: String) = isProd(environment)
+
+    private fun setCleanOnValidationError(environment: String) = !isProd(environment)
+
+    private fun isProd(environment: String): Boolean {
+        if (environment != "prod-gcp") {
+            logger.error("Flyway.cleanDisabled er satt til false. Husk å skru av i prod")
+            logger.error("Flyway.cleanOnValidationError er satt til true. Husk å skru av i prod")
+        }
+        return environment == "prod-gcp"
     }
 }
 

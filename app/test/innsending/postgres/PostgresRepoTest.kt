@@ -10,7 +10,7 @@ import java.util.*
 
 internal class PostgresRepoTest : H2TestBase() {
     private val config = PostgresConfig("", "", "", "", "")
-    private val repo = PostgresRepo(config, h2)
+    private val repo = PostgresRepo(config, "test", h2)
 
     @Test
     fun `Insert en innsending med vedlegg`() {
