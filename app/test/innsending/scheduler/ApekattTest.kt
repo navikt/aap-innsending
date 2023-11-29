@@ -21,7 +21,7 @@ import kotlin.test.assertEquals
 class ApekattTest : H2TestBase() {
 
     @Test
-    fun `sjekker at apekatten sender journalpost og rydder opp`() {
+    fun `journalfører søknad`() {
         Fakes().use { fakes ->
             val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
@@ -50,10 +50,58 @@ class ApekattTest : H2TestBase() {
             // LocalDateTime.now() blir kalt i InnsendingRoute.
             // Den vil derfor bli kalt noen tusendeler av et sekund før testen setter expected.datoMottatt=now
             // Worst case vil testen time ut etter 10 sec, derfor støtter vi opptil en 10sec gammel LocalDateTime.now()
-            assertTrue(expected.datoMottatt.isAfter(now.minusSeconds(10)))
+            assertTrue(expectedSøknad.datoMottatt.isAfter(now.minusSeconds(10)))
 
             // Vi bytter actual sin datoMottat med testen sin 'now' for å kunne asserte på hele objektet
-            assertEquals(expected, actual.copy(datoMottatt = now))
+            assertEquals(expectedSøknad, actual.copy(datoMottatt = now))
+
+            assertEquals(0, countInnsending())
+            assertEquals(0, countFiler())
+            assertEquals(1, countLogg())
+        }
+    }
+
+    @Test
+    fun `journalfører ettersendelse `() {
+        Fakes().use { fakes ->
+            val jedis = JedisRedisFake()
+            val config = TestConfig.default(fakes)
+
+            h2.transaction {
+                PostgresDAO.insertInnsending(
+                    UUID.fromString("123e4567-e89b-12d3-a456-426614174000"),
+                    "12345678910",
+                    now,
+                    null,
+                    it
+                )
+
+                PostgresDAO.insertFil(
+                    UUID.fromString("123e4567-e89b-12d3-a456-426614174000"),
+                    UUID.fromString("223e4567-e89b-12d3-a456-426614174000"),
+                    "dføalskdfjøalknser vf".toByteArray(),
+                    "Annet",
+                    it
+                )
+            }
+
+            testApplication {
+                application { server(config, jedis, h2) }
+            }
+
+            val actual = runBlocking {
+                withTimeout(10000) {
+                    fakes.joark.receivedRequest.await()
+                }
+            }
+
+            // LocalDateTime.now() blir kalt i InnsendingRoute.
+            // Den vil derfor bli kalt noen tusendeler av et sekund før testen setter expected.datoMottatt=now
+            // Worst case vil testen time ut etter 10 sec, derfor støtter vi opptil en 10sec gammel LocalDateTime.now()
+            assertTrue(expectedEttersending.datoMottatt.isAfter(now.minusSeconds(10)))
+
+            // Vi bytter actual sin datoMottat med testen sin 'now' for å kunne asserte på hele objektet
+            assertEquals(expectedEttersending, actual.copy(datoMottatt = now))
 
             assertEquals(0, countInnsending())
             assertEquals(0, countFiler())
@@ -63,7 +111,7 @@ class ApekattTest : H2TestBase() {
 
     private val now: LocalDateTime by lazy { LocalDateTime.now() }
 
-    private val expected = Journalpost(
+    private val expectedSøknad = Journalpost(
         tittel = "Søknad AAP",
         avsenderMottaker = Journalpost.AvsenderMottaker(
             id = Journalpost.Fødselsnummer("12345678910")
@@ -89,4 +137,32 @@ class ApekattTest : H2TestBase() {
         tilleggsopplysninger = listOf(Journalpost.Tilleggsopplysning(nokkel = "versjon", verdi = "1.0")),
         tema = "AAP"
     )
+    private val expectedEttersending = Journalpost(
+        tittel = "Ettersending AAP",
+        avsenderMottaker = Journalpost.AvsenderMottaker(
+            id = Journalpost.Fødselsnummer("12345678910")
+        ),
+        bruker = Journalpost.Bruker(id = Journalpost.Fødselsnummer("12345678910")),
+        dokumenter = listOf(
+            Journalpost.Dokument(
+                tittel = "Annet",
+                brevkode = "",
+                dokumentVarianter = listOf(
+                    Journalpost.DokumentVariant(
+                        fysiskDokument = Base64.getEncoder().encodeToString(
+                            "dføalskdfjøalknser vf".toByteArray()
+
+                        ),
+                    )
+                )
+            )
+        ),
+        eksternReferanseId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000").toString(),
+        datoMottatt = now,
+        kanal = "NAV_NO",
+        journalposttype = "INNGAAENDE",
+        tilleggsopplysninger = listOf(Journalpost.Tilleggsopplysning(nokkel = "versjon", verdi = "1.0")),
+        tema = "AAP"
+    )
 }
+

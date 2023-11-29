@@ -1,5 +1,6 @@
 package innsending.scheduler
 
+
 import innsending.SECURE_LOGGER
 import innsending.arkiv.JournalpostSender
 import innsending.pdf.PdfGen
@@ -18,19 +19,26 @@ class Apekatt(
     private val job: Job = CoroutineScope(Dispatchers.Default).launch {
         while (this.isActive) {
             try {
-                val liste = repo.hentAlleInnsendinger()
-                logger.trace("Fant {} usendte innsendinger", liste.size)
+                val innsendingIder = repo.hentAlleInnsendinger()
+                logger.trace("Fant {} usendte innsendinger", innsendingIder.size)
                 // TODO Metrikk på om køen vokser...
-                liste.forEach { søknadId ->
+                innsendingIder.forEach { innsendingId ->
                     logger.trace("Prøver å arkivere....")
 
-                    val innsending = repo.hentInnsending(søknadId)
+                    val innsending = repo.hentInnsending(innsendingId)
 
-                    val søknadSomPdf = runBlocking {
-                        pdfGen.søknadTilPdf(innsending.data)
+
+                    if (innsending.data != null) {
+                        runBlocking {
+                            val pdf = pdfGen.søknadTilPdf(innsending.data)
+                            journalpostSender.arkiverSøknad(pdf, innsending)
+                        }
+
+                    } else {
+                        journalpostSender.arkiverEttersending(innsending)
                     }
 
-                    journalpostSender.arkiverAltSomKanArkiveres(søknadSomPdf, innsending)
+
                 }
             } catch (t: Throwable) {
                 SECURE_LOGGER.error("Klarte ikke å arkivere", t)

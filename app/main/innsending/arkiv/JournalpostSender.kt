@@ -10,7 +10,7 @@ class JournalpostSender(
     private val repo: PostgresRepo,
 ) {
 
-    fun arkiverAltSomKanArkiveres(søknadSomPdf: ByteArray, innsending: InnsendingMedFiler) {
+    fun arkiverSøknad(søknadSomPdf: ByteArray, innsending: InnsendingMedFiler) {
         val søknadDokument = lagSøknadDokument(søknadSomPdf)
         val vedleggDokumenter = lagDokumenter(innsending)
 
@@ -23,6 +23,29 @@ class JournalpostSender(
                 id = Journalpost.Fødselsnummer(innsending.personident)
             ),
             dokumenter = listOf(søknadDokument) + vedleggDokumenter,
+            eksternReferanseId = innsending.id.toString(),
+            datoMottatt = innsending.opprettet
+        )
+
+        val arkivResponse = client.opprettJournalpost(journalpost, innsending.id.toString())
+        if (arkivResponse != null) {
+            repo.loggførJournalføring(innsending.personident, innsending.opprettet, arkivResponse.journalpostId)
+            repo.slettInnsending(innsending.id)
+        }
+    }
+
+    fun arkiverEttersending(innsending: InnsendingMedFiler){
+        val vedleggDokumenter = lagDokumenter(innsending)
+
+        val journalpost = Journalpost(
+            tittel = "Ettersending AAP",
+            avsenderMottaker = Journalpost.AvsenderMottaker(
+                id = Journalpost.Fødselsnummer(innsending.personident)
+            ),
+            bruker = Journalpost.Bruker(
+                id = Journalpost.Fødselsnummer(innsending.personident)
+            ),
+            dokumenter = vedleggDokumenter,
             eksternReferanseId = innsending.id.toString(),
             datoMottatt = innsending.opprettet
         )
@@ -50,7 +73,7 @@ class JournalpostSender(
         return innsending.fil.map { fil ->
             Journalpost.Dokument(
                 tittel = fil.tittel,
-                brevkode = "NAV 11-13.05",
+                brevkode = "",
                 dokumentVarianter = listOf(
                     Journalpost.DokumentVariant(fysiskDokument = Base64.getEncoder().encodeToString(fil.data))
                 )

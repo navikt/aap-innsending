@@ -7,7 +7,7 @@ data class InnsendingDb(
     val id: UUID,
     val opprettet: LocalDateTime,
     val personident: String,
-    val data: ByteArray
+    val data: ByteArray?
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -27,7 +27,7 @@ data class InnsendingMedFiler(
     val id: UUID,
     val opprettet: LocalDateTime,
     val personident: String,
-    val data: ByteArray,
+    val data: ByteArray?,
     val fil: List<Fil>
 ) {
     data class Fil(
