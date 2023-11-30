@@ -23,7 +23,7 @@ class Apekatt(
             try {
                 val innsendingIder = repo.hentAlleInnsendinger()
                 logger.trace("Fant {} usendte innsendinger", innsendingIder.size)
-                prometheus.gauge("innsendinger_arkivering", innsendingIder.size)
+                prometheus.gauge("innsendinger", innsendingIder.size)
                 innsendingIder.forEach { innsendingId ->
                     logger.trace("Prøver å arkivere....")
 
@@ -44,7 +44,7 @@ class Apekatt(
                 }
             } catch (t: Throwable) {
                 SECURE_LOGGER.error("Klarte ikke å arkivere", t)
-                prometheus.counter("arkiverings_feil").increment()
+                prometheus.counter("innsendinger_feilet").increment()
             }
             delay(TI_SEKUNDER)
         }

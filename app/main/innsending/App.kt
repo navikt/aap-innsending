@@ -47,14 +47,17 @@ fun Application.server(
     redis: Redis = JedisRedis(config.redis),
     dataSource: DataSource? = null
 ) {
+    val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
     val antivirus = ClamAVClient(config.virusScanHost)
     val pdfGen = PdfGen(config.pdfGenHost)
-    val postgres = dataSource?.let { PostgresRepo(config.postgres, config.environment, it) } ?: PostgresRepo(config.postgres, config.environment)
+
+    val postgres = dataSource?.let {
+        PostgresRepo(config.postgres, config.environment, it)
+    } ?: PostgresRepo(config.postgres, config.environment)
+
     val joarkClient = JoarkClient(config.azure, config.joark)
     val journalpostSender = JournalpostSender(joarkClient, postgres)
-    val arkivScheduler = Apekatt(pdfGen, postgres, journalpostSender)
-
-    val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+    val arkivScheduler = Apekatt(pdfGen, postgres, prometheus, journalpostSender)
 
     environment.monitor.subscribe(ApplicationStopping) {
         arkivScheduler.close()
