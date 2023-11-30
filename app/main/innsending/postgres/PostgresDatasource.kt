@@ -14,29 +14,28 @@ import javax.sql.DataSource
 private val logger = LoggerFactory.getLogger("App")
 
 internal object Hikari {
-    fun createDatasource(config: PostgresConfig): DataSource =
-        HikariDataSource(HikariConfig().apply {
-            jdbcUrl = config.url
-            username = config.username
-            password = config.password
-            maximumPoolSize = 3
-            minimumIdle = 1
-            initializationFailTimeout = 5000
-            idleTimeout = 10001
-            connectionTimeout = 1000
-            maxLifetime = 30001
-            driverClassName = config.driver
-        })
-
-    fun flywayMigration(ds: DataSource, environment: String) {
-        Flyway
-            .configure()
-            .cleanDisabled(setCleanDisabled(environment))
-            .cleanOnValidationError(setCleanOnValidationError(environment))
-            .dataSource(ds)
-            .load()
-            .migrate()
-    }
+    fun createAndMigrate(config: PostgresConfig): DataSource =
+        HikariDataSource(
+            HikariConfig().apply {
+                jdbcUrl = config.url
+                username = config.username
+                password = config.password
+                maximumPoolSize = 3
+                minimumIdle = 1
+                initializationFailTimeout = 5000
+                idleTimeout = 10001
+                connectionTimeout = 1000
+                maxLifetime = 30001
+                driverClassName = config.driver
+            }
+        ).apply {
+            Flyway.configure()
+                .cleanDisabled(setCleanDisabled(config.cluster))
+                .cleanOnValidationError(setCleanOnValidationError(config.cluster))
+                .dataSource(this)
+                .load()
+                .migrate()
+        }
 
     private fun setCleanDisabled(environment: String) = isProd(environment)
 

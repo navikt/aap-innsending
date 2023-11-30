@@ -1,20 +1,12 @@
 package innsending.postgres
 
-import innsending.PostgresConfig
-import innsending.postgres.Hikari.flywayMigration
-import innsending.routes.Innsending
 import innsending.routes.Fil
+import innsending.routes.Innsending
 import java.time.LocalDateTime
 import java.util.*
 import javax.sql.DataSource
 
-class PostgresRepo(
-    config: PostgresConfig,
-    environment: String,
-    private val hikari: DataSource = Hikari.createDatasource(config).apply {
-        flywayMigration(this, environment)
-    },
-) {
+class PostgresRepo(private val hikari: DataSource) {
     fun loggførJournalføring(
         personIdent: String,
         mottattDato: LocalDateTime,

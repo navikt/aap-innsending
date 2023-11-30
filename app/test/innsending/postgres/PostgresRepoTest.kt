@@ -1,16 +1,14 @@
 package innsending.postgres
 
-import innsending.PostgresConfig
-import innsending.routes.Innsending
 import innsending.routes.Fil
+import innsending.routes.Innsending
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 import java.util.*
 
 internal class PostgresRepoTest : H2TestBase() {
-    private val config = PostgresConfig("", "", "", "", "")
-    private val repo = PostgresRepo(config, "test", h2)
+    private val repo = PostgresRepo(h2)
 
     @Test
     fun `Insert en innsending med fil`() {

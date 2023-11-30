@@ -8,6 +8,7 @@ import innsending.arkiv.JournalpostSender
 import innsending.auth.TOKENX
 import innsending.auth.authentication
 import innsending.pdf.PdfGen
+import innsending.postgres.Hikari
 import innsending.postgres.PostgresRepo
 import innsending.redis.JedisRedis
 import innsending.redis.Redis
@@ -45,15 +46,12 @@ fun main() {
 fun Application.server(
     config: Config = Config(),
     redis: Redis = JedisRedis(config.redis),
-    dataSource: DataSource? = null
+    datasource: DataSource = Hikari.createAndMigrate(config.postgres)
 ) {
     val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
     val antivirus = ClamAVClient(config.virusScanHost)
     val pdfGen = PdfGen(config.pdfGenHost)
-
-    val postgres = dataSource?.let {
-        PostgresRepo(config.postgres, config.environment, it)
-    } ?: PostgresRepo(config.postgres, config.environment)
+    val postgres = PostgresRepo(datasource)
 
     val joarkClient = JoarkClient(config.azure, config.joark)
     val journalpostSender = JournalpostSender(joarkClient, postgres)

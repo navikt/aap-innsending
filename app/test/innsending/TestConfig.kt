@@ -11,7 +11,8 @@ internal object TestConfig {
         username = "sa",
         password = "",
         url = "jdbc:h2:mem:test_db;MODE=PostgreSQL",
-        driver = "org.h2.Driver"
+        driver = "org.h2.Driver",
+        cluster = "test"
     )
 
     private val redis = RedisConfig(
@@ -37,7 +38,6 @@ internal object TestConfig {
                 issuer = "tokenx",
                 jwks = "http://localhost:${fakes.tokenx.port()}"
             ),
-            environment = "test"
         )
     }
 }

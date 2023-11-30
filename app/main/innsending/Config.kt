@@ -3,6 +3,8 @@ package innsending
 import no.nav.aap.ktor.client.AzureConfig
 import java.net.URI
 
+private fun getEnvVar(envar: String) = System.getenv(envar) ?: error("missing envvar $envar")
+
 data class Config(
     val postgres: PostgresConfig = PostgresConfig(),
     val redis: RedisConfig = RedisConfig(),
@@ -15,7 +17,6 @@ data class Config(
     val tokenx: TokenXConfig = TokenXConfig(),
     val pdfGenHost: String = "http://pdfgen",
     val virusScanHost: String = "http://clamav.nais-system",
-    val environment: String = getEnvVar("NAIS_CLUSTER_NAME")
 )
 
 data class RedisConfig(
@@ -31,10 +32,9 @@ data class PostgresConfig(
     val username: String = getEnvVar("NAIS_DATABASE_INNSENDING_INNSENDING_USERNAME"),
     val password: String = getEnvVar("NAIS_DATABASE_INNSENDING_INNSENDING_PASSWORD"),
     val url: String = "jdbc:postgresql://${host}:${port}/${database}",
-    val driver: String ="org.postgresql.Driver"
-    )
-
-private fun getEnvVar(envar: String) = System.getenv(envar) ?: error("missing envvar $envar")
+    val driver: String = "org.postgresql.Driver",
+    val cluster: String = getEnvVar("NAIS_CLUSTER_NAME")
+)
 
 data class JoarkConfig(
     val baseUrl: String = getEnvVar("JOARK_BASE_URL")
