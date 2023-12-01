@@ -67,6 +67,7 @@ fun Application.server(
 
     install(CallLogging) {
         level = Level.INFO
+        logger = SECURE_LOGGER
         format { call ->
             """
                 URL:            ${call.request.local.uri}
