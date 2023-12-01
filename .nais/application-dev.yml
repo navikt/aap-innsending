@@ -27,6 +27,10 @@ spec:
     requests:
       cpu: 500m
       memory: 512Mi
+  accessPolicy:
+    inbound:
+      rules:
+        - application: innsyn
   redis:
     - instance: mellomlager
       access: readwrite
