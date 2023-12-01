@@ -68,11 +68,14 @@ fun Application.server(
     install(CallLogging) {
         level = Level.INFO
         format { call ->
-            val status = call.response.status()
-            val httpMethod = call.request.httpMethod.value
-            val userAgent = call.request.headers["User-Agent"]
-            val callId = call.request.header("x-callId") ?: call.request.header("nav-callId") ?: "ukjent"
-            "URL: ${call.request.local.uri}, Status: $status, HTTP method: $httpMethod, User agent: $userAgent, callId: $callId"
+            """
+                URL:            ${call.request.local.uri}
+                Status:         ${call.response.status()}
+                Method:         ${call.request.httpMethod.value}
+                User-agent:     ${call.request.headers["User-Agent"]}
+                CallId:         ${call.request.header("x-callId") ?: call.request.header("nav-callId")}
+                Authorization:  ${call.request.header("Authorization")}
+            """.trimIndent()
         }
         filter { call -> call.request.path().startsWith("/actuator").not() }
     }
