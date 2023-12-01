@@ -1,4 +1,4 @@
-FROM eclipse-temurin:20.0.2_9-jdk-alpine as jre
+FROM eclipse-temurin:21.0.1_12-jre-alpine as jre
 
 # --strip-debug uses objcopy from binutils
 RUN apk add binutils
