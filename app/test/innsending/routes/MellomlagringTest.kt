@@ -3,6 +3,7 @@ package innsending.routes
 import innsending.*
 import innsending.redis.JedisRedisFake
 import io.ktor.client.request.*
+import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
@@ -105,11 +106,17 @@ class MellomlagringTest {
 
             testApplication {
                 application { server(config, jedis) }
-                val res = client.post("/mellomlagring/fil") {
-                    contentType(ContentType.Image.JPEG)
-                    bearerAuth(jwkGen.generate("12345678910"))
-                    setBody(Resource.read("/resources/images/bilde.jpg"))
-                }
+                val res = client.submitFormWithBinaryData(url="/mellomlagring/fil",
+                    formData = formData {
+                        append("document", Resource.read("/resources/images/bilde.jpg"), Headers.build {
+                            append(HttpHeaders.ContentDisposition, "filename=bilde.jpg")
+                            append(HttpHeaders.ContentType, "image/jpeg")
+                        })
+                    },
+                    block = {
+                        bearerAuth(jwkGen.generate("12345678910"))
+                    }
+                )
                 assertEquals(HttpStatusCode.Created, res.status)
                 assertEquals(String(Resource.read("/resources/pdf/minimal.pdf")), String(jedis[res.bodyAsText()]!!))
             }
