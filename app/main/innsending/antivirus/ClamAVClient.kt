@@ -1,6 +1,6 @@
 package innsending.antivirus
 
-import innsending.SECURE_LOGGER
+import com.fasterxml.jackson.annotation.JsonProperty
 import innsending.http.HttpClientFactory
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -25,13 +25,13 @@ class ClamAVClient(private val host:String) {
                 setBody(fil)
                 contentType(contentType)
             }
-        }.also { response -> SECURE_LOGGER.info("response: $response - ${response.body<String>()}") }
+        }
             .body<List<ScanResult>>()
             .any{ it.result == ScanResult.Result.FOUND }
 }
 
 
-data class ScanResult(val result: Result) {
+data class ScanResult(@JsonProperty("Result") val result: Result) {
     enum class Result {
         FOUND,
         OK,

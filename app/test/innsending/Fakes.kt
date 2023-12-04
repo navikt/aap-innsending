@@ -102,7 +102,7 @@ fun Application.virusScan() {
     routing {
         put("/scan") {
             call.respondText(
-                """[{"result": "OK"}]""",
+                """[{"Result": "OK"}]""",
                 ContentType.Application.Json
             )
         }
