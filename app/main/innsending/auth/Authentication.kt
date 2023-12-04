@@ -14,6 +14,13 @@ import java.util.concurrent.TimeUnit
 
 const val TOKENX = "tokenx"
 
+internal fun ApplicationCall.personident(): String {
+    return requireNotNull(principal<JWTPrincipal>()) {
+        "principal mangler i ktor auth"
+    }.getClaim("pid", String::class)
+        ?: error("pid mangler i tokenx claims")
+}
+
 fun Application.authentication(config: TokenXConfig) {
     val idPortenProvider: JwkProvider = JwkProviderBuilder(config.jwks.toURL())
         .cached(10, 24, TimeUnit.HOURS)
@@ -23,9 +30,7 @@ fun Application.authentication(config: TokenXConfig) {
     authentication {
         jwt(TOKENX) {
             verifier(idPortenProvider, config.issuer)
-            challenge { _, _ -> call.respond(HttpStatusCode.Unauthorized, "TokenX validering feilet").also {
-                SECURE_LOGGER.warn("Feilet på verifisering")
-            } }
+            challenge { _, _ -> call.respond(HttpStatusCode.Unauthorized, "TokenX validering feilet") }
             validate { cred ->
                 val now = Date()
 

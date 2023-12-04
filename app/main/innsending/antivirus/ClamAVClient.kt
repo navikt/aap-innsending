@@ -1,5 +1,6 @@
 package innsending.antivirus
 
+import innsending.SECURE_LOGGER
 import innsending.http.HttpClientFactory
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -24,7 +25,7 @@ class ClamAVClient(private val host:String) {
                 setBody(fil)
                 contentType(contentType)
             }
-        }.also { response -> println("response: $response") }
+        }.also { response -> SECURE_LOGGER.info("response: $response - ${response.body<String>()}") }
             .body<List<ScanResult>>()
             .any{ it.result == ScanResult.Result.FOUND }
 }

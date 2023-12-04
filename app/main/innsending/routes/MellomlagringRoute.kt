@@ -1,13 +1,12 @@
 package innsending.routes
 
 import innsending.antivirus.ClamAVClient
+import innsending.auth.personident
 import innsending.pdf.PdfGen
 import innsending.redis.Redis
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
-import io.ktor.server.auth.*
-import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -16,12 +15,8 @@ import java.util.*
 
 const val EnDag: Long = 60 * 60 * 24
 
-internal fun ApplicationCall.personident(): String {
-    return requireNotNull(principal<JWTPrincipal>()) {
-        "principal mangler i ktor auth"
-    }.getClaim("pid", String::class)
-        ?: error("pid mangler i tokenx claims")
-}
+private val acceptedContentType =
+    listOf(ContentType.Image.JPEG, ContentType.Image.PNG, ContentType.Application.Pdf)
 
 fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: PdfGen) {
     route("/mellomlagring/søknad") {
@@ -56,8 +51,6 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                 is PartData.FileItem -> {
                     val fil = mottattFil.streamProvider().readBytes()
                     val contentType = requireNotNull(mottattFil.contentType) { "contentType i multipartForm mangler" }
-                    val acceptedContentType =
-                        listOf(ContentType.Image.JPEG, ContentType.Image.PNG, ContentType.Application.Pdf)
 
                     val pdf: ByteArray = when (contentType) {
                         in acceptedContentType -> {
@@ -86,7 +79,6 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                 else -> {
                     return@post call.respond(HttpStatusCode.NotAcceptable, "Filtype ikke støttet")
                 }
-
             }
         }
 
