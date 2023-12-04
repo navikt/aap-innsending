@@ -86,7 +86,7 @@ data class Token(val expires_in: Long, val access_token: String)
 fun Application.pdfGen() {
     install(ContentNegotiation) { jackson() }
     routing {
-        post("/api/v1/genpdf/image/fillager") {
+        post("/api/v1/genpdf/image/aap-pdfgen") {
             val res = Resource.read("/resources/pdf/minimal.pdf")
             call.respond(res)
         }
