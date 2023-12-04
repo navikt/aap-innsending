@@ -36,7 +36,7 @@ internal object TestConfig {
             tokenx = TokenXConfig(
                 clientId = "aap-innsending",
                 issuer = "tokenx",
-                jwks = URI.create("http://localhost:${fakes.tokenx.port()}")
+                jwks = URI.create("http://localhost:${fakes.tokenx.port()}/jwks")
             ),
         )
     }

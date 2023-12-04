@@ -35,7 +35,7 @@ class Fakes : AutoCloseable {
 fun Application.tokenx() {
     install(ContentNegotiation) { jackson() }
     routing {
-        get("/.well-known/jwks.json") {
+        get("/jwks") {
             call.respondText(TOKEN_X_JWKS)
         }
     }
