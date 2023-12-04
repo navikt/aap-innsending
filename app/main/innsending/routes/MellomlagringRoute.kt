@@ -1,5 +1,6 @@
 package innsending.routes
 
+import innsending.SECURE_LOGGER
 import innsending.antivirus.ClamAVClient
 import innsending.auth.personident
 import innsending.pdf.PdfGen
@@ -65,6 +66,8 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                             return@post call.respond(HttpStatusCode.NotAcceptable, "Filtype ikke støttet")
                         }
                     }
+
+                    SECURE_LOGGER.info("PDF: ${pdf.size} - $pdf")
 
                     if (!sjekkPdf(pdf)) {
                         return@post call.respond(HttpStatusCode.NotAcceptable, "PDF er kryptert")
