@@ -20,7 +20,7 @@ class PdfGen(private val host: String) {
 
     suspend fun bildeTilPfd(bildeFil: ByteArray, contentType:ContentType): ByteArray =
         clientLatencyStats.startTimer().use {
-            httpClient.post("$host/api/v1/genpdf/image/fillager") {
+            httpClient.post("$host/api/v1/genpdf/image/aap-pdfgen") {
                 contentType(contentType)
                 accept(ContentType.Application.Pdf)
                 setBody(bildeFil)
