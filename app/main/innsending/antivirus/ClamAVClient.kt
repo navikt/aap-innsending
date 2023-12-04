@@ -24,7 +24,7 @@ class ClamAVClient(private val host:String) {
                 setBody(fil)
                 contentType(contentType)
             }
-        }
+        }.also { response -> println("response: $response") }
             .body<List<ScanResult>>()
             .any{ it.result == ScanResult.Result.FOUND }
 }
