@@ -31,6 +31,10 @@ spec:
     inbound:
       rules:
         - application: innsyn
+    outbound:
+      rules:
+        - application: clamav
+          namespace: nais-system
   redis:
     - instance: mellomlager
       access: readwrite
