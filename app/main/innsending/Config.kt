@@ -43,5 +43,5 @@ data class JoarkConfig(
 data class TokenXConfig(
     val clientId: String = getEnvVar("TOKEN_X_CLIENT_ID"),
     val issuer: String = getEnvVar("TOKEN_X_ISSUER"),
-    val jwks: String = getEnvVar("TOKEN_X_JWKS_URI")
+    val jwks: URI = URI.create(getEnvVar("TOKEN_X_JWKS_URI"))
 )
