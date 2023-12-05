@@ -76,7 +76,7 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                     redis[filId] = pdf
                     redis.expire(filId, 3 * EnDag)
 
-                    call.respond(HttpStatusCode.Created, filId)
+                    call.respondText(filId, status = HttpStatusCode.Created)
                 }
 
                 else -> {
