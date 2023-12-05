@@ -76,7 +76,7 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                     redis[filId] = pdf
                     redis.expire(filId, 3 * EnDag)
 
-                    call.respondText(filId, status = HttpStatusCode.Created)
+                    call.respondText(contentType = ContentType.Text.Plain, status = HttpStatusCode.Created, text = filId)
                 }
 
                 else -> {
@@ -102,6 +102,10 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
         }
     }
 }
+
+data class MellomlagringRespons(
+    val id: String,
+)
 
 fun sjekkPdf(fil: ByteArray): Boolean {
     val pdf = Loader.loadPDF(fil)
