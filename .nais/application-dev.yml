@@ -33,6 +33,7 @@ spec:
         - application: innsyn
     outbound:
       rules:
+        - application: pdfgen
         - application: clamav
           namespace: nais-system
   redis:
