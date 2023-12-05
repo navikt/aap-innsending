@@ -118,7 +118,8 @@ class MellomlagringTest {
                     }
                 )
                 assertEquals(HttpStatusCode.Created, res.status)
-                assertEquals(String(Resource.read("/resources/pdf/minimal.pdf")), String(jedis[res.bodyAsText()]!!))
+                val filIdWithoutQuotes = res.bodyAsText().removeSurrounding(""""""")
+                assertEquals(String(Resource.read("/resources/pdf/minimal.pdf")), String(jedis[filIdWithoutQuotes]!!))
             }
         }
     }
