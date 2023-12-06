@@ -43,6 +43,7 @@ class Apekatt(
 
                 }
             } catch (t: Throwable) {
+                this.ensureActive()
                 SECURE_LOGGER.error("Klarte ikke å arkivere", t)
                 prometheus.counter("innsendinger_feilet").increment()
             }
