@@ -70,7 +70,8 @@ fun Application.azure() {
     install(ContentNegotiation) { jackson() }
     routing {
         post("/token") {
-            require(call.receiveText() == "client_id=test&client_secret=test&scope=fillagerScope&grant_type=client_credentials")
+            val scope = "api://dev-fss.teamdokumenthandtering.dokarkiv/.default"
+            require(call.receiveText() == "client_id=test&client_secret=test&scope=$scope&grant_type=client_credentials")
             call.respond(
                 Token(
                     expires_in = 3599,
