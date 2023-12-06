@@ -32,12 +32,12 @@ spec:
       rules:
         - application: innsyn
     outbound:
+      external:
+        - host: dokarkiv.dev-fss-pub.nais.io
       rules:
         - application: pdfgen
         - application: clamav
           namespace: nais-system
-        - application: dokarkiv
-          namespace: teamdokumenthandtering
   redis:
     - instance: mellomlager
       access: readwrite
