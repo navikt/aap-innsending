@@ -1,6 +1,5 @@
 package innsending.routes
 
-import innsending.SECURE_LOGGER
 import innsending.antivirus.ClamAVClient
 import innsending.auth.personident
 import innsending.pdf.PdfGen
@@ -72,7 +71,7 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                     }
 
                     redis[filId] = pdf
-                    redis.expire(filId, 3 * EnDag)
+                    redis.expire(filId, EnDag)
 
                     call.respond(status = HttpStatusCode.Created, """"$filId"""")
                 }
