@@ -26,22 +26,20 @@ class Apekatt(
                 logger.info("Fant {} usendte innsendinger", innsendingIder.size)
                 prometheus.gauge("innsendinger", innsendingIder.size)
                 innsendingIder.forEach { innsendingId ->
-                    logger.trace("Prøver å arkivere....")
+                    logger.info("Prøver å arkivere....")
 
                     val innsending = repo.hentInnsending(innsendingId)
 
-
+                    logger.info("Prøver å arkivere {}", innsending.id)
                     if (innsending.data != null) {
                         runBlocking {
                             val pdf = pdfGen.søknadTilPdf(innsending.data)
                             journalpostSender.arkiverSøknad(pdf, innsending)
                         }
-
                     } else {
                         journalpostSender.arkiverEttersending(innsending)
                     }
-
-
+                    logger.info("Ferdig")
                 }
             } catch (t: Throwable) {
                 SECURE_LOGGER.error("Klarte ikke å arkivere", t)
@@ -49,7 +47,7 @@ class Apekatt(
             }
             delay(TI_SEKUNDER)
         }
-        SECURE_LOGGER.info("I'm dead :(")
+        logger.info("I'm dead :(")
     }
 
     override fun close() {

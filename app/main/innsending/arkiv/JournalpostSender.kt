@@ -4,7 +4,10 @@ import innsending.SECURE_LOGGER
 import innsending.postgres.InnsendingMedFiler
 import innsending.postgres.PostgresRepo
 import kotlinx.coroutines.runBlocking
+import org.slf4j.LoggerFactory
 import java.util.*
+
+private val logger = LoggerFactory.getLogger("JournalpostSender")
 
 class JournalpostSender(
     private val client: JoarkClient,
@@ -52,11 +55,14 @@ class JournalpostSender(
             datoMottatt = innsending.opprettet
         )
 
+        logger.info("Lagrer ettersending")
         val arkivResponse = client.opprettJournalpost(journalpost, innsending.id.toString())
+        logger.info("Lagret {}", arkivResponse?.journalpostId)
         if (arkivResponse != null) {
             repo.loggførJournalføring(innsending.personident, innsending.opprettet, arkivResponse.journalpostId)
             repo.slettInnsending(innsending.id)
         }
+        logger.info("Ettersendt")
     }
 
     private fun lagSøknadDokument(søknad: ByteArray): Journalpost.Dokument {
