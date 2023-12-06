@@ -20,6 +20,7 @@ class Apekatt(
 ) : AutoCloseable {
     private val job: Job = CoroutineScope(Dispatchers.Default).launch {
         while (this.isActive) {
+            SECURE_LOGGER.info("I'm alive!")
             try {
                 val innsendingIder = repo.hentAlleInnsendinger()
                 logger.trace("Fant {} usendte innsendinger", innsendingIder.size)
@@ -43,12 +44,12 @@ class Apekatt(
 
                 }
             } catch (t: Throwable) {
-                this.ensureActive()
                 SECURE_LOGGER.error("Klarte ikke å arkivere", t)
                 prometheus.counter("innsendinger_feilet").increment()
             }
             delay(TI_SEKUNDER)
         }
+        SECURE_LOGGER.info("I'm dead :(")
     }
 
     override fun close() {
