@@ -63,6 +63,6 @@ spec:
     enabled: true
   env:
     - name: JOARK_BASE_URL
-      value: https://dokarkiv-q2.dev.intern.nav.no
+      value: https://dokarkiv.dev-fss-pub.nais.io
     - name: JOARK_SCOPE
       value: api://dev-fss.teamdokumenthandtering.dokarkiv/.default
