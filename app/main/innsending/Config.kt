@@ -37,7 +37,8 @@ data class PostgresConfig(
 )
 
 data class JoarkConfig(
-    val baseUrl: String = getEnvVar("JOARK_BASE_URL")
+    val baseUrl: String = getEnvVar("JOARK_BASE_URL"),
+    val scope: String = getEnvVar("JOARK_SCOPE")
 )
 
 data class TokenXConfig(

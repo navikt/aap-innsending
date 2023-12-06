@@ -67,8 +67,6 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                         }
                     }
 
-                    SECURE_LOGGER.info("PDF: ${pdf.size} - $pdf")
-
                     if (!sjekkPdf(pdf)) {
                         return@post call.respond(HttpStatusCode.NotAcceptable, "PDF er kryptert")
                     }

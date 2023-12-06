@@ -25,7 +25,10 @@ internal object TestConfig {
         return Config(
             postgres = postgres,
             redis = redis,
-            joark = JoarkConfig("http://localhost:${fakes.joark.port}"),
+            joark = JoarkConfig(
+                baseUrl = "http://localhost:${fakes.joark.port}",
+                scope = "api://dev-fss.teamdokumenthandtering.dokarkiv/.default"
+            ),
             pdfGenHost = "http://localhost:${fakes.pdfGen.port()}",
             virusScanHost = "http://localhost:${fakes.virusScan.port()}",
             azure = AzureConfig(

@@ -1,5 +1,6 @@
 package innsending.arkiv
 
+import innsending.SECURE_LOGGER
 import innsending.postgres.InnsendingMedFiler
 import innsending.postgres.PostgresRepo
 import kotlinx.coroutines.runBlocking
@@ -29,6 +30,7 @@ class JournalpostSender(
 
         val arkivResponse = client.opprettJournalpost(journalpost, innsending.id.toString())
         if (arkivResponse != null) {
+            SECURE_LOGGER.info("Opprettet journalpost {} for {}", arkivResponse.journalpostId, innsending.personident)
             repo.loggførJournalføring(innsending.personident, innsending.opprettet, arkivResponse.journalpostId)
             repo.slettInnsending(innsending.id)
         }

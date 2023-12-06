@@ -64,3 +64,5 @@ spec:
   env:
     - name: JOARK_BASE_URL
       value: https://dokarkiv-q2.dev.intern.nav.no
+    - name: JOARK_SCOPE
+      value: api://dev-fss.teamdokumenthandtering.dokarkiv/.default
