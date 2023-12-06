@@ -20,7 +20,7 @@ private val clientLatencyStats: Summary = Summary.build()
     .register()
 
 class JoarkClient(azureConfig: AzureConfig, private val joarkConfig: JoarkConfig) {
-    private val tokenProvider = AzureAdTokenProvider(azureConfig, "fillagerScope")
+    private val tokenProvider = AzureAdTokenProvider(azureConfig, "api://dev-fss.teamdokumenthandtering.dokarkiv/.default")
     private val httpClient = HttpClientFactory.create()
 
     fun opprettJournalpost(
