@@ -77,12 +77,6 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                     redis.expire(filId, 3 * EnDag)
 
                     call.respond(status = HttpStatusCode.Created, """"$filId"""")
-
-//                    call.respondText(
-//                        contentType = ContentType.Text.Plain,
-//                        status = HttpStatusCode.Created,
-//                        text = filId,
-//                    )
                 }
 
                 else -> {
@@ -96,7 +90,15 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
 
             when (val fil = redis[filId]) {
                 null -> call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret fil")
-                else -> call.respond(HttpStatusCode.OK, fil)
+                else -> {
+                    call.response.header(
+                        HttpHeaders.ContentDisposition,
+                        ContentDisposition.Attachment
+                            .withParameter(ContentDisposition.Parameters.FileName, "${filId}.pdf")
+                            .toString()
+                    )
+                    call.respond(HttpStatusCode.OK, fil)
+                }
             }
         }
 
