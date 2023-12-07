@@ -8,9 +8,7 @@ import innsending.postgres.PostgresRepo
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tag
 import kotlinx.coroutines.*
-import org.slf4j.LoggerFactory
 
-private val logger = LoggerFactory.getLogger("Scheduler")
 private const val TI_SEKUNDER = 10_000L
 
 class Apekatt(
@@ -23,17 +21,14 @@ class Apekatt(
         while (this.isActive) {
             try {
                 val innsendingIder = repo.hentAlleInnsendinger()
-                logger.info("Fant {} usendte innsendinger", innsendingIder.size)
                 prometheus.gauge("innsendinger", innsendingIder.size)
                 innsendingIder.forEach { innsendingId ->
                     val innsending = repo.hentInnsending(innsendingId)
 
                     if (innsending.data != null) {
-                        logger.info("Prøver å arkivere søknad {}", innsending.id)
                         val pdf = pdfGen.søknadTilPdf(innsending.data)
                         journalpostSender.arkiverSøknad(pdf, innsending)
                     } else {
-                        logger.info("Prøver å arkivere ettersending {}", innsending.id)
                         journalpostSender.arkiverEttersending(innsending)
                     }
                     prometheus.counter("innsending", listOf(Tag.of("resultat", "ok"))).increment()
@@ -46,6 +41,7 @@ class Apekatt(
 
                 delay(TI_SEKUNDER)
             }
+            delay(TI_SEKUNDER)
         }
     }
 
