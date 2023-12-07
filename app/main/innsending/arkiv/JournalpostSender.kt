@@ -32,14 +32,12 @@ class JournalpostSender(
         )
 
         val arkivResponse = client.opprettJournalpost(journalpost, innsending.id.toString())
-        if (arkivResponse != null) {
-            SECURE_LOGGER.info("Opprettet journalpost {} for {}", arkivResponse.journalpostId, innsending.personident)
-            repo.loggførJournalføring(innsending.personident, innsending.opprettet, arkivResponse.journalpostId)
-            repo.slettInnsending(innsending.id)
-        }
+        SECURE_LOGGER.info("Opprettet journalpost {} for {}", arkivResponse.journalpostId, innsending.personident)
+        repo.loggførJournalføring(innsending.personident, innsending.opprettet, arkivResponse.journalpostId)
+        repo.slettInnsending(innsending.id)
     }
 
-    fun arkiverEttersending(innsending: InnsendingMedFiler){
+    fun arkiverEttersending(innsending: InnsendingMedFiler) {
         val vedleggDokumenter = lagDokumenter(innsending)
 
         val journalpost = Journalpost(
@@ -57,11 +55,9 @@ class JournalpostSender(
 
         logger.info("Lagrer ettersending for {}: {}", innsending.id, journalpost)
         val arkivResponse = client.opprettJournalpost(journalpost, innsending.id.toString())
-        logger.info("Lagret {}", arkivResponse?.journalpostId)
-        if (arkivResponse != null) {
-            repo.loggførJournalføring(innsending.personident, innsending.opprettet, arkivResponse.journalpostId)
-            repo.slettInnsending(innsending.id)
-        }
+        logger.info("Lagret {}", arkivResponse.journalpostId)
+        repo.loggførJournalføring(innsending.personident, innsending.opprettet, arkivResponse.journalpostId)
+        repo.slettInnsending(innsending.id)
         logger.info("Ettersendt {}", innsending.id)
     }
 

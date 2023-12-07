@@ -14,6 +14,7 @@ abstract class H2TestBase {
             con.prepareStatement("SET REFERENTIAL_INTEGRITY FALSE").execute()
             con.prepareStatement("TRUNCATE TABLE innsending").execute()
             con.prepareStatement("TRUNCATE TABLE fil").execute()
+            con.prepareStatement("TRUNCATE TABLE logg").execute()
             con.prepareStatement("SET REFERENTIAL_INTEGRITY TRUE").execute()
         }
     }

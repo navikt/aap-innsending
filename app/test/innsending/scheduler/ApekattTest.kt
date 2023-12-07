@@ -36,24 +36,19 @@ class ApekattTest : H2TestBase() {
                 )
             }
 
-
             testApplication {
-                application { server(config, jedis, h2) }
-            }
-
-            val actual = runBlocking {
-                withTimeout(10000) {
-                    fakes.joark.receivedRequest.await()
+                application {
+                    server(config, jedis, h2)
+                    val actual = runBlocking {
+                        withTimeout(1000) {
+                            fakes.joark.receivedRequest.await()
+                        }
+                    }
+                    assertTrue(expectedSøknad.datoMottatt.isAfter(now.minusSeconds(1)))
+                    assertEquals(expectedSøknad, actual.copy(datoMottatt = now))
                 }
             }
 
-            // LocalDateTime.now() blir kalt i InnsendingRoute.
-            // Den vil derfor bli kalt noen tusendeler av et sekund før testen setter expected.datoMottatt=now
-            // Worst case vil testen time ut etter 10 sec, derfor støtter vi opptil en 10sec gammel LocalDateTime.now()
-            assertTrue(expectedSøknad.datoMottatt.isAfter(now.minusSeconds(10)))
-
-            // Vi bytter actual sin datoMottat med testen sin 'now' for å kunne asserte på hele objektet
-            assertEquals(expectedSøknad, actual.copy(datoMottatt = now))
 
             assertEquals(0, countInnsending())
             assertEquals(0, countFiler())
@@ -90,15 +85,15 @@ class ApekattTest : H2TestBase() {
             }
 
             val actual = runBlocking {
-                withTimeout(10000) {
+                withTimeout(1000) {
                     fakes.joark.receivedRequest.await()
                 }
             }
 
             // LocalDateTime.now() blir kalt i InnsendingRoute.
             // Den vil derfor bli kalt noen tusendeler av et sekund før testen setter expected.datoMottatt=now
-            // Worst case vil testen time ut etter 10 sec, derfor støtter vi opptil en 10sec gammel LocalDateTime.now()
-            assertTrue(expectedEttersending.datoMottatt.isAfter(now.minusSeconds(10)))
+            // Worst case vil testen time ut etter 1 sec, derfor støtter vi opptil en 1sec gammel LocalDateTime.now()
+            assertTrue(expectedEttersending.datoMottatt.isAfter(now.minusSeconds(1)))
 
             // Vi bytter actual sin datoMottat med testen sin 'now' for å kunne asserte på hele objektet
             assertEquals(expectedEttersending, actual.copy(datoMottatt = now))
