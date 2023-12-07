@@ -13,8 +13,12 @@ import io.ktor.serialization.jackson.*
 
 internal object HttpClientFactory {
     fun create(): HttpClient = HttpClient(CIO) {
-        install(HttpTimeout)
+        install(HttpTimeout) {
+            requestTimeoutMillis = 25_000
+            connectTimeoutMillis = 5_000
+        }
         install(HttpRequestRetry)
+
         install(Logging) {
             logger = object : Logger {
                 override fun log(message: String) = SECURE_LOGGER.info(message)
