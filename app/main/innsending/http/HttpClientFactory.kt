@@ -3,6 +3,7 @@ package innsending.http
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import innsending.SECURE_LOGGER
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
@@ -15,7 +16,10 @@ internal object HttpClientFactory {
         install(HttpTimeout)
         install(HttpRequestRetry)
         install(Logging) {
-            level = LogLevel.BODY
+            logger = object : Logger {
+                override fun log(message: String) = SECURE_LOGGER.info(message)
+            }
+            level = LogLevel.ALL
         }
 
         install(ContentNegotiation) {
