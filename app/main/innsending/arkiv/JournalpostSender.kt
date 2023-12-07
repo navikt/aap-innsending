@@ -55,14 +55,14 @@ class JournalpostSender(
             datoMottatt = innsending.opprettet
         )
 
-        logger.info("Lagrer ettersending")
+        logger.info("Lagrer ettersending for {}: {}", innsending.id, journalpost)
         val arkivResponse = client.opprettJournalpost(journalpost, innsending.id.toString())
         logger.info("Lagret {}", arkivResponse?.journalpostId)
         if (arkivResponse != null) {
             repo.loggførJournalføring(innsending.personident, innsending.opprettet, arkivResponse.journalpostId)
             repo.slettInnsending(innsending.id)
         }
-        logger.info("Ettersendt")
+        logger.info("Ettersendt {}", innsending.id)
     }
 
     private fun lagSøknadDokument(søknad: ByteArray): Journalpost.Dokument {
