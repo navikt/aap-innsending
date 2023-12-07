@@ -1,11 +1,9 @@
 package innsending.arkiv
 
 import innsending.JoarkConfig
-import innsending.SECURE_LOGGER
 import innsending.http.HttpClientFactory
 import io.ktor.client.call.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.prometheus.client.Summary
 import kotlinx.coroutines.runBlocking
@@ -27,7 +25,7 @@ class JoarkClient(azureConfig: AzureConfig, private val joarkConfig: JoarkConfig
 
     fun opprettJournalpost(
         journalpost: Journalpost,
-        callId:String
+        callId: String
     ): ArkivResponse? =
         clientLatencyStats.startTimer().use {
             runBlocking {
@@ -42,7 +40,6 @@ class JoarkClient(azureConfig: AzureConfig, private val joarkConfig: JoarkConfig
                 if (response.status.isSuccess() || response.status.value == 409) {
                     response.body()
                 } else {
-                    SECURE_LOGGER.warn("Feil fra Joark {}: {}", response.status.value, response.bodyAsText())
                     null
                 }
             }
