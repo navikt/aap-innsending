@@ -39,11 +39,11 @@ class Apekatt(
                     } else {
                         journalpostSender.arkiverEttersending(innsending)
                     }
-                    prometheus.counter("innsendinger", listOf(Tag.of("resultat", "ok"))).increment()
+                    prometheus.counter("innsending", listOf(Tag.of("resultat", "ok"))).increment()
                 }
             } catch (t: Throwable) {
                 SECURE_LOGGER.error("Klarte ikke å arkivere", t)
-                prometheus.counter("innsendinger", listOf(Tag.of("resultat", "feilet"))).increment()
+                prometheus.counter("innsending", listOf(Tag.of("resultat", "feilet"))).increment()
             }
             delay(TI_SEKUNDER)
         }
