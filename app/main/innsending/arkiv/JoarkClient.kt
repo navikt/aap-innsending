@@ -21,8 +21,8 @@ private val clientLatencyStats: Summary = Summary.build()
     .register()
 
 class JoarkClient(azureConfig: AzureConfig, private val joarkConfig: JoarkConfig) {
-    private val tokenProvider = AzureAdTokenProvider(azureConfig, joarkConfig.scope)
     private val httpClient = HttpClientFactory.create()
+    private val tokenProvider = AzureAdTokenProvider(azureConfig, joarkConfig.scope, httpClient)
 
     fun opprettJournalpost(
         journalpost: Journalpost,
