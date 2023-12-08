@@ -29,8 +29,8 @@ class InnsendingTest : H2TestBase() {
 
             testApplication {
                 application { server(config, jedis, h2) }
-                jedis[filId1.toString()] = byteArrayOf()
-                jedis[filId2.toString()] = byteArrayOf()
+                jedis.set(filId1.toString(), byteArrayOf(), 60)
+                jedis.set(filId2.toString(), byteArrayOf(), 60)
 
                 val res = jsonHttpClient.post("/innsending") {
                     bearerAuth(tokenx.generate("12345678910"))
@@ -105,8 +105,8 @@ class InnsendingTest : H2TestBase() {
 
             testApplication {
                 application { server(config, jedis, h2) }
-                jedis[filId1.toString()] = byteArrayOf()
-                jedis[filId2.toString()] = byteArrayOf()
+                jedis.set(filId1.toString(), byteArrayOf(), 60)
+                jedis.set(filId2.toString(), byteArrayOf(), 60)
 
                 val res = jsonHttpClient.post("/innsending") {
                     bearerAuth(tokenx.generate("12345678910"))

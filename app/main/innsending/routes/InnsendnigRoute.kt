@@ -53,8 +53,7 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
             redis.del(personIdent)
 
             // Avoid duplicates
-            redis[innsendingHash] = byteArrayOf()
-            redis.expire(innsendingHash, 60)
+            redis.set(innsendingHash, byteArrayOf(), 60)
 
             call.respond(HttpStatusCode.OK, "Vi har mottatt innsendingen din")
         }

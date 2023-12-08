@@ -6,37 +6,33 @@ import redis.clients.jedis.HostAndPort
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.JedisPoolConfig
 
+const val EnDagSekunder: Long = 60 * 60 * 24
+
 interface Redis {
-    operator fun set(key: String, value: ByteArray)
+    fun set(key: String, value: ByteArray, expireSec: Long)
     operator fun get(key: String): ByteArray?
-    fun expire(key: String, seconds: Long)
     fun del(key: String)
     fun ready(): Boolean
     fun exists(key: String): Boolean
 }
 
-class JedisRedis(config: RedisConfig): Redis {
+class JedisRedis(config: RedisConfig) : Redis {
     private val pool = JedisPool(
         JedisPoolConfig(),
         HostAndPort(config.uri.host, config.uri.port),
         DefaultJedisClientConfig.builder().ssl(true).user(config.username).password(config.password).build()
     )
 
-    override operator fun set(key: String, value: ByteArray) {
+    override fun set(key: String, value: ByteArray, expireSec: Long) {
         pool.resource.use {
             it.set(key.toByteArray(), value)
+            it.expire(key.toByteArray(), expireSec)
         }
     }
 
     override operator fun get(key: String): ByteArray? {
         pool.resource.use {
             return it.get(key.toByteArray())
-        }
-    }
-
-    override fun expire(key: String, seconds: Long) {
-        pool.resource.use {
-            it.expire(key, seconds)
         }
     }
 

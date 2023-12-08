@@ -3,6 +3,7 @@ package innsending.routes
 import innsending.antivirus.ClamAVClient
 import innsending.auth.personident
 import innsending.pdf.PdfGen
+import innsending.redis.EnDagSekunder
 import innsending.redis.Redis
 import io.ktor.http.*
 import io.ktor.http.content.*
@@ -13,7 +14,6 @@ import io.ktor.server.routing.*
 import org.apache.pdfbox.Loader
 import java.util.*
 
-const val EnDag: Long = 60 * 60 * 24
 
 private val acceptedContentType =
     listOf(ContentType.Image.JPEG, ContentType.Image.PNG, ContentType.Application.Pdf)
@@ -23,8 +23,7 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
 
         post {
             val personIdent = call.personident()
-            redis[personIdent] = call.receive()
-            redis.expire(personIdent, 3 * EnDag)
+            redis.set(personIdent, call.receive(), EnDagSekunder)
             call.respond(HttpStatusCode.OK)
         }
 
@@ -70,8 +69,7 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                         return@post call.respond(HttpStatusCode.NotAcceptable, "PDF er kryptert")
                     }
 
-                    redis[filId] = pdf
-                    redis.expire(filId, EnDag)
+                    redis.set(filId, pdf, EnDagSekunder)
 
                     call.respond(status = HttpStatusCode.Created, """"$filId"""")
                 }

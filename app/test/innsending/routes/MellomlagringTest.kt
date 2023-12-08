@@ -43,7 +43,7 @@ class MellomlagringTest {
 
             testApplication {
                 application { server(config, jedis) }
-                jedis["12345678910"] = """{"søknadId":"1234"}""".toByteArray()
+                jedis.set("12345678910", """{"søknadId":"1234"}""".toByteArray(), 50)
 
                 val res = client.get("/mellomlagring/søknad") {
                     accept(ContentType.Application.Json)
@@ -65,7 +65,7 @@ class MellomlagringTest {
 
             testApplication {
                 application { server(config, jedis) }
-                jedis["12345678910"] = """{"søknadId":"1234"}""".toByteArray()
+                jedis.set("12345678910", """{"søknadId":"1234"}""".toByteArray(), 50)
 
                 val del = client.delete("/mellomlagring/søknad") {
                     accept(ContentType.Application.Json)
@@ -133,7 +133,7 @@ class MellomlagringTest {
             val id = UUID.randomUUID()
             testApplication {
                 application { server(config, jedis) }
-                jedis[id.toString()] = String(Resource.read("/resources/pdf/minimal.pdf")).toByteArray()
+                jedis.set(id.toString(), String(Resource.read("/resources/pdf/minimal.pdf")).toByteArray(), 50)
 
                 val res = client.get("/mellomlagring/fil/$id") {
                     accept(ContentType.Application.Pdf)
