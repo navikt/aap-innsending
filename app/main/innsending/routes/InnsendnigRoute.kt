@@ -20,6 +20,13 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
         post {
             val personIdent = call.personident()
             val innsending = call.receive<Innsending>()
+
+            // Avoid duplicates
+            val innsendingHash = innsending.hashCode().toString()
+            if (redis.exists(innsendingHash)) {
+                call.respond(HttpStatusCode.Conflict, "Denne innsendingen har vi allerede mottatt")
+            }
+
             val innsendingId = UUID.randomUUID()
             logger.trace("Mottok innsending med id {}", innsendingId)
 
@@ -42,7 +49,12 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
             innsending.filer.forEach { fil ->
                 redis.del(fil.id)
             }
+
             redis.del(personIdent)
+
+            // Avoid duplicates
+            redis[innsendingHash] = byteArrayOf()
+            redis.expire(innsendingHash, 60)
 
             call.respond(HttpStatusCode.OK, "Vi har mottatt innsendingen din")
         }
@@ -52,7 +64,28 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
 data class Innsending(
     val soknad: ByteArray? = null,
     val filer: List<Fil>,
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Innsending
+
+        if (soknad != null) {
+            if (other.soknad == null) return false
+            if (!soknad.contentEquals(other.soknad)) return false
+        } else if (other.soknad != null) return false
+        if (filer != other.filer) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = soknad?.contentHashCode() ?: 0
+        result = 31 * result + filer.hashCode()
+        return result
+    }
+}
 
 data class Fil(
     val id: String,

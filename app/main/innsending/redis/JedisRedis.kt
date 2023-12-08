@@ -12,6 +12,7 @@ interface Redis {
     fun expire(key: String, seconds: Long)
     fun del(key: String)
     fun ready(): Boolean
+    fun exists(key: String): Boolean
 }
 
 class JedisRedis(config: RedisConfig): Redis {
@@ -48,6 +49,12 @@ class JedisRedis(config: RedisConfig): Redis {
     override fun ready(): Boolean {
         pool.resource.use {
             return it.ping() == "PONG"
+        }
+    }
+
+    override fun exists(key: String): Boolean {
+        pool.resource.use {
+            return it.exists(key)
         }
     }
 }
