@@ -1,5 +1,6 @@
 package innsending.routes
 
+import com.fasterxml.jackson.databind.util.JSONPObject
 import innsending.Fakes
 import innsending.TestConfig
 import innsending.TokenXGen
@@ -37,7 +38,7 @@ class InnsendingTest : H2TestBase() {
                     contentType(ContentType.Application.Json)
                     setBody(
                         Innsending(
-                            soknad = "help me".toByteArray(),
+                            kvittering = "søknad",
                             filer = listOf(
                                 Fil(
                                     id = filId1.toString(),
@@ -67,6 +68,8 @@ class InnsendingTest : H2TestBase() {
             val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
             val jwkGen = TokenXGen(config.tokenx)
+            val filId1 = UUID.randomUUID()
+            val filId2 = UUID.randomUUID()
 
             testApplication {
                 application { server(config, jedis, h2) }
@@ -76,7 +79,7 @@ class InnsendingTest : H2TestBase() {
                     contentType(ContentType.Application.Json)
                     setBody(
                         Innsending(
-                            soknad = "søknad".toByteArray(),
+                            kvittering = "søknad",
                             filer = listOf(
                                 Fil(
                                     id = UUID.randomUUID().toString(),

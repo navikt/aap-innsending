@@ -46,7 +46,7 @@ class PostgresRepo(private val hikari: DataSource) {
                 innsendingId = innsendingId,
                 personident = personIdent,
                 mottattDato = mottattDato,
-                data = innsending.soknad,
+                data = innsending.kvittering?.toString()?.toByteArray(),
                 con = con,
             )
 

@@ -1,5 +1,7 @@
 package innsending.routes
 
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.util.JSONPObject
 import innsending.auth.personident
 import innsending.postgres.PostgresRepo
 import innsending.redis.Redis
@@ -61,7 +63,7 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
 }
 
 data class Innsending(
-    val soknad: ByteArray? = null,
+    val kvittering: String? = null,
     val filer: List<Fil>,
 ) {
     override fun equals(other: Any?): Boolean {

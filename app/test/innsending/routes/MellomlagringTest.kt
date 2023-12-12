@@ -2,10 +2,13 @@ package innsending.routes
 
 import innsending.*
 import innsending.redis.JedisRedisFake
+import io.ktor.client.call.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.serialization.jackson.*
 import io.ktor.server.testing.*
 import org.junit.jupiter.api.Test
 import java.util.*
@@ -103,8 +106,10 @@ class MellomlagringTest {
             val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
             val jwkGen = TokenXGen(config.tokenx)
-
             testApplication {
+                val client = createClient {
+                    install(ContentNegotiation) { jackson() }
+                }
                 application { server(config, jedis) }
                 val res = client.submitFormWithBinaryData(url="/mellomlagring/fil",
                     formData = formData {
@@ -118,8 +123,8 @@ class MellomlagringTest {
                     }
                 )
                 assertEquals(HttpStatusCode.Created, res.status)
-                val filIdWithoutQuotes = res.bodyAsText().removeSurrounding(""""""")
-                assertEquals(String(Resource.read("/resources/pdf/minimal.pdf")), String(jedis[filIdWithoutQuotes]!!))
+                val respons = res.body<MellomlagringRespons>()
+                assertEquals(String(Resource.read("/resources/pdf/minimal.pdf")), String(jedis[respons.filId]!!))
             }
         }
     }

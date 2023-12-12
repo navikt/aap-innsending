@@ -54,28 +54,28 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                     val pdf: ByteArray = when (contentType) {
                         in acceptedContentType -> {
                             if (virusScanClient.hasVirus(fil, contentType)) {
-                                return@post call.respond(HttpStatusCode.NotAcceptable, "Fant virus i fil")
+                                return@post call.respond(HttpStatusCode.UnprocessableEntity, ErrorRespons("Fant virus i fil"))
                             }
 
                             pdfGen.bildeTilPfd(fil, contentType)
                         }
 
                         else -> {
-                            return@post call.respond(HttpStatusCode.NotAcceptable, "Filtype ikke støttet")
+                            return@post call.respond(HttpStatusCode.UnprocessableEntity, ErrorRespons("Filtype ikke støttet"))
                         }
                     }
 
                     if (!sjekkPdf(pdf)) {
-                        return@post call.respond(HttpStatusCode.NotAcceptable, "PDF er kryptert")
+                        return@post call.respond(HttpStatusCode.UnprocessableEntity, ErrorRespons("PDF er kryptert"))
                     }
 
                     redis.set(filId, pdf, EnDagSekunder)
 
-                    call.respond(status = HttpStatusCode.Created, """"$filId"""")
+                    call.respond(status = HttpStatusCode.Created, MellomlagringRespons(filId))
                 }
 
                 else -> {
-                    return@post call.respond(HttpStatusCode.NotAcceptable, "Filtype ikke støttet")
+                    return@post call.respond(HttpStatusCode.UnprocessableEntity, ErrorRespons("Filtype ikke støttet"))
                 }
             }
         }
@@ -84,7 +84,7 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
             val filId = requireNotNull(call.parameters["filId"])
 
             when (val fil = redis[filId]) {
-                null -> call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret fil")
+                null -> call.respond(HttpStatusCode.NotFound, ErrorRespons("Fant ikke mellomlagret fil"))
                 else -> {
                     call.response.header(
                         HttpHeaders.ContentDisposition,
@@ -107,7 +107,11 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
 }
 
 data class MellomlagringRespons(
-    val id: String,
+    val filId: String,
+)
+
+data class ErrorRespons(
+    val feilmelding: String,
 )
 
 fun sjekkPdf(fil: ByteArray): Boolean {

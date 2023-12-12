@@ -1,5 +1,6 @@
 package innsending.postgres
 
+import com.fasterxml.jackson.databind.util.JSONPObject
 import innsending.routes.Fil
 import innsending.routes.Innsending
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -16,7 +17,7 @@ internal class PostgresRepoTest : H2TestBase() {
         val fil1 = Fil(UUID.randomUUID().toString(), "Tittel1")
         val fil2 = Fil(UUID.randomUUID().toString(), "Tittel2")
         val innsending = Innsending(
-            soknad = "søknad".toByteArray(),
+                kvittering = "søknad",
             filer = listOf(fil1, fil2)
         )
 
@@ -37,7 +38,7 @@ internal class PostgresRepoTest : H2TestBase() {
         val fil1 = Fil(UUID.randomUUID().toString(), "Tittel1")
         val fil2 = Fil("Ikke en UUID :)", "Tittel2")
         val innsending = Innsending(
-            soknad = "søknad".toByteArray(),
+            kvittering = "søknad",
             filer = listOf(fil1, fil2)
         )
 
