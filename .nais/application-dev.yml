@@ -31,6 +31,7 @@ spec:
     inbound:
       rules:
         - application: innsyn
+        - application: soknad
     outbound:
       external:
         - host: dokarkiv.dev-fss-pub.nais.io
