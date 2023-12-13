@@ -68,14 +68,9 @@ data class Innsending(
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+        if (other !is Innsending) return false
 
-        other as Innsending
-
-        if (kvittering != null) {
-            if (other.kvittering == null) return false
-            if (!kvittering.contentEquals(other.kvittering)) return false
-        } else if (other.kvittering != null) return false
+        if (kvittering != other.kvittering) return false
         if (filer != other.filer) return false
 
         return true
