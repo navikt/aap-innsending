@@ -72,17 +72,17 @@ data class Innsending(
 
         other as Innsending
 
-        if (soknad != null) {
-            if (other.soknad == null) return false
-            if (!soknad.contentEquals(other.soknad)) return false
-        } else if (other.soknad != null) return false
+        if (kvittering != null) {
+            if (other.kvittering == null) return false
+            if (!kvittering.contentEquals(other.kvittering)) return false
+        } else if (other.kvittering != null) return false
         if (filer != other.filer) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = soknad?.contentHashCode() ?: 0
+        var result = kvittering?.hashCode() ?: 0
         result = 31 * result + filer.hashCode()
         return result
     }
