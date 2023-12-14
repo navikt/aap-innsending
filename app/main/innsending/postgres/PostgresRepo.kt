@@ -1,6 +1,6 @@
 package innsending.postgres
 
-import innsending.pdf.toByteArray
+import com.fasterxml.jackson.databind.ObjectMapper
 import innsending.routes.Fil
 import innsending.routes.Innsending
 import java.time.LocalDateTime
@@ -62,4 +62,9 @@ class PostgresRepo(private val hikari: DataSource) {
             }
         }
     }
+}
+
+fun Map<String,Any>.toByteArray(): ByteArray{
+    val mapper = ObjectMapper()
+    return mapper.writeValueAsBytes(this)
 }

@@ -30,10 +30,9 @@ class PdfGen(private val host: String) {
             }
         }.body()
 
-    suspend fun søknadTilPdf(json: ByteArray, mottattDato:LocalDateTime): ByteArray {
-        val kvittering = json.toMap()
-        kvittering["mottatDato"]=mottattDato.toString()
-        val data=SøknadPdfGen(SøkerPdfGen(SøkerPdfGen.Navn("","")),kvittering)
+    suspend fun søknadTilPdf(json: ByteArray, mottattDato: LocalDateTime): ByteArray {
+        val kvittering = json.toMap() + mapOf("mottattDato" to mottattDato.toString())
+        val data = SøknadPdfGen(SøkerPdfGen(SøkerPdfGen.Navn("","")),kvittering)
 
         return clientLatencyStats.startTimer().use {
             httpClient.post("$host/api/v1/genpdf/aap-pdfgen/soknad") {
@@ -51,21 +50,16 @@ data class SøknadPdfGen(
 )
 
 data class SøkerPdfGen(
-    val navn:Navn,
+    val navn: Navn,
 ){
     data class Navn(
-        val fornavn:String,
-        val etternavn:String
+        val fornavn: String,
+        val etternavn: String
     )
 }
 
-private fun ByteArray.toMap():MutableMap<String,Any>{
+private fun ByteArray.toMap(): Map<String,Any> {
     val mapper = ObjectMapper()
-    val tr= object:TypeReference<MutableMap<String,Any>>() {}
-    return mapper.readValue(this,tr)
-}
-
-fun Map<String,Any>.toByteArray():ByteArray{
-    val mapper = ObjectMapper()
-    return mapper.writeValueAsBytes(this)
+    val tr = object : TypeReference<Map<String,Any>>() {}
+    return mapper.readValue(this, tr)
 }
