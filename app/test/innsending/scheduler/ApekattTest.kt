@@ -4,6 +4,7 @@ import innsending.Fakes
 import innsending.Resource
 import innsending.TestConfig
 import innsending.arkiv.Journalpost
+import innsending.pdf.toByteArray
 import innsending.postgres.H2TestBase
 import innsending.postgres.PostgresDAO
 import innsending.postgres.transaction
@@ -31,7 +32,7 @@ class ApekattTest : H2TestBase() {
                     UUID.fromString("123e4567-e89b-12d3-a456-426614174000"),
                     "12345678910",
                     now,
-                    """{"søknad":"søknad"}""".toByteArray(),
+                    mapOf("søker" to "Søker").toByteArray(),
                     it
                 )
             }

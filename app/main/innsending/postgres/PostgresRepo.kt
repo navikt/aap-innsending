@@ -1,5 +1,6 @@
 package innsending.postgres
 
+import innsending.pdf.toByteArray
 import innsending.routes.Fil
 import innsending.routes.Innsending
 import java.time.LocalDateTime
@@ -46,7 +47,7 @@ class PostgresRepo(private val hikari: DataSource) {
                 innsendingId = innsendingId,
                 personident = personIdent,
                 mottattDato = mottattDato,
-                data = innsending.kvittering?.toString()?.toByteArray(),
+                data = innsending.kvittering?.toByteArray(),
                 con = con,
             )
 

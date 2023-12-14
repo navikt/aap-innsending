@@ -64,3 +64,8 @@ private fun ByteArray.toMap():MutableMap<String,Any>{
     val tr= object:TypeReference<MutableMap<String,Any>>() {}
     return mapper.readValue(this,tr)
 }
+
+fun Map<String,Any>.toByteArray():ByteArray{
+    val mapper = ObjectMapper()
+    return mapper.writeValueAsBytes(this)
+}
