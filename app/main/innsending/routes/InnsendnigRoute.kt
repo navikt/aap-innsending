@@ -10,6 +10,7 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.*
@@ -63,7 +64,7 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
 }
 
 data class Innsending(
-    val kvittering: String? = null,
+    val kvittering: Map<String, Any>? = null,
     val filer: List<Fil>,
 ) {
     override fun equals(other: Any?): Boolean {

@@ -13,6 +13,7 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.testing.*
+import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import java.util.*
 import kotlin.test.assertEquals
@@ -38,7 +39,7 @@ class InnsendingTest : H2TestBase() {
                     contentType(ContentType.Application.Json)
                     setBody(
                         Innsending(
-                            kvittering = "søknad",
+                            kvittering = mapOf("søknad" to "søknad"),
                             filer = listOf(
                                 Fil(
                                     id = filId1.toString(),
@@ -68,9 +69,7 @@ class InnsendingTest : H2TestBase() {
             val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
             val jwkGen = TokenXGen(config.tokenx)
-            val filId1 = UUID.randomUUID()
-            val filId2 = UUID.randomUUID()
-
+            println(JSONObject({"søknad"}))
             testApplication {
                 application { server(config, jedis, h2) }
 
@@ -79,7 +78,7 @@ class InnsendingTest : H2TestBase() {
                     contentType(ContentType.Application.Json)
                     setBody(
                         Innsending(
-                            kvittering = "søknad",
+                            kvittering = mapOf("søknad" to "søknad"),
                             filer = listOf(
                                 Fil(
                                     id = UUID.randomUUID().toString(),
