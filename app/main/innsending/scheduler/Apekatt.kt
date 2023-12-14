@@ -26,7 +26,7 @@ class Apekatt(
                     val innsending = repo.hentInnsending(innsendingId)
 
                     if (innsending.data != null) {
-                        val pdf = pdfGen.søknadTilPdf(innsending.data)
+                        val pdf = pdfGen.søknadTilPdf(innsending.data, innsending.opprettet)
                         journalpostSender.arkiverSøknad(pdf, innsending)
                     } else {
                         journalpostSender.arkiverEttersending(innsending)

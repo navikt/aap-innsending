@@ -31,7 +31,7 @@ class ApekattTest : H2TestBase() {
                     UUID.fromString("123e4567-e89b-12d3-a456-426614174000"),
                     "12345678910",
                     now,
-                    Resource.read("/resources/images/bilde.jpg"),
+                    """{"søknad":"søknad"}""".toByteArray(),
                     it
                 )
             }

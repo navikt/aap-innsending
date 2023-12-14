@@ -1,10 +1,13 @@
 package innsending.pdf
 
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.ObjectMapper
 import innsending.http.HttpClientFactory
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.prometheus.client.Summary
+import java.time.LocalDateTime
 
 private const val PDFGEN_CLIENT_SECONDS_METRICNAME = "PDFGEN_client_seconds"
 private val clientLatencyStats: Summary = Summary.build()
@@ -27,12 +30,37 @@ class PdfGen(private val host: String) {
             }
         }.body()
 
-    suspend fun søknadTilPdf(json: ByteArray): ByteArray =
-        clientLatencyStats.startTimer().use {
+    suspend fun søknadTilPdf(json: ByteArray, mottattDato:LocalDateTime): ByteArray {
+        val kvittering = json.toMap()
+        kvittering["mottatDato"]=mottattDato.toString()
+        val data=SøknadPdfGen(SøkerPdfGen(SøkerPdfGen.Navn("","")),kvittering)
+
+        return clientLatencyStats.startTimer().use {
             httpClient.post("$host/api/v1/genpdf/aap-pdfgen/soknad") {
                 contentType(ContentType.Application.Json)
                 accept(ContentType.Application.Pdf)
-                setBody(json)
+                setBody(data)
             }
         }.body()
+    }
+}
+
+data class SøknadPdfGen(
+    val søker: SøkerPdfGen,
+    val kvittering: Map<String,Any>
+)
+
+data class SøkerPdfGen(
+    val navn:Navn,
+){
+    data class Navn(
+        val fornavn:String,
+        val etternavn:String
+    )
+}
+
+private fun ByteArray.toMap():MutableMap<String,Any>{
+    val mapper = ObjectMapper()
+    val tr= object:TypeReference<MutableMap<String,Any>>() {}
+    return mapper.readValue(this,tr)
 }
