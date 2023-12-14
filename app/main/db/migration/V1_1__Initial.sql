@@ -11,8 +11,7 @@ CREATE TABLE fil
     id                      UUID PRIMARY KEY,
     innsending_id           UUID REFERENCES innsending (id) ON DELETE CASCADE,
     tittel                  TEXT,
-    data                    BYTEA, -- ligger i redis
-    dummy                   TEXT
+    data                    BYTEA -- ligger i redis
 );
 
 CREATE TABLE logg(
