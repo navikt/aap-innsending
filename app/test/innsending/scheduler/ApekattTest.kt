@@ -4,9 +4,9 @@ import innsending.Fakes
 import innsending.Resource
 import innsending.TestConfig
 import innsending.arkiv.Journalpost
-import innsending.pdf.toByteArray
 import innsending.postgres.H2TestBase
 import innsending.postgres.PostgresDAO
+import innsending.postgres.toByteArray
 import innsending.postgres.transaction
 import innsending.redis.JedisRedisFake
 import innsending.server
