@@ -1,5 +1,6 @@
 package innsending.routes
 
+import innsending.SECURE_LOGGER
 import innsending.antivirus.ClamAVClient
 import innsending.auth.personident
 import innsending.pdf.PdfGen
@@ -12,6 +13,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.apache.pdfbox.Loader
+import org.apache.tika.Tika
 import java.util.*
 
 
@@ -51,13 +53,20 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                     val fil = mottattFil.streamProvider().readBytes()
                     val contentType = requireNotNull(mottattFil.contentType) { "contentType i multipartForm mangler" }
 
+                    if (sjekkFeilContentType(fil, contentType)) {
+                        return@post call.respond(HttpStatusCode.UnprocessableEntity, ErrorRespons("Filtype ikke støttet"))
+                    }
+
                     val pdf: ByteArray = when (contentType) {
                         in acceptedContentType -> {
                             if (virusScanClient.hasVirus(fil, contentType)) {
                                 return@post call.respond(HttpStatusCode.UnprocessableEntity, ErrorRespons("Fant virus i fil"))
                             }
-
-                            pdfGen.bildeTilPfd(fil, contentType)
+                            if (contentType == ContentType.Application.Pdf) {
+                                fil
+                            } else {
+                                pdfGen.bildeTilPfd(fil, contentType)
+                            }
                         }
 
                         else -> {
@@ -117,4 +126,11 @@ data class ErrorRespons(
 fun sjekkPdf(fil: ByteArray): Boolean {
     val pdf = Loader.loadPDF(fil)
     return !pdf.isEncrypted
+}
+
+fun sjekkFeilContentType(fil: ByteArray, contentType: ContentType):Boolean{
+    val filtype = Tika().detect(fil)
+    SECURE_LOGGER.info("sjekker filtype $filtype == $contentType")
+
+    return filtype!=contentType.toString()
 }
