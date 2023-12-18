@@ -1,11 +1,11 @@
 package innsending.routes
 
-import com.fasterxml.jackson.databind.util.JSONPObject
 import innsending.Fakes
 import innsending.TestConfig
 import innsending.TokenXGen
 import innsending.postgres.H2TestBase
 import innsending.redis.JedisRedisFake
+import innsending.redis.Key
 import innsending.server
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -26,13 +26,13 @@ class InnsendingTest : H2TestBase() {
             val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
             val tokenx = TokenXGen(config.tokenx)
-            val filId1 = UUID.randomUUID()
-            val filId2 = UUID.randomUUID()
+            val filId1 = Key(value = UUID.randomUUID().toString(), prefix = "12345678910")
+            val filId2 = Key(value = UUID.randomUUID().toString(), prefix = "12345678910")
 
             testApplication {
                 application { server(config, jedis, h2) }
-                jedis.set(filId1.toString(), byteArrayOf(), 60)
-                jedis.set(filId2.toString(), byteArrayOf(), 60)
+                jedis.set(filId1, byteArrayOf(), 60)
+                jedis.set(filId2, byteArrayOf(), 60)
 
                 val res = jsonHttpClient.post("/innsending") {
                     bearerAuth(tokenx.generate("12345678910"))
@@ -42,11 +42,11 @@ class InnsendingTest : H2TestBase() {
                             kvittering = mapOf("søknad" to "søknad"),
                             filer = listOf(
                                 Fil(
-                                    id = filId1.toString(),
+                                    id = filId1.value,
                                     tittel = "important"
                                 ),
                                 Fil(
-                                    id = filId2.toString(),
+                                    id = filId2.value,
                                     tittel = "nice to have"
                                 )
                             )
@@ -69,7 +69,7 @@ class InnsendingTest : H2TestBase() {
             val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
             val jwkGen = TokenXGen(config.tokenx)
-            println(JSONObject({"søknad"}))
+            println(JSONObject({ "søknad" }))
             testApplication {
                 application { server(config, jedis, h2) }
 
@@ -102,13 +102,13 @@ class InnsendingTest : H2TestBase() {
             val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
             val tokenx = TokenXGen(config.tokenx)
-            val filId1 = UUID.randomUUID()
-            val filId2 = UUID.randomUUID()
+            val filId1 = Key(UUID.randomUUID().toString(), prefix = "12345678910")
+            val filId2 = Key(UUID.randomUUID().toString(), prefix = "12345678910")
 
             testApplication {
                 application { server(config, jedis, h2) }
-                jedis.set(filId1.toString(), byteArrayOf(), 60)
-                jedis.set(filId2.toString(), byteArrayOf(), 60)
+                jedis.set(filId1, byteArrayOf(), 60)
+                jedis.set(filId2, byteArrayOf(), 60)
 
                 val res = jsonHttpClient.post("/innsending") {
                     bearerAuth(tokenx.generate("12345678910"))
@@ -117,11 +117,11 @@ class InnsendingTest : H2TestBase() {
                         Innsending(
                             filer = listOf(
                                 Fil(
-                                    id = filId1.toString(),
+                                    id = filId1.value,
                                     tittel = "important"
                                 ),
                                 Fil(
-                                    id = filId2.toString(),
+                                    id = filId2.value,
                                     tittel = "nice to have"
                                 )
                             )
@@ -138,8 +138,9 @@ class InnsendingTest : H2TestBase() {
         }
     }
 
-    private val ApplicationTestBuilder.jsonHttpClient: HttpClient get() =
-        createClient {
-            install(ContentNegotiation) { jackson() }
-        }
+    private val ApplicationTestBuilder.jsonHttpClient: HttpClient
+        get() =
+            createClient {
+                install(ContentNegotiation) { jackson() }
+            }
 }

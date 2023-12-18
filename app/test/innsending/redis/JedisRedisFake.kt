@@ -3,17 +3,21 @@ package innsending.redis
 class JedisRedisFake : Redis {
     private val cache = mutableMapOf<String, ByteArray>()
 
-    override fun set(key: String, value: ByteArray, expireSec: Long) {
-        cache[key] = value
+    private fun str(key: Key): String = "${key.prefix}:${key.value}"
+
+    override fun set(key: Key, value: ByteArray, expireSec: Long) {
+        cache[str(key)] = value
     }
 
-    override fun get(key: String): ByteArray? = cache[key]
+    override fun get(key: Key): ByteArray? {
+        return cache[str(key)]
+    }
 
-    override fun del(key: String) {
-        cache.remove(key)
+    override fun del(key: Key) {
+        cache.remove(str(key))
     }
 
     override fun ready(): Boolean = true
 
-    override fun exists(key: String): Boolean = cache.contains(key)
+    override fun exists(key: Key): Boolean = cache.contains(str(key))
 }

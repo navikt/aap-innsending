@@ -8,12 +8,19 @@ import redis.clients.jedis.JedisPoolConfig
 
 const val EnDagSekunder: Long = 60 * 60 * 24
 
+data class Key(
+    val value: String,
+    val prefix: String = "",
+) {
+    fun get(): ByteArray = "$prefix:$value".toByteArray()
+}
+
 interface Redis {
-    fun set(key: String, value: ByteArray, expireSec: Long)
-    operator fun get(key: String): ByteArray?
-    fun del(key: String)
+    fun set(key: Key, value: ByteArray, expireSec: Long)
+    operator fun get(key: Key): ByteArray?
+    fun del(key: Key)
     fun ready(): Boolean
-    fun exists(key: String): Boolean
+    fun exists(key: Key): Boolean
 }
 
 class JedisRedis(config: RedisConfig) : Redis {
@@ -23,22 +30,22 @@ class JedisRedis(config: RedisConfig) : Redis {
         DefaultJedisClientConfig.builder().ssl(true).user(config.username).password(config.password).build()
     )
 
-    override fun set(key: String, value: ByteArray, expireSec: Long) {
+    override fun set(key: Key, value: ByteArray, expireSec: Long) {
         pool.resource.use {
-            it.set(key.toByteArray(), value)
-            it.expire(key.toByteArray(), expireSec)
+            it.set(key.get(), value)
+            it.expire(key.get(), expireSec)
         }
     }
 
-    override operator fun get(key: String): ByteArray? {
+    override operator fun get(key: Key): ByteArray? {
         pool.resource.use {
-            return it.get(key.toByteArray())
+            return it.get(key.get())
         }
     }
 
-    override fun del(key: String) {
+    override fun del(key: Key) {
         pool.resource.use {
-            it.del(key)
+            it.del(key.get())
         }
     }
 
@@ -48,9 +55,9 @@ class JedisRedis(config: RedisConfig) : Redis {
         }
     }
 
-    override fun exists(key: String): Boolean {
+    override fun exists(key: Key): Boolean {
         pool.resource.use {
-            return it.exists(key)
+            return it.exists(key.get())
         }
     }
 }

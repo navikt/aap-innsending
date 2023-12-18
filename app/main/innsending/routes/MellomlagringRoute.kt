@@ -5,6 +5,7 @@ import innsending.antivirus.ClamAVClient
 import innsending.auth.personident
 import innsending.pdf.PdfGen
 import innsending.redis.EnDagSekunder
+import innsending.redis.Key
 import innsending.redis.Redis
 import io.ktor.http.*
 import io.ktor.http.content.*
@@ -24,29 +25,32 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
     route("/mellomlagring/søknad") {
 
         post {
-            val personIdent = call.personident()
-            redis.set(personIdent, call.receive(), EnDagSekunder)
+            val key = Key(call.personident())
+            redis.set(key, call.receive(), EnDagSekunder)
             call.respond(HttpStatusCode.OK)
         }
 
         get {
-            val personIdent = call.personident()
-            when (val soknad = redis[personIdent]) {
+            val key = Key(call.personident())
+            when (val soknad = redis[key]) {
                 null -> call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret søknad")
                 else -> call.respond(HttpStatusCode.OK, soknad)
             }
         }
 
         delete {
-            val personIdent = call.personident()
-            redis.del(personIdent)
+            val key = Key(call.personident())
+            redis.del(key)
             call.respond(HttpStatusCode.OK)
         }
     }
 
     route("/mellomlagring/fil") {
         post {
-            val filId = UUID.randomUUID().toString()
+            val key = Key(
+                value = UUID.randomUUID().toString(),
+                prefix = call.personident()
+            )
 
             when (val mottattFil = call.receiveMultipart().readAllParts().single()) {
                 is PartData.FileItem -> {
@@ -54,13 +58,19 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                     val contentType = requireNotNull(mottattFil.contentType) { "contentType i multipartForm mangler" }
 
                     if (sjekkFeilContentType(fil, contentType)) {
-                        return@post call.respond(HttpStatusCode.UnprocessableEntity, ErrorRespons("Filtype ikke støttet"))
+                        return@post call.respond(
+                            HttpStatusCode.UnprocessableEntity,
+                            ErrorRespons("Filtype ikke støttet")
+                        )
                     }
 
                     val pdf: ByteArray = when (contentType) {
                         in acceptedContentType -> {
                             if (virusScanClient.hasVirus(fil, contentType)) {
-                                return@post call.respond(HttpStatusCode.UnprocessableEntity, ErrorRespons("Fant virus i fil"))
+                                return@post call.respond(
+                                    HttpStatusCode.UnprocessableEntity,
+                                    ErrorRespons("Fant virus i fil")
+                                )
                             }
                             if (contentType == ContentType.Application.Pdf) {
                                 fil
@@ -70,7 +80,10 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                         }
 
                         else -> {
-                            return@post call.respond(HttpStatusCode.UnprocessableEntity, ErrorRespons("Filtype ikke støttet"))
+                            return@post call.respond(
+                                HttpStatusCode.UnprocessableEntity,
+                                ErrorRespons("Filtype ikke støttet")
+                            )
                         }
                     }
 
@@ -78,9 +91,10 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                         return@post call.respond(HttpStatusCode.UnprocessableEntity, ErrorRespons("PDF er kryptert"))
                     }
 
-                    redis.set(filId, pdf, EnDagSekunder)
+                    // prefikser med innlogget bruker for å hindre at andre brukere kan hente andres filer
+                    redis.set(key, pdf, EnDagSekunder)
 
-                    call.respond(status = HttpStatusCode.Created, MellomlagringRespons(filId))
+                    call.respond(status = HttpStatusCode.Created, MellomlagringRespons(key.value))
                 }
 
                 else -> {
@@ -90,15 +104,21 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
         }
 
         get("/{filId}") {
-            val filId = requireNotNull(call.parameters["filId"])
+            val key = Key(
+                value = requireNotNull(call.parameters["filId"]),
+                prefix = call.personident()
+            )
 
-            when (val fil = redis[filId]) {
+            when (val fil = redis[key]) {
                 null -> call.respond(HttpStatusCode.NotFound, ErrorRespons("Fant ikke mellomlagret fil"))
                 else -> {
                     call.response.header(
                         HttpHeaders.ContentDisposition,
                         ContentDisposition.Attachment
-                            .withParameter(ContentDisposition.Parameters.FileName, "${filId}.pdf")
+                            .withParameter(
+                                ContentDisposition.Parameters.FileName,
+                                "${key}.pdf" // TODO: tittel kan lagres på egen key:value
+                            )
                             .toString()
                     )
                     call.respond(HttpStatusCode.OK, fil)
@@ -107,9 +127,12 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
         }
 
         delete("/{filId}") {
-            val filId = requireNotNull(call.parameters["filId"])
+            val key = Key(
+                value = requireNotNull(call.parameters["filId"]),
+                prefix = call.personident(),
+            )
 
-            redis.del(filId)
+            redis.del(key)
             call.respond(HttpStatusCode.OK)
         }
     }
@@ -128,9 +151,9 @@ fun sjekkPdf(fil: ByteArray): Boolean {
     return !pdf.isEncrypted
 }
 
-fun sjekkFeilContentType(fil: ByteArray, contentType: ContentType):Boolean{
+fun sjekkFeilContentType(fil: ByteArray, contentType: ContentType): Boolean {
     val filtype = Tika().detect(fil)
     SECURE_LOGGER.info("sjekker filtype $filtype == $contentType")
 
-    return filtype!=contentType.toString()
+    return filtype != contentType.toString()
 }

@@ -1,16 +1,14 @@
 package innsending.routes
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.util.JSONPObject
 import innsending.auth.personident
 import innsending.postgres.PostgresRepo
+import innsending.redis.Key
 import innsending.redis.Redis
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.*
@@ -25,7 +23,7 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
             val innsending = call.receive<Innsending>()
 
             // Avoid duplicates
-            val innsendingHash = innsending.hashCode().toString()
+            val innsendingHash = Key(innsending.hashCode().toString())
             if (redis.exists(innsendingHash)) {
                 call.respond(HttpStatusCode.Conflict, "Denne innsendingen har vi allerede mottatt")
             }
@@ -34,7 +32,8 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
             logger.trace("Mottok innsending med id {}", innsendingId)
 
             val filerMedDataPairs = innsending.filer.mapNotNull { fil ->
-                redis[fil.id]?.let { Pair(fil, it) }
+                val key = Key(value = fil.id, prefix = personIdent)
+                redis[key]?.let { bytes -> fil to bytes }
             }
 
             if (filerMedDataPairs.size != innsending.filer.size) {
@@ -50,10 +49,11 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
             )
 
             innsending.filer.forEach { fil ->
-                redis.del(fil.id)
+                val key = Key(value = fil.id, prefix = personIdent)
+                redis.del(key)
             }
 
-            redis.del(personIdent)
+            redis.del(Key(personIdent))
 
             // Avoid duplicates
             redis.set(innsendingHash, byteArrayOf(), 60)

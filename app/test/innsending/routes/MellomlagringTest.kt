@@ -2,6 +2,7 @@ package innsending.routes
 
 import innsending.*
 import innsending.redis.JedisRedisFake
+import innsending.redis.Key
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
@@ -32,7 +33,7 @@ class MellomlagringTest {
                     setBody("""{"soknadId":"1234"}""")
                 }
                 assertEquals(HttpStatusCode.OK, res.status)
-                assertEquals("""{"soknadId":"1234"}""", String(jedis["12345678910"]!!))
+                assertEquals("""{"soknadId":"1234"}""", String(jedis[Key("12345678910")]!!))
             }
         }
     }
@@ -46,7 +47,7 @@ class MellomlagringTest {
 
             testApplication {
                 application { server(config, jedis) }
-                jedis.set("12345678910", """{"søknadId":"1234"}""".toByteArray(), 50)
+                jedis.set(Key("12345678910"), """{"søknadId":"1234"}""".toByteArray(), 50)
 
                 val res = client.get("/mellomlagring/søknad") {
                     accept(ContentType.Application.Json)
@@ -68,7 +69,7 @@ class MellomlagringTest {
 
             testApplication {
                 application { server(config, jedis) }
-                jedis.set("12345678910", """{"søknadId":"1234"}""".toByteArray(), 50)
+                jedis.set(Key("12345678910"), """{"søknadId":"1234"}""".toByteArray(), 50)
 
                 val del = client.delete("/mellomlagring/søknad") {
                     accept(ContentType.Application.Json)
@@ -76,7 +77,7 @@ class MellomlagringTest {
                 }
                 assertEquals(HttpStatusCode.OK, del.status)
 
-                assertNull(jedis["12345678910"])
+                assertNull(jedis[Key("12345678910")])
             }
         }
     }
@@ -111,7 +112,7 @@ class MellomlagringTest {
                     install(ContentNegotiation) { jackson() }
                 }
                 application { server(config, jedis) }
-                val res = client.submitFormWithBinaryData(url="/mellomlagring/fil",
+                val res = client.submitFormWithBinaryData(url = "/mellomlagring/fil",
                     formData = formData {
                         append("document", Resource.read("/resources/images/bilde.jpg"), Headers.build {
                             append(HttpHeaders.ContentDisposition, "filename=bilde.jpg")
@@ -124,7 +125,8 @@ class MellomlagringTest {
                 )
                 assertEquals(HttpStatusCode.Created, res.status)
                 val respons = res.body<MellomlagringRespons>()
-                assertEquals(String(Resource.read("/resources/pdf/minimal.pdf")), String(jedis[respons.filId]!!))
+                val key = Key(respons.filId, prefix = "12345678910")
+                assertEquals(String(Resource.read("/resources/pdf/minimal.pdf")), jedis[key]?.let(::String))
             }
         }
     }
@@ -138,7 +140,8 @@ class MellomlagringTest {
             val id = UUID.randomUUID()
             testApplication {
                 application { server(config, jedis) }
-                jedis.set(id.toString(), String(Resource.read("/resources/pdf/minimal.pdf")).toByteArray(), 50)
+                val key = Key(value = id.toString(), prefix = "12345678910")
+                jedis.set(key, String(Resource.read("/resources/pdf/minimal.pdf")).toByteArray(), 50)
 
                 val res = client.get("/mellomlagring/fil/$id") {
                     accept(ContentType.Application.Pdf)
