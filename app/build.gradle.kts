@@ -38,7 +38,7 @@ dependencies {
     implementation("org.apache.pdfbox:pdfbox:3.0.1")
     implementation("com.zaxxer:HikariCP:5.1.0")
     implementation("org.flywaydb:flyway-core:10.2.0")
-    implementation("org.flywaydb:flyway-database-postgresql:10.2.0")
+    implementation("org.flywaydb:flyway-database-postgresql:10.3.0")
     runtimeOnly("net.logstash.logback:logstash-logback-encoder:7.4")
     runtimeOnly("org.postgresql:postgresql:42.7.1")
 
