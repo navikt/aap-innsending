@@ -45,7 +45,7 @@ dependencies {
     testImplementation(kotlin("test"))
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     testImplementation("com.h2database:h2:2.2.224")
-    testImplementation("com.nimbusds:nimbus-jose-jwt:9.37.1")
+    testImplementation("com.nimbusds:nimbus-jose-jwt:9.37.3")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
 }
 
