@@ -15,6 +15,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.apache.pdfbox.Loader
 import org.apache.tika.Tika
+import java.net.URL
 import java.util.*
 
 
@@ -37,6 +38,16 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                 else -> call.respond(HttpStatusCode.OK, soknad)
             }
         }
+
+        get("/finnes") {
+            val personIdent = Key(call.personident())
+            val søknad = redis[personIdent]
+            if (søknad != null) {
+                val age = redis.createdAt(personIdent)
+                call.respond(HttpStatusCode.OK, SøknadFinnesRespons("aap-søknad", URL("https://www.nav.no/aap/soknad"), createdAt(age)))
+            } else {
+                call.respond(HttpStatusCode.NotFound, SøknadFinnesRespons())
+            }}
 
         delete {
             val key = Key(call.personident())
@@ -137,6 +148,9 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
         }
     }
 }
+fun createdAt(ageInSeconds: Long): Date {
+    return Date(System.currentTimeMillis() - ageInSeconds * 1000)
+}
 
 data class MellomlagringRespons(
     val filId: String,
@@ -155,5 +169,12 @@ fun sjekkFeilContentType(fil: ByteArray, contentType: ContentType): Boolean {
     val filtype = Tika().detect(fil)
     SECURE_LOGGER.info("sjekker filtype $filtype == $contentType")
 
-    return filtype != contentType.toString()
+
+    return filtype!=contentType.toString()
 }
+
+data class SøknadFinnesRespons(
+    val tittel:String?=null,
+    val link:URL?=null,
+    val sistEndret:Date?=null
+)

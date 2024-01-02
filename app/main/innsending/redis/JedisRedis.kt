@@ -20,6 +20,8 @@ interface Redis {
     operator fun get(key: Key): ByteArray?
     fun del(key: Key)
     fun ready(): Boolean
+    fun createdAt(key: Key): Long
+    fun expiresIn(key: Key): Long
     fun exists(key: Key): Boolean
 }
 
@@ -52,6 +54,18 @@ class JedisRedis(config: RedisConfig) : Redis {
     override fun ready(): Boolean {
         pool.resource.use {
             return it.ping() == "PONG"
+        }
+    }
+
+    override fun createdAt(key: Key): Long {
+        pool.resource.use {
+            return it.objectIdletime(key.get())
+        }
+    }
+
+    override fun expiresIn(key: Key): Long {
+        pool.resource.use {
+            return it.ttl(key.get())
         }
     }
 
