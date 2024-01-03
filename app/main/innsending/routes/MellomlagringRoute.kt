@@ -15,6 +15,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.apache.pdfbox.Loader
 import org.apache.tika.Tika
+import java.net.URI
 import java.net.URL
 import java.util.*
 
@@ -44,7 +45,7 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
             val søknad = redis[personIdent]
             if (søknad != null) {
                 val age = redis.createdAt(personIdent)
-                call.respond(HttpStatusCode.OK, SøknadFinnesRespons("aap-søknad", URL("https://www.nav.no/aap/soknad"), createdAt(age)))
+                call.respond(HttpStatusCode.OK, SøknadFinnesRespons("aap-søknad", URI("https://www.nav.no/aap/soknad").toURL(), createdAt(age)))
             } else {
                 call.respond(HttpStatusCode.NotFound, SøknadFinnesRespons())
             }}

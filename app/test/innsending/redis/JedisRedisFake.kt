@@ -19,5 +19,8 @@ class JedisRedisFake : Redis {
 
     override fun ready(): Boolean = true
 
+    override fun createdAt(key: Key): Long = 0
+    override fun expiresIn(key: Key): Long = 0
+
     override fun exists(key: Key): Boolean = cache.contains(str(key))
 }
