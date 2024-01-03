@@ -32,6 +32,9 @@ spec:
       rules:
         - application: innsyn
         - application: soknad
+        - application: tms-utkast
+          namespace: min-side
+          cluster: dev-gcp
     outbound:
       external:
         - host: dokarkiv.dev-fss-pub.nais.io
