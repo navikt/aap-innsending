@@ -18,6 +18,12 @@ private val logger = LoggerFactory.getLogger("App")
 fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
     route("/innsending") {
 
+        get {
+            val personIdent = call.personident()
+
+            call.respond(postgres.hentAlleSøknader(personIdent))
+        }
+
         post {
             val personIdent = call.personident()
             val innsending = call.receive<Innsending>()
@@ -62,6 +68,11 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
         }
     }
 }
+
+data class Logg(
+    val journalpost: String,
+    val mottattDato: LocalDateTime
+)
 
 data class Innsending(
     val kvittering: Map<String, Any>? = null,

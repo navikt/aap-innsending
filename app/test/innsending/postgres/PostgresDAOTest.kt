@@ -97,15 +97,50 @@ class PostgresDAOTest : H2TestBase() {
     @Test
     fun `insert logg ignorerer andre forsøk`() {
         h2.transaction {
-            PostgresDAO.insertLogg("12345678910", LocalDateTime.now(), "1234", it)
+            PostgresDAO.insertLogg("12345678910", LocalDateTime.now(), "1234", "SOKNAD", it)
         }
 
         assertEquals(1, countLogg())
 
         h2.transaction {
-            PostgresDAO.insertLogg("12345678910", LocalDateTime.now(), "1234", it)
+            PostgresDAO.insertLogg("12345678910", LocalDateTime.now(), "1234", "SOKNAD", it)
         }
 
         assertEquals(1, countLogg())
+    }
+
+    @Test
+    fun `hent fra logg sorterer riktig`() {
+        h2.transaction {
+            PostgresDAO.insertLogg("12345678910", LocalDateTime.now().minusDays(1), "1234", "SOKNAD", it)
+        }
+
+        h2.transaction {
+            PostgresDAO.insertLogg("12345678910", LocalDateTime.now(), "4321", "SOKNAD", it)
+        }
+
+        val liste = h2.transaction {
+            PostgresDAO.selectLogg("12345678910", it)
+        }
+
+        assertEquals(2, liste.size)
+        assertEquals("4321", liste[0].journalpost)
+    }
+
+    @Test
+    fun `hent fra logg filtrerer på SOKNAD`() {
+        h2.transaction {
+            PostgresDAO.insertLogg("12345678910", LocalDateTime.now().minusDays(1), "1234", "SOKNAD", it)
+        }
+
+        h2.transaction {
+            PostgresDAO.insertLogg("12345678910", LocalDateTime.now(), "4321", "ETTERSENDING", it)
+        }
+
+        val liste = h2.transaction {
+            PostgresDAO.selectLogg("12345678910", it)
+        }
+
+        assertEquals(1, liste.size)
     }
 }

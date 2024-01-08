@@ -3,24 +3,33 @@ package innsending.postgres
 import com.fasterxml.jackson.databind.ObjectMapper
 import innsending.routes.Fil
 import innsending.routes.Innsending
+import innsending.routes.Logg
 import java.time.LocalDateTime
 import java.util.*
 import javax.sql.DataSource
+
+enum class InnsendingType { SOKNAD, ETTERSENDING }
 
 class PostgresRepo(private val hikari: DataSource) {
     fun loggførJournalføring(
         personIdent: String,
         mottattDato: LocalDateTime,
-        journalpostId: String
+        journalpostId: String,
+        type: InnsendingType
     ) {
         hikari.transaction { con ->
             PostgresDAO.insertLogg(
                 personident = personIdent,
                 mottattDato = mottattDato,
                 journalpostId = journalpostId,
+                type = type.name,
                 con = con
             )
         }
+    }
+
+    fun hentAlleSøknader(personident: String): List<Logg> = hikari.transaction { con ->
+        PostgresDAO.selectLogg(personident, con)
     }
 
     fun hentAlleInnsendinger(): List<UUID> = hikari.transaction { con ->

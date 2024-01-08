@@ -2,6 +2,7 @@ package innsending.arkiv
 
 import innsending.SECURE_LOGGER
 import innsending.postgres.InnsendingMedFiler
+import innsending.postgres.InnsendingType
 import innsending.postgres.PostgresRepo
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
@@ -33,7 +34,7 @@ class JournalpostSender(
 
         val arkivResponse = client.opprettJournalpost(journalpost, innsending.id.toString())
         SECURE_LOGGER.info("Opprettet journalpost {} for {}", arkivResponse.journalpostId, innsending.personident)
-        repo.loggførJournalføring(innsending.personident, innsending.opprettet, arkivResponse.journalpostId)
+        repo.loggførJournalføring(innsending.personident, innsending.opprettet, arkivResponse.journalpostId, InnsendingType.SOKNAD)
         repo.slettInnsending(innsending.id)
     }
 
@@ -56,7 +57,7 @@ class JournalpostSender(
         logger.info("Lagrer ettersending for {}: {}", innsending.id, journalpost)
         val arkivResponse = client.opprettJournalpost(journalpost, innsending.id.toString())
         logger.info("Lagret {}", arkivResponse.journalpostId)
-        repo.loggførJournalføring(innsending.personident, innsending.opprettet, arkivResponse.journalpostId)
+        repo.loggførJournalføring(innsending.personident, innsending.opprettet, arkivResponse.journalpostId, InnsendingType.ETTERSENDING)
         repo.slettInnsending(innsending.id)
         logger.info("Ettersendt {}", innsending.id)
     }

@@ -1,5 +1,6 @@
 package innsending.postgres
 
+import innsending.routes.Logg
 import java.sql.Connection
 import java.sql.Timestamp
 import java.sql.Types
@@ -16,16 +17,35 @@ object PostgresDAO {
         INSERT INTO innsending (id, opprettet, personident, data) VALUES (?, ?, ?, ?)
     """
     private const val INSERT_LOGG = """
-        INSERT INTO logg (personident, mottatt_dato, journalpost_id) VALUES (?, ?, ?) 
+        INSERT INTO logg (personident, mottatt_dato, journalpost_id, type) VALUES (?, ?, ?, ?) 
         ON CONFLICT DO NOTHING
     """
+    private const val SELECT_LOGG = """
+        SELECT journalpost_id, mottatt_dato FROM logg 
+        WHERE personident = ? AND type = ?
+        ORDER BY mottatt_dato DESC
+    """
 
-    fun insertLogg(personident: String, mottattDato: LocalDateTime, journalpostId: String, con: Connection) {
+    fun insertLogg(personident: String, mottattDato: LocalDateTime, journalpostId: String, type: String, con: Connection) {
         val stmt = con.prepareStatement(INSERT_LOGG)
         stmt.setString(1, personident)
         stmt.setTimestamp(2, Timestamp.valueOf(mottattDato))
         stmt.setString(3, journalpostId)
+        stmt.setString(4, type)
         stmt.execute()
+    }
+
+    fun selectLogg(personident: String, con: Connection): List<Logg> {
+        val stmt = con.prepareStatement(SELECT_LOGG)
+        stmt.setString(1, personident)
+        stmt.setString(2, InnsendingType.SOKNAD.name)
+        val resultat = stmt.executeQuery()
+        return resultat.map { row ->
+            Logg(
+                journalpost = row.getString("journalpost_id"),
+                mottattDato = row.getTimestamp("mottatt_dato").toLocalDateTime()
+            )
+        }
     }
 
     fun insertInnsending(innsendingId: UUID, personident: String, mottattDato: LocalDateTime, data: ByteArray?, con: Connection) {
