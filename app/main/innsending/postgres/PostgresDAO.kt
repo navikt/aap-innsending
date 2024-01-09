@@ -35,10 +35,10 @@ object PostgresDAO {
         stmt.execute()
     }
 
-    fun selectLogg(personident: String, con: Connection): List<Logg> {
+    fun selectLogg(personident: String, type: String, con: Connection): List<Logg> {
         val stmt = con.prepareStatement(SELECT_LOGG)
         stmt.setString(1, personident)
-        stmt.setString(2, InnsendingType.SOKNAD.name)
+        stmt.setString(2, type)
         val resultat = stmt.executeQuery()
         return resultat.map { row ->
             Logg(

@@ -120,7 +120,7 @@ class PostgresDAOTest : H2TestBase() {
         }
 
         val liste = h2.transaction {
-            PostgresDAO.selectLogg("12345678910", it)
+            PostgresDAO.selectLogg("12345678910", InnsendingType.SOKNAD.name, it)
         }
 
         assertEquals(2, liste.size)
@@ -138,7 +138,7 @@ class PostgresDAOTest : H2TestBase() {
         }
 
         val liste = h2.transaction {
-            PostgresDAO.selectLogg("12345678910", it)
+            PostgresDAO.selectLogg("12345678910", InnsendingType.SOKNAD.name, it)
         }
 
         assertEquals(1, liste.size)

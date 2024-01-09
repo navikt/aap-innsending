@@ -29,7 +29,7 @@ class PostgresRepo(private val hikari: DataSource) {
     }
 
     fun hentAlleSøknader(personident: String): List<Logg> = hikari.transaction { con ->
-        PostgresDAO.selectLogg(personident, con)
+        PostgresDAO.selectLogg(personident, InnsendingType.SOKNAD.name, con)
     }
 
     fun hentAlleInnsendinger(): List<UUID> = hikari.transaction { con ->
