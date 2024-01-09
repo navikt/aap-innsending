@@ -18,7 +18,7 @@ private val logger = LoggerFactory.getLogger("App")
 fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
     route("/innsending") {
 
-        get("/soknader") {
+        get("/søknader") {
             val personIdent = call.personident()
 
             call.respond(postgres.hentAlleSøknader(personIdent))
