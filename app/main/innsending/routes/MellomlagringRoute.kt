@@ -17,6 +17,9 @@ import org.apache.pdfbox.Loader
 import org.apache.tika.Tika
 import java.net.URI
 import java.net.URL
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 
@@ -43,9 +46,11 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
         get("/finnes") {
             val personIdent = Key(call.personident())
             val søknad = redis[personIdent]
+
             if (søknad != null) {
                 val age = redis.createdAt(personIdent)
-                call.respond(HttpStatusCode.OK, SøknadFinnesRespons("aap-søknad", URI("https://www.nav.no/aap/soknad").toURL(), createdAt(age)))
+                val createdAt =  LocalDateTime.ofInstant(Instant.ofEpochMilli(age), TimeZone.getDefault().toZoneId())
+                call.respond(HttpStatusCode.OK, SøknadFinnesRespons("aap-søknad", URI("https://www.nav.no/aap/soknad").toURL(), createdAt))
             } else {
                 call.respond(HttpStatusCode.NotFound, SøknadFinnesRespons())
             }}
@@ -177,5 +182,5 @@ fun sjekkFeilContentType(fil: ByteArray, contentType: ContentType): Boolean {
 data class SøknadFinnesRespons(
     val tittel:String?=null,
     val link:URL?=null,
-    val sistEndret:Date?=null
+    val sistEndret:LocalDateTime?=null
 )
