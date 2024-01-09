@@ -34,6 +34,7 @@ import io.micrometer.prometheus.PrometheusMeterRegistry
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
+import java.text.DateFormat
 import javax.sql.DataSource
 
 val SECURE_LOGGER: Logger = LoggerFactory.getLogger("secureLog")
@@ -91,6 +92,7 @@ fun Application.server(
     install(ContentNegotiation) {
         jackson {
             registerModule(JavaTimeModule())
+            dateFormat = DateFormat.getDateTimeInstance()
             disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
         }
     }
