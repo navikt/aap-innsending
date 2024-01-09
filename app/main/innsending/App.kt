@@ -92,7 +92,6 @@ fun Application.server(
     install(ContentNegotiation) {
         jackson {
             registerModule(JavaTimeModule())
-            dateFormat = DateFormat.getDateTimeInstance()
             disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
         }
     }
