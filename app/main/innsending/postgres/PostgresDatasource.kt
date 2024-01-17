@@ -32,26 +32,16 @@ internal object Hikari {
                 driverClassName = config.driver
             }
         ).apply {
-            Flyway.configure()
-                .cleanDisabled(setCleanDisabled(config.cluster))
-                .cleanOnValidationError(setCleanOnValidationError(config.cluster))
-                .locations(*locations)
+            Flyway
+                .configure()
+                .cleanDisabled(false).also { logger.error("flyway.cleanDisabled er false. Skru av hvis prod") }
+                .cleanOnValidationError(true).also { logger.error("flyway.cleanOnValidationError er true. Skru av hvis prod") }
                 .dataSource(this)
+                .locations(*locations)
+                .validateMigrationNaming(true)
                 .load()
                 .migrate()
         }
-
-    private fun setCleanDisabled(environment: String) = isProd(environment)
-
-    private fun setCleanOnValidationError(environment: String) = !isProd(environment)
-
-    private fun isProd(environment: String): Boolean {
-        if (environment != "prod-gcp") {
-            logger.error("Flyway.cleanDisabled er satt til false. Husk å skru av i prod")
-            logger.error("Flyway.cleanOnValidationError er satt til true. Husk å skru av i prod")
-        }
-        return environment == "prod-gcp"
-    }
 }
 
 fun <T : Any> ResultSet.map(block: (ResultSet) -> T): List<T> =
