@@ -14,7 +14,10 @@ import javax.sql.DataSource
 private val logger = LoggerFactory.getLogger("App")
 
 internal object Hikari {
-    fun createAndMigrate(config: PostgresConfig): DataSource =
+    fun createAndMigrate(
+        config: PostgresConfig,
+        locations: Array<String> = arrayOf("classpath:db/migration", "classpath:db/gcp"),
+    ): DataSource =
         HikariDataSource(
             HikariConfig().apply {
                 jdbcUrl = config.url
@@ -32,6 +35,7 @@ internal object Hikari {
             Flyway.configure()
                 .cleanDisabled(setCleanDisabled(config.cluster))
                 .cleanOnValidationError(setCleanOnValidationError(config.cluster))
+                .locations(*locations)
                 .dataSource(this)
                 .load()
                 .migrate()

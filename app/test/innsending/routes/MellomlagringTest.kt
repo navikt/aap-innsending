@@ -1,6 +1,7 @@
 package innsending.routes
 
 import innsending.*
+import innsending.postgres.H2TestBase
 import innsending.redis.JedisRedisFake
 import innsending.redis.Key
 import io.ktor.client.call.*
@@ -16,7 +17,7 @@ import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
-class MellomlagringTest {
+class MellomlagringTest: H2TestBase() {
 
     @Test
     fun `kan mellomlagre søknad`() {
@@ -26,7 +27,7 @@ class MellomlagringTest {
             val jwkGen = TokenXGen(config.tokenx)
 
             testApplication {
-                application { server(config, jedis) }
+                application { server(config, jedis, h2) }
                 val res = client.post("/mellomlagring/søknad") {
                     contentType(ContentType.Application.Json)
                     bearerAuth(jwkGen.generate("12345678910"))
@@ -46,7 +47,7 @@ class MellomlagringTest {
             val jwkGen = TokenXGen(config.tokenx)
 
             testApplication {
-                application { server(config, jedis) }
+                application { server(config, jedis, h2) }
                 jedis.set(Key("12345678910"), """{"søknadId":"1234"}""".toByteArray(), 50)
 
                 val res = client.get("/mellomlagring/søknad") {
@@ -68,7 +69,7 @@ class MellomlagringTest {
             val jwkGen = TokenXGen(config.tokenx)
 
             testApplication {
-                application { server(config, jedis) }
+                application { server(config, jedis, h2) }
                 jedis.set(Key("12345678910"), """{"søknadId":"1234"}""".toByteArray(), 50)
 
                 val del = client.delete("/mellomlagring/søknad") {
@@ -90,7 +91,7 @@ class MellomlagringTest {
             val jwkGen = TokenXGen(config.tokenx)
 
             testApplication {
-                application { server(config, jedis) }
+                application { server(config, jedis, h2) }
 
                 val res = client.get("/mellomlagring/søknad") {
                     accept(ContentType.Application.Json)
@@ -111,7 +112,7 @@ class MellomlagringTest {
                 val client = createClient {
                     install(ContentNegotiation) { jackson() }
                 }
-                application { server(config, jedis) }
+                application { server(config, jedis, h2) }
                 val res = client.submitFormWithBinaryData(url = "/mellomlagring/fil",
                     formData = formData {
                         append("document", Resource.read("/resources/images/bilde.jpg"), Headers.build {
@@ -139,7 +140,7 @@ class MellomlagringTest {
             val tokenx = TokenXGen(config.tokenx)
             val id = UUID.randomUUID()
             testApplication {
-                application { server(config, jedis) }
+                application { server(config, jedis, h2) }
                 val key = Key(value = id.toString(), prefix = "12345678910")
                 jedis.set(key, String(Resource.read("/resources/pdf/minimal.pdf")).toByteArray(), 50)
 
