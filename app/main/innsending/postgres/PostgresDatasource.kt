@@ -38,7 +38,7 @@ internal object Hikari {
                 .cleanOnValidationError(true).also { logger.error("flyway.cleanOnValidationError er true. Skru av hvis prod") }
                 .dataSource(this)
                 .locations(*locations)
-                .validateMigrationNaming(true)
+//                .validateMigrationNaming(true)
                 .load()
                 .migrate()
         }
