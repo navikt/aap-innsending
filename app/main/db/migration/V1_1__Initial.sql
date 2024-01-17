@@ -18,5 +18,6 @@ CREATE TABLE logg(
     personident         VARCHAR(11) NOT NULL,
     mottatt_dato        TIMESTAMP NOT NULL,
     journalpost_id      TEXT UNIQUE NOT NULL,
-    type                TEXT NOT NULL -- Kan være 'soknad' eller 'ettersendelse'
+    type                TEXT NOT NULL, -- Kan være 'soknad' eller 'ettersendelse'
+    dummy               BOOLEAN NOT NULL DEFAULT FALSE
 );
