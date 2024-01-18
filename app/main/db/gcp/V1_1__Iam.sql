@@ -1,1 +1,5 @@
+-- Add IAM access to new tables
 ALTER DEFAULT PRIVILEGES IN SCHEMA PUBLIC GRANT ALL ON TABLES TO CLOUDSQLIAMUSER;
+
+-- Add IAM access to current tables
+GRANT ALL ON ALL TABLES IN SCHEMA PUBLIC TO cloudsqliamuser;
