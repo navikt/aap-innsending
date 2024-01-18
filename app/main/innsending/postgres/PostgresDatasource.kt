@@ -32,6 +32,7 @@ internal object Hikari {
                 driverClassName = config.driver
             }
         ).apply {
+//            this.javaClass.classLoader
             Flyway
                 .configure()
                 .cleanDisabled(false).also { logger.error("flyway.cleanDisabled er false. Skru av hvis prod") }

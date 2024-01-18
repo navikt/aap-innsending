@@ -61,6 +61,9 @@ tasks {
     withType<Test> {
         useJUnitPlatform()
     }
+    withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
+        mergeServiceFiles()
+    }
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("main")
