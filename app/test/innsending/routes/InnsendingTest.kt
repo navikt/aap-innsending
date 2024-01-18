@@ -40,6 +40,7 @@ class InnsendingTest : H2TestBase() {
                     setBody(
                         Innsending(
                             kvittering = mapOf("søknad" to "søknad"),
+                            soknad = mapOf("søknad" to "søknad"),
                             filer = listOf(
                                 Fil(
                                     id = filId1.value,

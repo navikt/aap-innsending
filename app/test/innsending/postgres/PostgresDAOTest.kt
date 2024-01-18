@@ -12,6 +12,7 @@ class PostgresDAOTest : H2TestBase() {
             UUID.randomUUID(),
             "12345678910",
             LocalDateTime.now(),
+            "orginalSøknadJson".toByteArray(),
             "søknad".toByteArray(),
             h2.connection
         )
@@ -27,6 +28,7 @@ class PostgresDAOTest : H2TestBase() {
                 søknadId,
                 "12345678910",
                 LocalDateTime.now(),
+                "orginalSøknadJson".toByteArray(),
                 "søknad".toByteArray(),
                 it
             )
@@ -51,6 +53,7 @@ class PostgresDAOTest : H2TestBase() {
                 "12345678910",
                 LocalDateTime.now(),
                 "søknad".toByteArray(),
+                "orginalSøknadJson".toByteArray(),
                 it
             )
             PostgresDAO.insertFil(
@@ -78,6 +81,7 @@ class PostgresDAOTest : H2TestBase() {
                 søknadId,
                 "12345678910",
                 LocalDateTime.now(),
+                "orginalSøknadJson".toByteArray(),
                 "søknad".toByteArray(),
                 it
             )

@@ -14,7 +14,7 @@ object PostgresDAO {
     private const val SELECT_INNSENDINGER = """SELECT * FROM innsending WHERE id = ?"""
     private const val SELECT_FILER = """SELECT * FROM fil WHERE innsending_id = ?"""
     private const val INSERT_INNSENDING = """
-        INSERT INTO innsending (id, opprettet, personident, data) VALUES (?, ?, ?, ?)
+        INSERT INTO innsending (id, opprettet, personident, soknad, data) VALUES (?, ?, ?, ?, ?)
     """
     private const val INSERT_LOGG = """
         INSERT INTO logg (personident, mottatt_dato, journalpost_id, type) VALUES (?, ?, ?, ?) 
@@ -26,7 +26,13 @@ object PostgresDAO {
         ORDER BY mottatt_dato DESC
     """
 
-    fun insertLogg(personident: String, mottattDato: LocalDateTime, journalpostId: String, type: String, con: Connection) {
+    fun insertLogg(
+        personident: String,
+        mottattDato: LocalDateTime,
+        journalpostId: String,
+        type: String,
+        con: Connection
+    ) {
         val stmt = con.prepareStatement(INSERT_LOGG)
         stmt.setString(1, personident)
         stmt.setTimestamp(2, Timestamp.valueOf(mottattDato))
@@ -48,12 +54,20 @@ object PostgresDAO {
         }
     }
 
-    fun insertInnsending(innsendingId: UUID, personident: String, mottattDato: LocalDateTime, data: ByteArray?, con: Connection) {
+    fun insertInnsending(
+        innsendingId: UUID,
+        personident: String,
+        mottattDato: LocalDateTime,
+        soknad: ByteArray?,
+        data: ByteArray?,
+        con: Connection
+    ) {
         val stmt = con.prepareStatement(INSERT_INNSENDING)
         stmt.setObject(1, innsendingId)
         stmt.setObject(2, Timestamp.valueOf(mottattDato))
         stmt.setObject(3, personident)
-        stmt.setNullableObject(4, data, Types.BINARY)
+        stmt.setNullableObject(4, soknad, Types.BINARY)
+        stmt.setNullableObject(5, data, Types.BINARY)
         stmt.execute()
     }
 
@@ -89,6 +103,7 @@ object PostgresDAO {
                     id = row.getUUID("id"),
                     opprettet = row.getTimestamp("opprettet").toLocalDateTime(),
                     personident = row.getString("personident"),
+                    søknad = row.getBytes("soknad"),
                     data = row.getBytes("data")
                 )
             }.single()
@@ -111,6 +126,7 @@ object PostgresDAO {
             id = innsending.id,
             opprettet = innsending.opprettet,
             personident = innsending.personident,
+            søknad = innsending.søknad,
             data = innsending.data,
             fil = filer
         )

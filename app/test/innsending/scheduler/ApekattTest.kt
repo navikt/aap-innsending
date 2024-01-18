@@ -33,6 +33,7 @@ class ApekattTest : H2TestBase() {
                     "12345678910",
                     now,
                     mapOf("søker" to "Søker").toByteArray(),
+                    mapOf("søker" to "Søker").toByteArray(),
                     it
                 )
             }
@@ -68,6 +69,7 @@ class ApekattTest : H2TestBase() {
                     UUID.fromString("123e4567-e89b-12d3-a456-426614174000"),
                     "12345678910",
                     now,
+                    null,
                     null,
                     it
                 )

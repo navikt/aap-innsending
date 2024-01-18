@@ -1,8 +1,11 @@
+ALTER DEFAULT PRIVILEGES IN SCHEMA PUBLIC GRANT ALL ON TABLES TO CLOUDSQLIAMUSER;
+
 CREATE TABLE innsending
 (
     id                      UUID PRIMARY KEY,
     opprettet               TIMESTAMP NOT NULL,
     personident             VARCHAR(11) NOT NULL,
+    soknad                  BYTEA,
     data                    BYTEA
 );
 

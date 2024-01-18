@@ -76,6 +76,7 @@ data class Logg(
 
 data class Innsending(
     val kvittering: Map<String, Any>? = null,
+    val soknad: Map<String, Any>? = null,
     val filer: List<Fil>,
 ) {
     override fun equals(other: Any?): Boolean {

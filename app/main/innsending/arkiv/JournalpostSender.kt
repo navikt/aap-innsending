@@ -1,5 +1,6 @@
 package innsending.arkiv
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import innsending.SECURE_LOGGER
 import innsending.postgres.InnsendingMedFiler
 import innsending.postgres.InnsendingType
@@ -18,6 +19,12 @@ class JournalpostSender(
     fun arkiverSøknad(søknadSomPdf: ByteArray, innsending: InnsendingMedFiler) {
         val søknadDokument = lagSøknadDokument(søknadSomPdf)
         val vedleggDokumenter = lagDokumenter(innsending)
+        val orginalSøknadJson =
+            Journalpost.DokumentVariant("JSON", Base64.getEncoder().encodeToString(innsending.søknad), "ORGINAL")
+        val orginalSøknadDokument = Journalpost.Dokument(
+            tittel = "Orginal søknad json",
+            dokumentVarianter = listOf(orginalSøknadJson)
+        )
 
         val journalpost = Journalpost(
             tittel = "Søknad AAP",
@@ -27,14 +34,19 @@ class JournalpostSender(
             bruker = Journalpost.Bruker(
                 id = Journalpost.Fødselsnummer(innsending.personident)
             ),
-            dokumenter = listOf(søknadDokument) + vedleggDokumenter,
+            dokumenter = listOf(søknadDokument) + vedleggDokumenter + orginalSøknadDokument,
             eksternReferanseId = innsending.id.toString(),
             datoMottatt = innsending.opprettet
         )
 
         val arkivResponse = client.opprettJournalpost(journalpost, innsending.id.toString())
         SECURE_LOGGER.info("Opprettet journalpost {} for {}", arkivResponse.journalpostId, innsending.personident)
-        repo.loggførJournalføring(innsending.personident, innsending.opprettet, arkivResponse.journalpostId, InnsendingType.SOKNAD)
+        repo.loggførJournalføring(
+            innsending.personident,
+            innsending.opprettet,
+            arkivResponse.journalpostId,
+            InnsendingType.SOKNAD
+        )
         repo.slettInnsending(innsending.id)
     }
 
@@ -57,7 +69,12 @@ class JournalpostSender(
         logger.info("Lagrer ettersending for {}: {}", innsending.id, journalpost)
         val arkivResponse = client.opprettJournalpost(journalpost, innsending.id.toString())
         logger.info("Lagret {}", arkivResponse.journalpostId)
-        repo.loggførJournalføring(innsending.personident, innsending.opprettet, arkivResponse.journalpostId, InnsendingType.ETTERSENDING)
+        repo.loggførJournalføring(
+            innsending.personident,
+            innsending.opprettet,
+            arkivResponse.journalpostId,
+            InnsendingType.ETTERSENDING
+        )
         repo.slettInnsending(innsending.id)
         logger.info("Ettersendt {}", innsending.id)
     }
