@@ -69,7 +69,7 @@ class ApekattTest : H2TestBase() {
                     UUID.fromString("123e4567-e89b-12d3-a456-426614174000"),
                     "12345678910",
                     now,
-                    null,
+                    mapOf("søker" to "Søker").toByteArray(),
                     null,
                     it
                 )
@@ -124,6 +124,18 @@ class ApekattTest : H2TestBase() {
                         fysiskDokument = Base64.getEncoder().encodeToString(
                             Resource.read("/resources/pdf/minimal.pdf")
                         ),
+                    )
+                )
+            ),
+            Journalpost.Dokument(
+                tittel = "Orginal søknad json",
+                dokumentVarianter = listOf(
+                    Journalpost.DokumentVariant(
+                        filtype = "JSON",
+                        fysiskDokument = Base64.getEncoder().encodeToString(
+                            mapOf("søker" to "Søker").toByteArray()
+                        ),
+                        variantformat = "ORGINAL"
                     )
                 )
             )
