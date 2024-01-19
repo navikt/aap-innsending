@@ -1,0 +1,13 @@
+apiVersion: aiven.io/v1alpha1
+kind: Redis
+metadata:
+  labels:
+    app: aap-innsending
+    team: aap
+  name: redis-aap-mellomlager
+  namespace: aap
+spec:
+  plan: business-4
+  project: nav-prod
+  userConfig:
+    redis_persistence: "off"

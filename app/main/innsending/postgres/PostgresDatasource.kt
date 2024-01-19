@@ -32,11 +32,8 @@ internal object Hikari {
                 driverClassName = config.driver
             }
         ).apply {
-//            this.javaClass.classLoader
             Flyway
                 .configure()
-                .cleanDisabled(false).also { logger.error("flyway.cleanDisabled er false. Skru av hvis prod") }
-                .cleanOnValidationError(true).also { logger.error("flyway.cleanOnValidationError er true. Skru av hvis prod") }
                 .dataSource(this)
                 .locations(*locations)
                 .validateMigrationNaming(true)

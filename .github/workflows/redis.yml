@@ -5,6 +5,7 @@ on:
     branches: [ main ]
     paths:
       - '.nais/redis-dev.yml'
+      - '.nais/redis-prod.yml'
 
 jobs:
   dev:
@@ -16,3 +17,14 @@ jobs:
     with:
       cluster: dev-gcp
       manifest: .nais/redis-dev.yml
+
+  prod:
+    permissions:
+      contents: read
+      id-token: write
+    uses: navikt/aap-workflows/.github/workflows/deploy.yml@main
+    secrets: inherit
+    with:
+      cluster: prod-gcp
+      manifest: .nais/redis-prod.yml
+

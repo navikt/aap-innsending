@@ -5,6 +5,7 @@ on:
     branches: [ main ]
     paths-ignore:
       - '.nais/redis-dev.yml'
+      - '.nais/redis-prod.yml'
       - '.github/**'
 
 jobs:
@@ -31,3 +32,16 @@ jobs:
     with:
       cluster: dev-gcp
       manifest: .nais/application-dev.yml
+
+  prod:
+    if: github.event.pull_request.merged || github.event_name == 'push'
+    permissions:
+      contents: read
+      id-token: write
+    needs: gradle
+    uses: navikt/aap-workflows/.github/workflows/deploy.yml@main
+    secrets: inherit
+    with:
+      cluster: prod-gcp
+      manifest: .nais/application-prod.yml
+
