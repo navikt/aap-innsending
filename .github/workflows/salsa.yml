@@ -1,0 +1,14 @@
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  gradle:
+    permissions:
+      contents: read
+      actions: read
+      checks: write
+      id-token: write
+    uses: navikt/aap-workflows/.github/workflows/sals.yml@main
+    secrets: inherit
