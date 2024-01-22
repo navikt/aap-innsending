@@ -1,14 +1,16 @@
+name: Salsa
+
 on:
   workflow_dispatch:
   schedule:
     - cron: '0 0 * * *'
 
 jobs:
-  gradle:
+  publish:
     permissions:
       contents: read
       actions: read
       checks: write
       id-token: write
-    uses: navikt/aap-workflows/.github/workflows/sals.yml@main
+    uses: navikt/aap-workflows/.github/workflows/salsa.yml@main
     secrets: inherit
