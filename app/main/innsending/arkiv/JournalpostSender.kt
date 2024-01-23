@@ -22,7 +22,7 @@ class JournalpostSender(
             val vedleggDokumenter = lagDokumenter(innsending)
             val orginalSøknadDokument = innsending.søknad?.let {
                 val encoded = Base64.getEncoder().encodeToString(it)
-                val orginalSøknadJson = Journalpost.DokumentVariant("JSON", encoded, "ORGINAL")
+                val orginalSøknadJson = Journalpost.DokumentVariant("JSON", encoded, "ORIGINAL")
                 Journalpost.Dokument(
                     tittel = "Orginal søknad json",
                     dokumentVarianter = listOf(orginalSøknadJson)
