@@ -97,6 +97,7 @@ object PostgresDAO {
 
     fun selectInnsendingerByPersonIdent(personident: String, con: Connection): List<MineAapSoknad> {
         val stmt = con.prepareStatement(SELECT_INNSENDINGER_BY_PERSONIDENT)
+        stmt.setString(1, personident)
         val resultat = stmt.executeQuery()
         return resultat.map { row ->
             MineAapSoknad(
