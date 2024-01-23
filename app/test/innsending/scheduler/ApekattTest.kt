@@ -135,7 +135,7 @@ class ApekattTest : H2TestBase() {
                         fysiskDokument = Base64.getEncoder().encodeToString(
                             mapOf("søker" to "Søker").toByteArray()
                         ),
-                        variantformat = "ORGINAL"
+                        variantformat = "ORIGINAL"
                     )
                 )
             )
