@@ -100,3 +100,8 @@ data class Fil(
     val id: String,
     val tittel: String,
 )
+
+data class MineAapSoknad(
+    val mottattDato: LocalDateTime,
+    val journalpostId: String?,
+)

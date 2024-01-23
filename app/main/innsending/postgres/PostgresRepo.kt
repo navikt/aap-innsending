@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import innsending.routes.Fil
 import innsending.routes.Innsending
 import innsending.routes.Logg
+import innsending.routes.MineAapSoknad
 import java.time.LocalDateTime
 import java.util.*
 import javax.sql.DataSource
@@ -28,9 +29,18 @@ class PostgresRepo(private val hikari: DataSource) {
         }
     }
 
-    fun hentAlleSøknader(personident: String): List<Logg> = hikari.transaction { con ->
-        PostgresDAO.selectLogg(personident, InnsendingType.SOKNAD.name, con)
+    fun hentAlleSøknader(personident: String): List<MineAapSoknad> = hikari.transaction { con ->
+        val innsendinger = PostgresDAO.selectInnsendingerByPersonIdent(personident, con)
+        val logger = PostgresDAO.selectLogg(personident, InnsendingType.SOKNAD.name, con)
+            .map {
+                MineAapSoknad(
+                    journalpostId = it.journalpost,
+                    mottattDato = it.mottattDato,
+                )
+            }.toList()
+        innsendinger + logger
     }
+
 
     fun hentAlleInnsendinger(): List<UUID> = hikari.transaction { con ->
         PostgresDAO.selectInnsendinger(con)
@@ -74,7 +84,7 @@ class PostgresRepo(private val hikari: DataSource) {
     }
 }
 
-fun Map<String,Any>.toByteArray(): ByteArray{
+fun Map<String, Any>.toByteArray(): ByteArray {
     val mapper = ObjectMapper()
     return mapper.writeValueAsBytes(this)
 }
