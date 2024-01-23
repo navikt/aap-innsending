@@ -3,7 +3,7 @@ CREATE TABLE innsending
     id                      UUID PRIMARY KEY,
     opprettet               TIMESTAMP NOT NULL,
     personident             VARCHAR(11) NOT NULL,
-    soknad                  BYTEA, --dersom soknad er null, er det en ettersendelse
+    soknad                  BYTEA,
     data                    BYTEA
 );
 
