@@ -8,8 +8,6 @@ metadata:
     sub: innsending
 spec:
   image: {{image}}
-  ingresses:
-    - https://aap-innsending.nav.no
   replicas:
     cpuThresholdPercentage: 90
     disableAutoScaling: true
