@@ -17,14 +17,23 @@ class JournalpostSender(
 ) {
 
     fun arkiverSøknad(søknadSomPdf: ByteArray, innsending: InnsendingMedFiler) {
-        val søknadDokument = lagSøknadDokument(søknadSomPdf)
-        val vedleggDokumenter = lagDokumenter(innsending)
-        val orginalSøknadJson =
-            Journalpost.DokumentVariant("JSON", Base64.getEncoder().encodeToString(innsending.søknad), "ORGINAL")
-        val orginalSøknadDokument = Journalpost.Dokument(
-            tittel = "Orginal søknad json",
-            dokumentVarianter = listOf(orginalSøknadJson)
-        )
+        fun dokumenter(): List<Journalpost.Dokument> {
+            val søknadDokument = lagSøknadDokument(søknadSomPdf)
+            val vedleggDokumenter = lagDokumenter(innsending)
+            val orginalSøknadDokument = innsending.søknad?.let {
+                val encoded = Base64.getEncoder().encodeToString(it)
+                val orginalSøknadJson = Journalpost.DokumentVariant("JSON", encoded, "ORGINAL")
+                Journalpost.Dokument(
+                    tittel = "Orginal søknad json",
+                    dokumentVarianter = listOf(orginalSøknadJson)
+                )
+            }
+            return if (orginalSøknadDokument != null) {
+                listOf(søknadDokument) + vedleggDokumenter + orginalSøknadDokument
+            } else {
+                listOf(søknadDokument) + vedleggDokumenter
+            }
+        }
 
         val journalpost = Journalpost(
             tittel = "Søknad AAP",
@@ -34,7 +43,7 @@ class JournalpostSender(
             bruker = Journalpost.Bruker(
                 id = Journalpost.Fødselsnummer(innsending.personident)
             ),
-            dokumenter = listOf(søknadDokument) + vedleggDokumenter + orginalSøknadDokument,
+            dokumenter = dokumenter(),
             eksternReferanseId = innsending.id.toString(),
             datoMottatt = innsending.opprettet
         )
