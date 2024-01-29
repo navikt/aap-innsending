@@ -15,7 +15,7 @@ RUN jlink \
     --compress=2 \
     --output /customjre
 
-FROM alpine:3.19.0 as app
+FROM alpine:3.19.1 as app
 ENV JAVA_HOME=/jre
 ENV LANG='nb_NO.UTF-8' LANGUAGE='nb_NO:nb' LC_ALL='nb:NO.UTF-8' TZ="Europe/Oslo"
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
