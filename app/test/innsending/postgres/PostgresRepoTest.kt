@@ -17,6 +17,7 @@ internal class PostgresRepoTest : H2TestBase() {
         val fil2 = FilMetadata(UUID.randomUUID().toString(), "Tittel2")
         val innsending = Innsending(
                 kvittering = mapOf("søknad" to "søknad"),
+                soknad = mapOf("søknad" to "søknad"),
             filer = listOf(fil1, fil2)
         )
 
@@ -38,6 +39,7 @@ internal class PostgresRepoTest : H2TestBase() {
         val fil2 = FilMetadata("Ikke en UUID :)", "Tittel2")
         val innsending = Innsending(
             kvittering = mapOf("søknad" to "søknad"),
+            soknad = mapOf("søknad" to "søknad"),
             filer = listOf(fil1, fil2)
         )
 
