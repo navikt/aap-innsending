@@ -100,14 +100,15 @@ class PostgresDAOTest : H2TestBase() {
 
     @Test
     fun `insert logg ignorerer andre forsøk`() {
+        val id = UUID.randomUUID()
         h2.transaction {
-            PostgresDAO.insertLogg("12345678910", LocalDateTime.now(), "1234", "SOKNAD", it)
+            PostgresDAO.insertLogg("12345678910", LocalDateTime.now(), "1234",id, "SOKNAD", it)
         }
 
         assertEquals(1, countLogg())
 
         h2.transaction {
-            PostgresDAO.insertLogg("12345678910", LocalDateTime.now(), "1234", "SOKNAD", it)
+            PostgresDAO.insertLogg("12345678910", LocalDateTime.now(), "1234", id, "SOKNAD", it)
         }
 
         assertEquals(1, countLogg())
@@ -116,11 +117,11 @@ class PostgresDAOTest : H2TestBase() {
     @Test
     fun `hent fra logg sorterer riktig`() {
         h2.transaction {
-            PostgresDAO.insertLogg("12345678910", LocalDateTime.now().minusDays(1), "1234", "SOKNAD", it)
+            PostgresDAO.insertLogg("12345678910", LocalDateTime.now().minusDays(1), "1234", UUID.randomUUID(),"SOKNAD", it)
         }
 
         h2.transaction {
-            PostgresDAO.insertLogg("12345678910", LocalDateTime.now(), "4321", "SOKNAD", it)
+            PostgresDAO.insertLogg("12345678910", LocalDateTime.now(), "4321", UUID.randomUUID(),"SOKNAD", it)
         }
 
         val liste = h2.transaction {
@@ -134,11 +135,11 @@ class PostgresDAOTest : H2TestBase() {
     @Test
     fun `hent fra logg filtrerer på SOKNAD`() {
         h2.transaction {
-            PostgresDAO.insertLogg("12345678910", LocalDateTime.now().minusDays(1), "1234", "SOKNAD", it)
+            PostgresDAO.insertLogg("12345678910", LocalDateTime.now().minusDays(1), "1234",UUID.randomUUID(), "SOKNAD", it)
         }
 
         h2.transaction {
-            PostgresDAO.insertLogg("12345678910", LocalDateTime.now(), "4321", "ETTERSENDING", it)
+            PostgresDAO.insertLogg("12345678910", LocalDateTime.now(), "4321", UUID.randomUUID(),"ETTERSENDING", it)
         }
 
         val liste = h2.transaction {

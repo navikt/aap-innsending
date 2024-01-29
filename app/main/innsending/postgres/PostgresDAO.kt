@@ -19,19 +19,49 @@ object PostgresDAO {
         INSERT INTO innsending (id, opprettet, personident, soknad, data) VALUES (?, ?, ?, ?, ?)
     """
     private const val INSERT_LOGG = """
-        INSERT INTO logg (personident, mottatt_dato, journalpost_id, type) VALUES (?, ?, ?, ?) 
+        INSERT INTO logg (personident, mottatt_dato, journalpost_id, type, innsending_id) VALUES (?, ?, ?, ?, ?) 
         ON CONFLICT DO NOTHING
     """
     private const val SELECT_LOGG = """
-        SELECT journalpost_id, mottatt_dato FROM logg 
+        SELECT journalpost_id, mottatt_dato, innsending_id FROM logg 
         WHERE personident = ? AND type = ?
         ORDER BY mottatt_dato DESC
     """
+    private const val INSERT_SOKNAD_ETTERSENDING = """
+        INSERT INTO soknad_ettersending (innsending_soknad_ref, innsending_ettersending_ref) VALUES (?, ?) ON CONFLICT DO NOTHING
+    """
+    private const val SELECT_SOKNAD_ETTERSENDING = """
+        SELECT innsending_ettersending_id FROM soknad_ettersending WHERE soknad_id = ?
+    """
+
+    fun erRefTilknyttetPersonIdent(personident: String, ref: UUID, con: Connection): Boolean {
+        val stmt = con.prepareStatement("SELECT * FROM innsending WHERE personident = ? AND id = ?")
+        stmt.setString(1, personident)
+        stmt.setObject(2, ref)
+        val resultat = stmt.executeQuery()
+        return resultat.next()
+
+    }
+
+    fun insertSoknadEttersending(soknadRef: UUID, ettersendingRef: UUID, con: Connection) {
+        val stmt = con.prepareStatement(INSERT_SOKNAD_ETTERSENDING)
+        stmt.setObject(1, soknadRef)
+        stmt.setObject(2, ettersendingRef)
+        stmt.execute()
+    }
+
+    fun selectSoknadEttersendelser(soknadRef: UUID, con: Connection): List<UUID> {
+        val stmt = con.prepareStatement(SELECT_SOKNAD_ETTERSENDING)
+        stmt.setObject(1, soknadRef)
+        val resultat = stmt.executeQuery()
+        return resultat.map { row -> row.getUUID("ettersending_id") }.toList()
+    }
 
     fun insertLogg(
         personident: String,
         mottattDato: LocalDateTime,
         journalpostId: String,
+        innsendingId: UUID,
         type: String,
         con: Connection
     ) {
@@ -40,6 +70,7 @@ object PostgresDAO {
         stmt.setTimestamp(2, Timestamp.valueOf(mottattDato))
         stmt.setString(3, journalpostId)
         stmt.setString(4, type)
+        stmt.setObject(5, innsendingId)
         stmt.execute()
     }
 
@@ -51,7 +82,8 @@ object PostgresDAO {
         return resultat.map { row ->
             Logg(
                 journalpost = row.getString("journalpost_id"),
-                mottattDato = row.getTimestamp("mottatt_dato").toLocalDateTime()
+                mottattDato = row.getTimestamp("mottatt_dato").toLocalDateTime(),
+                innsendingsId = row.getObject("innsending_id") as UUID
             )
         }
     }
@@ -102,7 +134,8 @@ object PostgresDAO {
         return resultat.map { row ->
             MineAapSoknad(
                 mottattDato = row.getTimestamp("opprettet").toLocalDateTime(),
-                journalpostId = null
+                journalpostId = null,
+                innsendingsId = row.getUUID("id")
                 )
         }.toList()
     }

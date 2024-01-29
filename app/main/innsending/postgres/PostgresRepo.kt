@@ -1,7 +1,7 @@
 package innsending.postgres
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import innsending.routes.Fil
+import innsending.routes.FilMetadata
 import innsending.routes.Innsending
 import innsending.routes.Logg
 import innsending.routes.MineAapSoknad
@@ -12,10 +12,18 @@ import javax.sql.DataSource
 enum class InnsendingType { SOKNAD, ETTERSENDING }
 
 class PostgresRepo(private val hikari: DataSource) {
+
+    fun erRefTilknyttetPersonIdent(personident: String, ref: UUID): Boolean {
+        return hikari.transaction { con ->
+            PostgresDAO.erRefTilknyttetPersonIdent(personident, ref, con)
+        }
+    }
+
     fun loggførJournalføring(
         personIdent: String,
         mottattDato: LocalDateTime,
         journalpostId: String,
+        innsendingsId: UUID,
         type: InnsendingType
     ) {
         hikari.transaction { con ->
@@ -23,9 +31,22 @@ class PostgresRepo(private val hikari: DataSource) {
                 personident = personIdent,
                 mottattDato = mottattDato,
                 journalpostId = journalpostId,
+                innsendingId = innsendingsId,
                 type = type.name,
                 con = con
             )
+        }
+    }
+
+    fun kobleSoeknadEttersending(soknadRef: UUID, ettersendingRef: UUID) {
+        hikari.transaction { con ->
+            PostgresDAO.insertSoknadEttersending(soknadRef, ettersendingRef, con)
+        }
+    }
+
+    fun hentSoeknadEttersendelser(soknadRef: UUID): List<UUID> {
+        return hikari.transaction { con ->
+            PostgresDAO.selectSoknadEttersendelser(soknadRef, con)
         }
     }
 
@@ -36,6 +57,7 @@ class PostgresRepo(private val hikari: DataSource) {
                 MineAapSoknad(
                     journalpostId = it.journalpost,
                     mottattDato = it.mottattDato,
+                    innsendingsId = it.innsendingsId
                 )
             }.toList()
         innsendinger + logger
@@ -59,7 +81,8 @@ class PostgresRepo(private val hikari: DataSource) {
         personIdent: String,
         mottattDato: LocalDateTime,
         innsending: Innsending,
-        fil: List<Pair<Fil, ByteArray>>
+        fil: List<Pair<FilMetadata, ByteArray>>,
+        referanseId: UUID?= null
     ) {
         hikari.transaction { con ->
             PostgresDAO.insertInnsending(
@@ -79,6 +102,10 @@ class PostgresRepo(private val hikari: DataSource) {
                     fil = data,
                     con = con,
                 )
+            }
+
+            referanseId?.let {
+                PostgresDAO.insertSoknadEttersending(it, innsendingId, con)
             }
         }
     }

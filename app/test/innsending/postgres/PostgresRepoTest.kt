@@ -1,6 +1,6 @@
 package innsending.postgres
 
-import innsending.routes.Fil
+import innsending.routes.FilMetadata
 import innsending.routes.Innsending
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -13,8 +13,8 @@ internal class PostgresRepoTest : H2TestBase() {
     @Test
     fun `Insert en innsending med fil`() {
         val søknadId = UUID.randomUUID()
-        val fil1 = Fil(UUID.randomUUID().toString(), "Tittel1")
-        val fil2 = Fil(UUID.randomUUID().toString(), "Tittel2")
+        val fil1 = FilMetadata(UUID.randomUUID().toString(), "Tittel1")
+        val fil2 = FilMetadata(UUID.randomUUID().toString(), "Tittel2")
         val innsending = Innsending(
                 kvittering = mapOf("søknad" to "søknad"),
             filer = listOf(fil1, fil2)
@@ -34,8 +34,8 @@ internal class PostgresRepoTest : H2TestBase() {
     @Test
     fun `Feil ruller tilbake alt`() {
         val søknadId = UUID.randomUUID()
-        val fil1 = Fil(UUID.randomUUID().toString(), "Tittel1")
-        val fil2 = Fil("Ikke en UUID :)", "Tittel2")
+        val fil1 = FilMetadata(UUID.randomUUID().toString(), "Tittel1")
+        val fil2 = FilMetadata("Ikke en UUID :)", "Tittel2")
         val innsending = Innsending(
             kvittering = mapOf("søknad" to "søknad"),
             filer = listOf(fil1, fil2)

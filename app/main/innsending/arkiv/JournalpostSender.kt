@@ -51,10 +51,11 @@ class JournalpostSender(
         val arkivResponse = client.opprettJournalpost(journalpost, innsending.id.toString())
         SECURE_LOGGER.info("Opprettet journalpost {} for {}", arkivResponse.journalpostId, innsending.personident)
         repo.loggførJournalføring(
-            innsending.personident,
-            innsending.opprettet,
-            arkivResponse.journalpostId,
-            InnsendingType.SOKNAD
+            personIdent = innsending.personident,
+            mottattDato = innsending.opprettet,
+            journalpostId = arkivResponse.journalpostId,
+            innsendingsId = innsending.id,
+            type = InnsendingType.SOKNAD
         )
         repo.slettInnsending(innsending.id)
     }
@@ -79,11 +80,13 @@ class JournalpostSender(
         val arkivResponse = client.opprettJournalpost(journalpost, innsending.id.toString())
         logger.info("Lagret {}", arkivResponse.journalpostId)
         repo.loggførJournalføring(
-            innsending.personident,
-            innsending.opprettet,
-            arkivResponse.journalpostId,
-            InnsendingType.ETTERSENDING
+            personIdent = innsending.personident,
+            mottattDato = innsending.opprettet,
+            journalpostId = arkivResponse.journalpostId,
+            innsendingsId = innsending.id,
+            type = InnsendingType.ETTERSENDING
         )
+
         repo.slettInnsending(innsending.id)
         logger.info("Ettersendt {}", innsending.id)
     }
