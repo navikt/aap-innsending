@@ -63,6 +63,9 @@ spec:
   prometheus:
     enabled: true
     path: /actuator/metrics
+  observability:
+    tracing:
+      enabled: true
   secureLogs:
     enabled: true
   env:

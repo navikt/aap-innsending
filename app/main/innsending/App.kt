@@ -31,6 +31,8 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
+import io.opentelemetry.api.GlobalOpenTelemetry
+import io.opentelemetry.instrumentation.ktor.v2_0.server.KtorServerTracing
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
@@ -63,6 +65,11 @@ fun Application.server(
     }
 
     install(MicrometerMetrics) { registry = prometheus }
+
+    val otel = GlobalOpenTelemetry.get()
+    install(KtorServerTracing) {
+        setOpenTelemetry(otel)
+    }
 
     authentication(config.tokenx)
 
