@@ -197,6 +197,60 @@ class InnsendingTest : H2TestBase() {
         }
     }
 
+    @Test
+    fun `kan sende inn ettersending med soknadRef hvor soknad er journalført`() {
+        Fakes().use { fakes ->
+            val jedis = JedisRedisFake()
+            val config = TestConfig.default(fakes)
+            val tokenx = TokenXGen(config.tokenx)
+            val soknadRef = UUID.randomUUID()
+            val filId1 = Key(UUID.randomUUID().toString(), prefix = "12345678910")
+            val filId2 = Key(UUID.randomUUID().toString(), prefix = "12345678910")
+
+            testApplication {
+                application { server(config, jedis, h2) }
+                jedis.set(filId1, byteArrayOf(), 60)
+                jedis.set(filId2, byteArrayOf(), 60)
+
+                h2.transaction { con ->
+                    PostgresDAO.insertLogg(
+                        innsendingId = soknadRef,
+                        personident = "12345678910",
+                        mottattDato = LocalDateTime.now(),
+                        type = "SOKNAD",
+                        journalpostId = "1234",
+                        con = con
+                    )
+                }
+
+                val res = jsonHttpClient.post("/innsending/$soknadRef") {
+                    bearerAuth(tokenx.generate("12345678910"))
+                    contentType(ContentType.Application.Json)
+                    setBody(
+                        Innsending(
+                            filer = listOf(
+                                FilMetadata(
+                                    id = filId1.value,
+                                    tittel = "important"
+                                ),
+                                FilMetadata(
+                                    id = filId2.value,
+                                    tittel = "nice to have"
+                                )
+                            )
+                        )
+                    )
+                }
+
+                assertEquals(HttpStatusCode.OK, res.status)
+
+                assertEquals(1, countInnsending())
+                assertEquals(2, countFiler())
+                assertEquals(1, getAllInnsendinger().size)
+            }
+        }
+    }
+
     private val ApplicationTestBuilder.jsonHttpClient: HttpClient
         get() =
             createClient {

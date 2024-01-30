@@ -35,11 +35,16 @@ object PostgresDAO {
     """
 
     fun erRefTilknyttetPersonIdent(personident: String, ref: UUID, con: Connection): Boolean {
-        val stmt = con.prepareStatement("SELECT * FROM innsending WHERE personident = ? AND id = ?")
-        stmt.setString(1, personident)
-        stmt.setObject(2, ref)
-        val resultat = stmt.executeQuery()
-        return resultat.next()
+        val innsending_stmt = con.prepareStatement("SELECT * FROM innsending WHERE personident = ? AND id = ?")
+        innsending_stmt.setString(1, personident)
+        innsending_stmt.setObject(2, ref)
+        val innsending_resultat = innsending_stmt.executeQuery()
+
+        val logg_stmt = con.prepareStatement("SELECT * FROM logg WHERE personident = ? AND innsending_id = ?")
+        logg_stmt.setString(1, personident)
+        logg_stmt.setObject(2, ref)
+        val logg_resultat = logg_stmt.executeQuery()
+        return logg_resultat.next() || innsending_resultat.next()
 
     }
 
