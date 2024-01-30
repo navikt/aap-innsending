@@ -55,7 +55,7 @@ dependencies {
     implementation("io.opentelemetry:opentelemetry-sdk:1.34.1");
     implementation("io.opentelemetry:opentelemetry-sdk-metrics:1.34.1");
     implementation("io.opentelemetry:opentelemetry-exporter-logging:1.34.1");
-    implementation("io.opentelemetry:opentelemetry-semconv:1.34.1-alpha");
+//    implementation("io.opentelemetry:opentelemetry-semconv:1.34.1-alpha");
 
     // Instrument ktor
     implementation("io.opentelemetry.instrumentation:opentelemetry-ktor-2.0:2.0.0-alpha")
