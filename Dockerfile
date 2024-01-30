@@ -20,6 +20,7 @@ ENV JAVA_HOME=/jre
 ENV LANG='nb_NO.UTF-8' LANGUAGE='nb_NO:nb' LC_ALL='nb:NO.UTF-8' TZ="Europe/Oslo"
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
+RUN apk --no-cache add curl
 RUN curl -L -O https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/latest/download/opentelemetry-javaagent.jar
 
 COPY --from=jre /customjre $JAVA_HOME
