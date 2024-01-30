@@ -35,6 +35,8 @@ internal object Hikari {
             Flyway
                 .configure()
                 .dataSource(this)
+                .cleanDisabled(false)
+                .cleanOnValidationError(true)
                 .locations(*locations)
                 .validateMigrationNaming(true)
                 .load()
