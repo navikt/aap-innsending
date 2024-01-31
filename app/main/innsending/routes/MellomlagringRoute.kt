@@ -124,7 +124,7 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
             val key = Key(
                 value = requireNotNull(call.parameters["filId"]),
                 prefix = call.personident()
-            ).also { SECURE_LOGGER.info("henter fil med key ${it.get()} fra uuid: ${call.parameters["filId"]}") }
+            )
 
             when (val fil = redis[key]) {
                 null -> call.respond(HttpStatusCode.NotFound, ErrorRespons("Fant ikke mellomlagret fil"))
@@ -151,9 +151,6 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
 
             redis.del(key)
             call.respond(HttpStatusCode.OK)
-        }
-        get {
-            call.respond(HttpStatusCode.OK, redis.getAllKeys())
         }
     }
 }
