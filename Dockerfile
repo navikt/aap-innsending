@@ -28,9 +28,9 @@ COPY /app/build/libs/app-all.jar app.jar
 
 ENV JAVA_TOOL_OPTIONS \
     -javaagent:./opentelemetry-javaagent.jar \
-    OTEL_TRACES_EXPORTER=logging \
-    OTEL_METRICS_EXPORTER=logging \
-    OTEL_LOGS_EXPORTER=logging
+    OTEL_TRACES_EXPORTER=otlp \
+    OTEL_METRICS_EXPORTER=prometheus \
+    OTEL_LOGS_EXPORTER=none
 
 CMD ["java", "-XX:ActiveProcessorCount=2", "-jar", "app.jar"]
 
