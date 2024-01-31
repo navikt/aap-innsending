@@ -28,7 +28,12 @@ COPY /app/build/libs/app-all.jar app.jar
 
 # app name is used as service_name in opentelemetry
 ARG APP_NAME
-ENV JAVA_TOOL_OPTIONS -javaagent:./opentelemetry-javaagent.jar -Dotel.resource.attributes=service.name=${APP_NAME}
+ENV JAVA_TOOL_OPTIONS \
+    -javaagent:./opentelemetry-javaagent.jar \
+    -Dotel.resource.attributes=service.name=${APP_NAME} \
+    OTEL_TRACES_EXPORTER=logging \
+    OTEL_METRICS_EXPORTER=logging \
+    OTEL_LOGS_EXPORTER=logging
 
 CMD ["java", "-XX:ActiveProcessorCount=2", "-jar", "app.jar"]
 
