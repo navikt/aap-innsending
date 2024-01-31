@@ -153,4 +153,41 @@ class MellomlagringTest: H2TestBase() {
             }
         }
     }
+
+    @Test
+    fun `kan mellomlagre og hente fil`() {
+        Fakes().use { fakes ->
+            val jedis = JedisRedisFake()
+            val config = TestConfig.default(fakes)
+            val tokenx = TokenXGen(config.tokenx)
+            testApplication {
+                val client = createClient {
+                    install(ContentNegotiation) { jackson() }
+                }
+                application { server(config, jedis, h2) }
+                val resLagre = client.submitFormWithBinaryData(url = "/mellomlagring/fil",
+                    formData = formData {
+                        append("document", Resource.read("/resources/images/bilde.jpg"), Headers.build {
+                            append(HttpHeaders.ContentDisposition, "filename=bilde.jpg")
+                            append(HttpHeaders.ContentType, "image/jpeg")
+                        })
+                    },
+                    block = {
+                        bearerAuth(tokenx.generate("12345678910"))
+                    }
+                )
+
+
+                assertEquals(HttpStatusCode.Created, resLagre.status)
+                val respons = resLagre.body<MellomlagringRespons>()
+
+                val resHent = client.get("/mellomlagring/fil/${respons.filId}") {
+                    accept(ContentType.Application.Pdf)
+                    bearerAuth(tokenx.generate("12345678910"))
+                }
+                assertEquals(HttpStatusCode.OK, resHent.status)
+                assertEquals(String(Resource.read("/resources/pdf/minimal.pdf")), String(resHent.readBytes()))
+            }
+        }
+    }
 }

@@ -152,6 +152,9 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
             redis.del(key)
             call.respond(HttpStatusCode.OK)
         }
+        get {
+            call.respond(HttpStatusCode.OK, redis.getAllKeys())
+        }
     }
 }
 fun createdAt(ageInSeconds: Long): Date {

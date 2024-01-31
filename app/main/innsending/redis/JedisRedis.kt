@@ -1,6 +1,7 @@
 package innsending.redis
 
 import innsending.RedisConfig
+import innsending.SECURE_LOGGER
 import redis.clients.jedis.DefaultJedisClientConfig
 import redis.clients.jedis.HostAndPort
 import redis.clients.jedis.JedisPool
@@ -12,7 +13,7 @@ data class Key(
     val value: String,
     val prefix: String = "",
 ) {
-    fun get(): ByteArray = "$prefix:$value".toByteArray()
+    fun get(): ByteArray = "$prefix:$value".toByteArray().also { SECURE_LOGGER.info("$prefix:$value blir til key ${String(it)}") }
 }
 
 interface Redis {
@@ -23,6 +24,7 @@ interface Redis {
     fun createdAt(key: Key): Long
     fun expiresIn(key: Key): Long
     fun exists(key: Key): Boolean
+    fun getAllKeys(): List<String>
 }
 
 class JedisRedis(config: RedisConfig) : Redis {
@@ -31,6 +33,12 @@ class JedisRedis(config: RedisConfig) : Redis {
         HostAndPort(config.uri.host, config.uri.port),
         DefaultJedisClientConfig.builder().ssl(true).user(config.username).password(config.password).build()
     )
+
+    override fun getAllKeys(): List<String> {
+        pool.resource.use {
+            return it.keys("*".toByteArray()).map { key -> String(key) }
+        }
+    }
 
     override fun set(key: Key, value: ByteArray, expireSec: Long) {
         pool.resource.use {
