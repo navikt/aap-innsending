@@ -26,11 +26,8 @@ RUN curl -L -O https://github.com/open-telemetry/opentelemetry-java-instrumentat
 COPY --from=jre /customjre $JAVA_HOME
 COPY /app/build/libs/app-all.jar app.jar
 
-# app name is used as service_name in opentelemetry
-ARG APP_NAME
 ENV JAVA_TOOL_OPTIONS \
     -javaagent:./opentelemetry-javaagent.jar \
-    -Dotel.resource.attributes=service.name=${APP_NAME} \
     OTEL_TRACES_EXPORTER=logging \
     OTEL_METRICS_EXPORTER=logging \
     OTEL_LOGS_EXPORTER=logging
