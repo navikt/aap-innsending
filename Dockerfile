@@ -28,10 +28,10 @@ COPY /app/build/libs/app-all.jar app.jar
 
 # app name is used as service_name in opentelemetry
 ARG APP_NAME
-ENV JAVA_OPTS -XX:ActiveProcessorCount=2 -javaagent:./opentelemetry-javaagent.jar -Dotel.resource.attributes=service.name=${APP_NAME}
+ENV JAVA_TOOL_OPTIONS -javaagent:./opentelemetry-javaagent.jar -Dotel.resource.attributes=service.name=${APP_NAME}
 
-# CMD ["java", "${JAVA_OPTS}", "-jar", "app.jar"]
-CMD ["java", "-jar", "app.jar"]
+CMD ["java", "-XX:ActiveProcessorCount=2", "-jar", "app.jar"]
+
 # use -XX:+UseParallelGC when 2 CPUs and 4G RAM.
 # use G1GC when using more than 4G RAM and/or more than 2 CPUs
 # use -XX:ActiveProcessorCount=2 if less than 1G RAM.
