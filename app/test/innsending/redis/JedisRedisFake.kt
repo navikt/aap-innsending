@@ -19,6 +19,7 @@ class JedisRedisFake : Redis {
 
     override fun ready(): Boolean = true
 
+    override fun getAllKeys(): List<String> = cache.keys.toList()
     override fun createdAt(key: Key): Long = 0
     override fun expiresIn(key: Key): Long = 0
 
