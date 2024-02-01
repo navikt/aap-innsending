@@ -64,7 +64,7 @@ class JournalpostSender(
         val vedleggDokumenter = lagDokumenter(innsending)
 
         val journalpost = Journalpost(
-            tittel = "Ettersending AAP",
+            tittel = "Ettersendelse til søkand om arbeidsavklaringspenger",
             avsenderMottaker = Journalpost.AvsenderMottaker(
                 id = Journalpost.Fødselsnummer(innsending.personident)
             ),
