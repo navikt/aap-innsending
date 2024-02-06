@@ -20,17 +20,17 @@ ENV JAVA_HOME=/jre
 ENV LANG='nb_NO.UTF-8' LANGUAGE='nb_NO:nb' LC_ALL='nb:NO.UTF-8' TZ="Europe/Oslo"
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
-RUN apk --no-cache add curl
-RUN curl -L -O https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/latest/download/opentelemetry-javaagent.jar
+#RUN apk --no-cache add curl
+#RUN curl -L -O https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/latest/download/opentelemetry-javaagent.jar
 
 COPY --from=jre /customjre $JAVA_HOME
 COPY /app/build/libs/app-all.jar app.jar
 
-ENV JAVA_TOOL_OPTIONS \
-    -javaagent:./opentelemetry-javaagent.jar \
-    OTEL_TRACES_EXPORTER=otlp \
-    OTEL_METRICS_EXPORTER=prometheus \
-    OTEL_LOGS_EXPORTER=none
+#ENV JAVA_TOOL_OPTIONS \
+#    -javaagent:./opentelemetry-javaagent.jar \
+#    OTEL_TRACES_EXPORTER=otlp \
+#    OTEL_METRICS_EXPORTER=prometheus \
+#    OTEL_LOGS_EXPORTER=none
 
 CMD ["java", "-XX:ActiveProcessorCount=2", "-jar", "app.jar"]
 
