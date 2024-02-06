@@ -13,7 +13,7 @@ jobs:
     ## push til main eller etter branch (e.g. dependabot) er merget
     if: github.event.pull_request.merged || github.event_name == 'push'
     permissions:
-      contents: read
+      contents: write
       actions: read
       checks: write
       id-token: write
