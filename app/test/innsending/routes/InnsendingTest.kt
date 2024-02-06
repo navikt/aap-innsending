@@ -3,6 +3,8 @@ package innsending.routes
 import innsending.Fakes
 import innsending.TestConfig
 import innsending.TokenXGen
+import innsending.dto.FilMetadata
+import innsending.dto.Innsending
 import innsending.postgres.H2TestBase
 import innsending.postgres.PostgresDAO
 import innsending.postgres.transaction

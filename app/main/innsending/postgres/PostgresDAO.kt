@@ -1,7 +1,9 @@
 package innsending.postgres
 
-import innsending.routes.Logg
-import innsending.routes.MineAapSoknad
+import innsending.dto.Logg
+import innsending.dto.MineAapEttersending
+import innsending.dto.MineAapSoknad
+import innsending.dto.MineAapSoknadMedEttersendinger
 import java.sql.Connection
 import java.sql.Timestamp
 import java.sql.Types
@@ -12,7 +14,7 @@ object PostgresDAO {
     private const val DELETE_INNSENDING = """DELETE FROM innsending WHERE id = ?"""
     private const val INSERT_FIL = """INSERT INTO fil (id, innsending_id, tittel, data) VALUES (?, ?, ?, ?)"""
     private const val SELECT_INNSENDING_IDS = """SELECT id FROM innsending"""
-    private const val SELECT_INNSENDINGER = """SELECT * FROM innsending WHERE id = ?"""
+    private const val SELECT_INNSENDING = """SELECT * FROM innsending WHERE id = ?"""
     private const val SELECT_INNSENDINGER_BY_PERSONIDENT = """SELECT * FROM innsending WHERE personident = ? AND soknad IS NOT NULL"""
     private const val SELECT_FILER = """SELECT * FROM fil WHERE innsending_id = ?"""
     private const val INSERT_INNSENDING = """
@@ -32,6 +34,12 @@ object PostgresDAO {
     """
     private const val SELECT_SOKNAD_ETTERSENDING = """
         SELECT innsending_ettersending_id FROM soknad_ettersending WHERE soknad_id = ?
+    """
+
+    private const val SELECT_ETTERSENDINGER_FOR_INNSENDING = """
+        SELECT * FROM logg WHERE innsending_id IN (
+            SELECT innsending_ettersending_id AS innsending_id FROM soknad_ettersending WHERE soknad_id = ?
+        )
     """
 
     fun erRefTilknyttetPersonIdent(personident: String, ref: UUID, con: Connection): Boolean {
@@ -146,7 +154,7 @@ object PostgresDAO {
     }
 
     fun selectInnsendingMedFiler(innsendingId: UUID, con: Connection): InnsendingMedFiler {
-        val innsending = con.prepareStatement(SELECT_INNSENDINGER).use { stmt ->
+        val innsending = con.prepareStatement(SELECT_INNSENDING).use { stmt ->
             stmt.setObject(1, innsendingId)
             val resultSet = stmt.executeQuery()
 
@@ -182,5 +190,36 @@ object PostgresDAO {
             data = innsending.data,
             fil = filer
         )
+    }
+
+    fun selectSoknadMedEttersendelser(innsendingId: UUID, con: Connection): MineAapSoknadMedEttersendinger {
+        val ettersendinger = con.prepareStatement(SELECT_ETTERSENDINGER_FOR_INNSENDING).use { stmt ->
+            stmt.setObject(1, innsendingId)
+            val resultSet = stmt.executeQuery()
+
+            resultSet.map { row ->
+                MineAapEttersending(
+                    journalpostId = row.getString("journalpost_id"),
+                    mottattDato = row.getTimestamp("mottatt_dato").toLocalDateTime(),
+                    innsendingsId = row.getObject("innsending_id") as UUID
+                )
+            }
+        }
+
+        val soknadMedEttersendinger = con.prepareStatement(SELECT_LOGG).use { stmt ->
+            stmt.setObject(1, innsendingId)
+            val resultSet = stmt.executeQuery()
+
+            resultSet.map { row ->
+                MineAapSoknadMedEttersendinger(
+                    journalpostId = row.getString("journalpost_id"),
+                    mottattDato = row.getTimestamp("mottatt_dato").toLocalDateTime(),
+                    innsendingsId = row.getObject("innsending_id") as UUID,
+                    ettersendinger = ettersendinger
+                )
+            }.single()
+        }
+
+        return soknadMedEttersendinger
     }
 }

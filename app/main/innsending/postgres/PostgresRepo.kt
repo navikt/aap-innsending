@@ -1,10 +1,11 @@
 package innsending.postgres
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import innsending.routes.FilMetadata
-import innsending.routes.Innsending
-import innsending.routes.Logg
-import innsending.routes.MineAapSoknad
+import innsending.dto.FilMetadata
+import innsending.dto.Innsending
+import innsending.dto.MineAapSoknad
+import innsending.dto.MineAapSoknadMedEttersendinger
+import innsending.routes.*
 import java.time.LocalDateTime
 import java.util.*
 import javax.sql.DataSource
@@ -82,7 +83,7 @@ class PostgresRepo(private val hikari: DataSource) {
         mottattDato: LocalDateTime,
         innsending: Innsending,
         fil: List<Pair<FilMetadata, ByteArray>>,
-        referanseId: UUID?= null
+        referanseId: UUID? = null
     ) {
         hikari.transaction { con ->
             PostgresDAO.insertInnsending(
@@ -108,6 +109,10 @@ class PostgresRepo(private val hikari: DataSource) {
                 PostgresDAO.insertSoknadEttersending(it, innsendingId, con)
             }
         }
+    }
+
+    fun hentSøknadMedEttersendelser(innsendingId: UUID): MineAapSoknadMedEttersendinger = hikari.transaction { con ->
+        PostgresDAO.selectSoknadMedEttersendelser(innsendingId, con)
     }
 }
 

@@ -1,6 +1,7 @@
 package innsending.routes
 
 import innsending.*
+import innsending.dto.MellomlagringRespons
 import innsending.postgres.H2TestBase
 import innsending.redis.JedisRedisFake
 import innsending.redis.Key

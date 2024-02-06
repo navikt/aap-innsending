@@ -148,7 +148,7 @@ class ApekattTest : H2TestBase() {
         tema = "AAP"
     )
     private val expectedEttersending = Journalpost(
-        tittel = "Ettersending AAP",
+        tittel = "Ettersendelse til søknad om arbeidsavklaringspenger",
         avsenderMottaker = Journalpost.AvsenderMottaker(
             id = Journalpost.Fødselsnummer("12345678910")
         ),

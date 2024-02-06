@@ -1,7 +1,7 @@
 package innsending.postgres
 
-import innsending.routes.FilMetadata
-import innsending.routes.Innsending
+import innsending.dto.FilMetadata
+import innsending.dto.Innsending
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime

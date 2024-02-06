@@ -3,6 +3,8 @@ package innsending.routes
 import innsending.SECURE_LOGGER
 import innsending.antivirus.ClamAVClient
 import innsending.auth.personident
+import innsending.dto.ErrorRespons
+import innsending.dto.MellomlagringRespons
 import innsending.pdf.PdfGen
 import innsending.redis.EnDagSekunder
 import innsending.redis.Key
@@ -157,14 +159,6 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
 fun createdAt(ageInSeconds: Long): Date {
     return Date(System.currentTimeMillis() - ageInSeconds * 1000)
 }
-
-data class MellomlagringRespons(
-    val filId: String,
-)
-
-data class ErrorRespons(
-    val feilmelding: String,
-)
 
 fun sjekkPdf(fil: ByteArray): Boolean {
     val pdf = Loader.loadPDF(fil)
