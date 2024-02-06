@@ -33,12 +33,12 @@ object PostgresDAO {
         INSERT INTO soknad_ettersending (innsending_soknad_ref, innsending_ettersending_ref) VALUES (?, ?) ON CONFLICT DO NOTHING
     """
     private const val SELECT_SOKNAD_ETTERSENDING = """
-        SELECT innsending_ettersending_id FROM soknad_ettersending WHERE soknad_id = ?
+        SELECT innsending_ettersending_ref FROM soknad_ettersending WHERE soknad_ref = ?
     """
 
     private const val SELECT_ETTERSENDINGER_FOR_INNSENDING = """
         SELECT * FROM logg WHERE innsending_id IN (
-            SELECT innsending_ettersending_id AS innsending_id FROM soknad_ettersending WHERE soknad_id = ?
+            SELECT innsending_ettersending_ref AS innsending_id FROM soknad_ettersending WHERE soknad_ref = ?
         )
     """
 
