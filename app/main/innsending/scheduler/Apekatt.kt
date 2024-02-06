@@ -31,6 +31,7 @@ class Apekatt(
                     } else {
                         journalpostSender.arkiverEttersending(innsending)
                     }
+
                     prometheus.counter("innsending", listOf(Tag.of("resultat", "ok"))).increment()
                 }
             } catch (t: Throwable) {
