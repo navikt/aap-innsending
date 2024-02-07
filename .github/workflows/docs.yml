@@ -1,0 +1,35 @@
+name: publish documentation
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'FUNKSJONELL.md'
+
+jobs:
+  publish:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: innsending
+          sparse-checkout: |
+            FUNKSJONELL.md
+
+      - uses: actions/checkout@V4
+        with:
+          repository: navikt/aap-intern-sysdok
+          path: sysdoc
+
+      - name: create pull-request
+        run: |
+          cd sysdoc
+          git checkout -b docs/innsending-${{ github.sha }}
+          cp ../innsending/FUNKSJONELL.md dokumentasjon/docs/mine_aap/.
+          gh pr create \
+            --title "Update FUNKSJONELL.md" \
+            --base main \
+            --repo https://github.com/navikt/aap-intern-sysdok
