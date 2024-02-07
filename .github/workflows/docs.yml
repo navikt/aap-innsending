@@ -26,6 +26,7 @@ jobs:
           repository: navikt/aap-intern-sysdok
           ref: main
           path: sysdoc
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: create pull-request
         run: |
