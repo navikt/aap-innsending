@@ -32,5 +32,4 @@ jobs:
           cp ../innsending/FUNKSJONELL.md dokumentasjon/docs/mine_aap/.
           gh pr create \
             --title "Update FUNKSJONELL.md" \
-            --base main \
             --repo https://github.com/navikt/aap-intern-sysdok
