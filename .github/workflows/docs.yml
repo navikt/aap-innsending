@@ -24,9 +24,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: navikt/aap-intern-sysdok
-          ref: main
+          ref: refs/heads/main
           path: sysdoc
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: create pull-request
         run: |
