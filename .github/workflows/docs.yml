@@ -19,7 +19,7 @@ jobs:
           sparse-checkout: |
             FUNKSJONELL.md
 
-      - uses: actions/checkout@V4
+      - uses: actions/checkout@v4
         with:
           repository: navikt/aap-intern-sysdok
           path: sysdoc
