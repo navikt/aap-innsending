@@ -7,6 +7,7 @@ on:
       - '.nais/redis-dev.yml'
       - '.nais/redis-prod.yml'
       - '.github/**'
+      - 'FUNKSJONELL.md'
 
 jobs:
   gradle:

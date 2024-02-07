@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'FUNKSJONELL.md'
+      - '.github/workflows/docs.yml'
 
 jobs:
   publish:
