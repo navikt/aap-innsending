@@ -23,6 +23,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: navikt/aap-intern-sysdok
+          ref: main
           path: sysdoc
 
       - name: create pull-request
