@@ -208,6 +208,8 @@ object PostgresDAO {
 
         val soknadMedEttersendinger = con.prepareStatement(SELECT_LOGG).use { stmt ->
             stmt.setObject(1, innsendingId)
+            stmt.setString(2, InnsendingType.SOKNAD.name)
+
             val resultSet = stmt.executeQuery()
 
             resultSet.map { row ->
