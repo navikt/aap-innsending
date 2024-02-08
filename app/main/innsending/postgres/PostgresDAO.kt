@@ -35,7 +35,11 @@ object PostgresDAO {
     private const val SELECT_SOKNAD_ETTERSENDING = """
         SELECT innsending_ettersending_ref FROM soknad_ettersending WHERE innsending_soknad_ref = ?
     """
-
+    private const val SELECT_LOGG_innsending = """
+        SELECT journalpost_id, mottatt_dato, innsending_id FROM logg 
+        WHERE innsending_id = ?
+        ORDER BY mottatt_dato DESC
+    """
     private const val SELECT_ETTERSENDINGER_FOR_INNSENDING = """
         SELECT * FROM logg WHERE innsending_id IN (
             SELECT innsending_ettersending_ref AS innsending_id FROM soknad_ettersending WHERE innsending_soknad_ref = ?
@@ -206,9 +210,8 @@ object PostgresDAO {
             }
         }
 
-        val soknadMedEttersendinger = con.prepareStatement(SELECT_LOGG).use { stmt ->
+        val soknadMedEttersendinger = con.prepareStatement(SELECT_LOGG_innsending).use { stmt ->
             stmt.setObject(1, innsendingId)
-            stmt.setString(2, InnsendingType.SOKNAD.name)
 
             val resultSet = stmt.executeQuery()
 

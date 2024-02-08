@@ -148,4 +148,29 @@ class PostgresDAOTest : H2TestBase() {
 
         assertEquals(1, liste.size)
     }
+
+    @Test
+    fun `henter ut ettersending`() {
+        val innsendingId = UUID.randomUUID()
+        val ettersendingId = UUID.randomUUID()
+
+        h2.transaction {
+            PostgresDAO.insertLogg("12345678910", LocalDateTime.now().minusDays(1), "1234", innsendingId, "SOKNAD", it)
+        }
+
+        h2.transaction {
+            PostgresDAO.insertLogg("12345678910", LocalDateTime.now(), "4321", ettersendingId,"ETTERSENDING", it)
+        }
+
+        h2.transaction {
+            PostgresDAO.insertSoknadEttersending(innsendingId, ettersendingId, it)
+        }
+
+        val res = h2.transaction {
+            PostgresDAO.selectSoknadMedEttersendelser(innsendingId, it)
+        }
+
+        assertEquals(res.ettersendinger.first().innsendingsId, ettersendingId)
+    }
+
 }
