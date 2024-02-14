@@ -27,7 +27,7 @@ class MinSideKafkaProducer(config: KafkaConfig) : KafkaProducer, AutoCloseable {
         val json = MicrofrontendMessageBuilder.enable {
             ident = personident
             initiatedBy = "aap"
-            microfrontendId = "aap-min-side-microfrontend"
+            microfrontendId = "aap" // todo: bytt til aap-min-side-microfrontend i aap-min-side-microfrontend sin workflow når vi har skrudd av soknad-api
             sensitivitet = Sensitivitet.HIGH
         }.text()
 
