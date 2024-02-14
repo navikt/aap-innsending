@@ -4,6 +4,7 @@ package innsending.scheduler
 import innsending.SECURE_LOGGER
 import innsending.arkiv.JournalpostSender
 import innsending.kafka.KafkaProducer
+import innsending.kafka.KafkaProducerException
 import innsending.pdf.PdfGen
 import innsending.postgres.PostgresRepo
 import io.micrometer.core.instrument.MeterRegistry
@@ -31,9 +32,7 @@ class Apekatt(
                         val pdf = pdfGen.søknadTilPdf(innsending.data, innsending.opprettet)
                         journalpostSender.arkiverSøknad(pdf, innsending)
 
-                        kotlin.runCatching {
-                            minsideProducer.produce(innsending.personident)
-                        }
+                        minsideProducer.produce(innsending.personident)
                     } else {
                         journalpostSender.arkiverEttersending(innsending)
                     }
@@ -42,6 +41,7 @@ class Apekatt(
                 }
             } catch (t: Throwable) {
                 if (t is CancellationException) throw t
+                if (t is KafkaProducerException) throw t
 
                 SECURE_LOGGER.error("Klarte ikke å arkivere", t)
                 prometheus.counter("innsending", listOf(Tag.of("resultat", "feilet"))).increment()
