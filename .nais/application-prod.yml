@@ -18,6 +18,8 @@ spec:
       enabled: true
   tokenx:
     enabled: true
+  kafka:
+    pool: nav-prod
   resources:
     limits:
       cpu: 1000m
