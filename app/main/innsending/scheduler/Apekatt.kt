@@ -30,7 +30,10 @@ class Apekatt(
                     if (innsending.data != null) {
                         val pdf = pdfGen.søknadTilPdf(innsending.data, innsending.opprettet)
                         journalpostSender.arkiverSøknad(pdf, innsending)
-                        minsideProducer.produce(innsending.personident)
+
+                        kotlin.runCatching {
+                            minsideProducer.produce(innsending.personident)
+                        }
                     } else {
                         journalpostSender.arkiverEttersending(innsending)
                     }
