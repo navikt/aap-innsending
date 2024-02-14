@@ -23,15 +23,15 @@ class MinSideKafkaProducer(config: KafkaConfig) : KafkaProducer, AutoCloseable {
         }.get() // Blocking call to ensure the message is sent
     }
 
-    private fun createRecord(key: String): ProducerRecord<String, String> {
-        val value = MicrofrontendMessageBuilder.enable {
-            ident = "12345678910"
+    private fun createRecord(personident: String): ProducerRecord<String, String> {
+        val json = MicrofrontendMessageBuilder.enable {
+            ident = personident
             initiatedBy = "aap"
-            microfrontendId = "aap-min-side-microfrontendaap-min-side-microfrontend"
+            microfrontendId = "aap-min-side-microfrontend"
             sensitivitet = Sensitivitet.HIGH
         }.text()
 
-        return ProducerRecord(topic, key, value)
+        return ProducerRecord(topic, personident, json)
     }
 
     override fun close() = producer.close()
