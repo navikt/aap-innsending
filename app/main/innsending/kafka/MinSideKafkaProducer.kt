@@ -9,7 +9,7 @@ import org.apache.kafka.clients.producer.ProducerRecord
 
 class MinSideKafkaProducer(config: KafkaConfig) : KafkaProducer, AutoCloseable {
     private val producer = KafkaFactory.createProducer("min-side-mikrofrontend", config)
-    private val topic = "minside.aapen-microfrontend-v1"
+    private val topic = "min-side.aapen-microfrontend-v1"
 
     override fun produce(personident: String) {
         val record = createRecord(personident)
