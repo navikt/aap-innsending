@@ -1,5 +1,6 @@
 package innsending
 
+import no.nav.aap.kafka.KafkaConfig
 import no.nav.aap.ktor.client.AzureConfig
 import java.net.URI
 
@@ -17,6 +18,12 @@ data class Config(
     val tokenx: TokenXConfig = TokenXConfig(),
     val pdfGenHost: String = "http://pdfgen",
     val virusScanHost: String = "http://clamav.nais-system",
+    val kafka: KafkaConfig = KafkaConfig(
+        brokers = getEnvVar("KAFKA_BROKERS"),
+        truststorePath = getEnvVar("KAFKA_TRUSTSTORE_PATH"),
+        keystorePath = getEnvVar("KAFKA_KEYSTORE_PATH"),
+        credstorePsw = getEnvVar("KAFKA_CREDSTORE_PASSWORD"),
+    )
 )
 
 data class RedisConfig(

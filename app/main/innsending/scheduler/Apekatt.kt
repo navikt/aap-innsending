@@ -3,6 +3,7 @@ package innsending.scheduler
 
 import innsending.SECURE_LOGGER
 import innsending.arkiv.JournalpostSender
+import innsending.kafka.KafkaProducer
 import innsending.pdf.PdfGen
 import innsending.postgres.PostgresRepo
 import io.micrometer.core.instrument.MeterRegistry
@@ -15,7 +16,8 @@ class Apekatt(
     private val pdfGen: PdfGen,
     private val repo: PostgresRepo,
     private val prometheus: MeterRegistry,
-    private val journalpostSender: JournalpostSender
+    private val journalpostSender: JournalpostSender,
+    private val minsideProducer: KafkaProducer
 ) : AutoCloseable {
     private val job: Job = CoroutineScope(Dispatchers.Default).launch {
         while (this.isActive) {
@@ -28,6 +30,7 @@ class Apekatt(
                     if (innsending.data != null) {
                         val pdf = pdfGen.søknadTilPdf(innsending.data, innsending.opprettet)
                         journalpostSender.arkiverSøknad(pdf, innsending)
+                        minsideProducer.produce(innsending.personident)
                     } else {
                         journalpostSender.arkiverEttersending(innsending)
                     }

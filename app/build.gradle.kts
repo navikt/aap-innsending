@@ -13,6 +13,10 @@ application {
 
 dependencies {
     implementation("com.github.navikt.aap-libs:ktor-auth-azuread:$aapLibVersion")
+    implementation("com.github.navikt.aap-libs:kafka:$aapLibVersion")
+    implementation("org.apache.kafka:kafka-clients:3.5.1")
+
+    implementation("no.nav.tms.mikrofrontend.selector:builder:20230704114948-74aa2e9")
 
     implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")

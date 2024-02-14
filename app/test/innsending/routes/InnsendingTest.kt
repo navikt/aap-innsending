@@ -5,6 +5,7 @@ import innsending.TestConfig
 import innsending.TokenXGen
 import innsending.dto.FilMetadata
 import innsending.dto.Innsending
+import innsending.kafka.KafkaFake
 import innsending.postgres.H2TestBase
 import innsending.postgres.PostgresDAO
 import innsending.postgres.transaction
@@ -35,7 +36,7 @@ class InnsendingTest : H2TestBase() {
             val filId2 = Key(value = UUID.randomUUID().toString(), prefix = "12345678910")
 
             testApplication {
-                application { server(config, jedis, h2) }
+                application { server(config, jedis, h2, KafkaFake) }
                 jedis.set(filId1, byteArrayOf(), 60)
                 jedis.set(filId2, byteArrayOf(), 60)
 
@@ -77,7 +78,7 @@ class InnsendingTest : H2TestBase() {
             val jwkGen = TokenXGen(config.tokenx)
             println(JSONObject({ "søknad" }))
             testApplication {
-                application { server(config, jedis, h2) }
+                application { server(config, jedis, h2, KafkaFake) }
 
                 val res = jsonHttpClient.post("/innsending") {
                     bearerAuth(jwkGen.generate("12345678910"))
@@ -113,7 +114,7 @@ class InnsendingTest : H2TestBase() {
             val filId2 = Key(UUID.randomUUID().toString(), prefix = "12345678910")
 
             testApplication {
-                application { server(config, jedis, h2) }
+                application { server(config, jedis, h2, KafkaFake) }
                 jedis.set(filId1, byteArrayOf(), 60)
                 jedis.set(filId2, byteArrayOf(), 60)
 
@@ -156,7 +157,7 @@ class InnsendingTest : H2TestBase() {
             val filId2 = Key(UUID.randomUUID().toString(), prefix = "12345678910")
 
             testApplication {
-                application { server(config, jedis, h2) }
+                application { server(config, jedis, h2, KafkaFake) }
                 jedis.set(filId1, byteArrayOf(), 60)
                 jedis.set(filId2, byteArrayOf(), 60)
 
@@ -210,7 +211,7 @@ class InnsendingTest : H2TestBase() {
             val filId2 = Key(UUID.randomUUID().toString(), prefix = "12345678910")
 
             testApplication {
-                application { server(config, jedis, h2) }
+                application { server(config, jedis, h2, KafkaFake) }
                 jedis.set(filId1, byteArrayOf(), 60)
                 jedis.set(filId2, byteArrayOf(), 60)
 

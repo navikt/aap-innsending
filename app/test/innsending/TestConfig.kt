@@ -1,5 +1,6 @@
 package innsending
 
+import no.nav.aap.kafka.KafkaConfig
 import no.nav.aap.ktor.client.AzureConfig
 import java.net.URI
 
@@ -41,6 +42,12 @@ internal object TestConfig {
                 issuer = "tokenx",
                 jwks = URI.create("http://localhost:${fakes.tokenx.port()}/jwks")
             ),
+            kafka = KafkaConfig(
+                brokers = "localhost",
+                truststorePath = "test",
+                keystorePath = "test",
+                credstorePsw = "test"
+            )
         )
     }
 }

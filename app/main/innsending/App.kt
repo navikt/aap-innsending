@@ -7,6 +7,8 @@ import innsending.arkiv.JoarkClient
 import innsending.arkiv.JournalpostSender
 import innsending.auth.TOKENX
 import innsending.auth.authentication
+import innsending.kafka.KafkaProducer
+import innsending.kafka.MinSideKafkaProducer
 import innsending.pdf.PdfGen
 import innsending.postgres.Hikari
 import innsending.postgres.PostgresRepo
@@ -36,7 +38,6 @@ import io.opentelemetry.instrumentation.ktor.v2_0.server.KtorServerTracing
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
-import java.text.DateFormat
 import javax.sql.DataSource
 
 val SECURE_LOGGER: Logger = LoggerFactory.getLogger("secureLog")
@@ -49,7 +50,8 @@ fun main() {
 fun Application.server(
     config: Config = Config(),
     redis: Redis = JedisRedis(config.redis),
-    datasource: DataSource = Hikari.createAndMigrate(config.postgres)
+    datasource: DataSource = Hikari.createAndMigrate(config.postgres),
+    minsideProducer: KafkaProducer = MinSideKafkaProducer(config.kafka),
 ) {
     val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
     val antivirus = ClamAVClient(config.virusScanHost)
@@ -58,10 +60,11 @@ fun Application.server(
 
     val joarkClient = JoarkClient(config.azure, config.joark)
     val journalpostSender = JournalpostSender(joarkClient, postgres)
-    val arkivScheduler = Apekatt(pdfGen, postgres, prometheus, journalpostSender)
+    val arkivScheduler = Apekatt(pdfGen, postgres, prometheus, journalpostSender, minsideProducer)
 
     environment.monitor.subscribe(ApplicationStopping) {
         arkivScheduler.close()
+        minsideProducer.close()
     }
 
     install(MicrometerMetrics) { registry = prometheus }

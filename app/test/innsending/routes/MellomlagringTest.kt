@@ -2,6 +2,7 @@ package innsending.routes
 
 import innsending.*
 import innsending.dto.MellomlagringRespons
+import innsending.kafka.KafkaFake
 import innsending.postgres.H2TestBase
 import innsending.redis.JedisRedisFake
 import innsending.redis.Key
@@ -28,7 +29,7 @@ class MellomlagringTest: H2TestBase() {
             val jwkGen = TokenXGen(config.tokenx)
 
             testApplication {
-                application { server(config, jedis, h2) }
+                application { server(config, jedis, h2, KafkaFake) }
                 val res = client.post("/mellomlagring/søknad") {
                     contentType(ContentType.Application.Json)
                     bearerAuth(jwkGen.generate("12345678910"))
@@ -48,7 +49,7 @@ class MellomlagringTest: H2TestBase() {
             val jwkGen = TokenXGen(config.tokenx)
 
             testApplication {
-                application { server(config, jedis, h2) }
+                application { server(config, jedis, h2, KafkaFake) }
                 jedis.set(Key("12345678910"), """{"søknadId":"1234"}""".toByteArray(), 50)
 
                 val res = client.get("/mellomlagring/søknad") {
@@ -70,7 +71,7 @@ class MellomlagringTest: H2TestBase() {
             val jwkGen = TokenXGen(config.tokenx)
 
             testApplication {
-                application { server(config, jedis, h2) }
+                application { server(config, jedis, h2, KafkaFake) }
                 jedis.set(Key("12345678910"), """{"søknadId":"1234"}""".toByteArray(), 50)
 
                 val del = client.delete("/mellomlagring/søknad") {
@@ -92,7 +93,7 @@ class MellomlagringTest: H2TestBase() {
             val jwkGen = TokenXGen(config.tokenx)
 
             testApplication {
-                application { server(config, jedis, h2) }
+                application { server(config, jedis, h2, KafkaFake) }
 
                 val res = client.get("/mellomlagring/søknad") {
                     accept(ContentType.Application.Json)
@@ -113,7 +114,7 @@ class MellomlagringTest: H2TestBase() {
                 val client = createClient {
                     install(ContentNegotiation) { jackson() }
                 }
-                application { server(config, jedis, h2) }
+                application { server(config, jedis, h2, KafkaFake) }
                 val res = client.submitFormWithBinaryData(url = "/mellomlagring/fil",
                     formData = formData {
                         append("document", Resource.read("/resources/images/bilde.jpg"), Headers.build {
@@ -141,7 +142,7 @@ class MellomlagringTest: H2TestBase() {
             val tokenx = TokenXGen(config.tokenx)
             val id = UUID.randomUUID()
             testApplication {
-                application { server(config, jedis, h2) }
+                application { server(config, jedis, h2, KafkaFake) }
                 val key = Key(value = id.toString(), prefix = "12345678910")
                 jedis.set(key, String(Resource.read("/resources/pdf/minimal.pdf")).toByteArray(), 50)
 
@@ -165,7 +166,7 @@ class MellomlagringTest: H2TestBase() {
                 val client = createClient {
                     install(ContentNegotiation) { jackson() }
                 }
-                application { server(config, jedis, h2) }
+                application { server(config, jedis, h2, KafkaFake) }
                 val resLagre = client.submitFormWithBinaryData(url = "/mellomlagring/fil",
                     formData = formData {
                         append("document", Resource.read("/resources/images/bilde.jpg"), Headers.build {

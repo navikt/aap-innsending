@@ -4,6 +4,7 @@ import innsending.Fakes
 import innsending.Resource
 import innsending.TestConfig
 import innsending.arkiv.Journalpost
+import innsending.kafka.KafkaFake
 import innsending.postgres.H2TestBase
 import innsending.postgres.PostgresDAO
 import innsending.postgres.toByteArray
@@ -40,7 +41,7 @@ class ApekattTest : H2TestBase() {
 
             testApplication {
                 application {
-                    server(config, jedis, h2)
+                    server(config, jedis, h2, KafkaFake)
                     val actual = runBlocking {
                         withTimeout(1000) {
                             fakes.joark.receivedRequest.await()
@@ -84,7 +85,7 @@ class ApekattTest : H2TestBase() {
             }
 
             testApplication {
-                application { server(config, jedis, h2) }
+                application { server(config, jedis, h2, KafkaFake) }
             }
 
             val actual = runBlocking {
