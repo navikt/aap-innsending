@@ -118,7 +118,7 @@ class ApekattTest : H2TestBase() {
         bruker = Journalpost.Bruker(id = Journalpost.Fødselsnummer("12345678910")),
         dokumenter = listOf(
             Journalpost.Dokument(
-                tittel = "Søknad om arbeidsavklaringspenger",
+                tittel = "Søknad om Arbeidsavklaringspenger",
                 brevkode = "NAV 11-13.05",
                 dokumentVarianter = listOf(
                     Journalpost.DokumentVariant(
