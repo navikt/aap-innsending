@@ -135,6 +135,60 @@ class MellomlagringTest: H2TestBase() {
     }
 
     @Test
+    fun `kan ikke mellomlagre tom pdf`() {
+        Fakes().use { fakes ->
+            val jedis = JedisRedisFake()
+            val config = TestConfig.default(fakes)
+            val jwkGen = TokenXGen(config.tokenx)
+            testApplication {
+                val client = createClient {
+                    install(ContentNegotiation) { jackson() }
+                }
+                application { server(config, jedis, h2, KafkaFake) }
+                val res = client.submitFormWithBinaryData(url = "/mellomlagring/fil",
+                    formData = formData {
+                        append("document", Resource.read("/resources/pdf/tom.pdf"), Headers.build {
+                            append(HttpHeaders.ContentDisposition, "filename=tom.pdf")
+                            append(HttpHeaders.ContentType, "application/pdf")
+                        })
+                    },
+                    block = {
+                        bearerAuth(jwkGen.generate("12345678910"))
+                    }
+                )
+                assertEquals(HttpStatusCode.UnprocessableEntity, res.status)
+            }
+        }
+    }
+
+    @Test
+    fun `kan ikke mellomlagre tom png`() {
+        Fakes().use { fakes ->
+            val jedis = JedisRedisFake()
+            val config = TestConfig.default(fakes)
+            val jwkGen = TokenXGen(config.tokenx)
+            testApplication {
+                val client = createClient {
+                    install(ContentNegotiation) { jackson() }
+                }
+                application { server(config, jedis, h2, KafkaFake) }
+                val res = client.submitFormWithBinaryData(url = "/mellomlagring/fil",
+                    formData = formData {
+                        append("document", Resource.read("/resources/images/tom.png"), Headers.build {
+                            append(HttpHeaders.ContentDisposition, "filename=tom.png")
+                            append(HttpHeaders.ContentType, "image/png")
+                        })
+                    },
+                    block = {
+                        bearerAuth(jwkGen.generate("12345678910"))
+                    }
+                )
+                assertEquals(HttpStatusCode.UnprocessableEntity, res.status)
+            }
+        }
+    }
+
+    @Test
     fun `kan hente mellomlagret fil`() {
         Fakes().use { fakes ->
             val jedis = JedisRedisFake()

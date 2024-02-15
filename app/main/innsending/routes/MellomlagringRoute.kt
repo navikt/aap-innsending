@@ -21,7 +21,6 @@ import java.net.URI
 import java.net.URL
 import java.time.Instant
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.util.*
 
 
@@ -76,7 +75,7 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                     val fil = mottattFil.streamProvider().readBytes()
                     val contentType = requireNotNull(mottattFil.contentType) { "contentType i multipartForm mangler" }
 
-                    if (sjekkFeilContentType(fil, contentType)) {
+                    if (fil.isEmpty() || sjekkFeilContentType(fil, contentType)) {
                         return@post call.respond(
                             HttpStatusCode.UnprocessableEntity,
                             ErrorRespons("Filtype ikke støttet")
@@ -106,7 +105,7 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                         }
                     }
 
-                    if (!sjekkPdf(pdf)) {
+                    if (kryptertEllerUgyldigPdf(pdf)) {
                         return@post call.respond(HttpStatusCode.UnprocessableEntity, ErrorRespons("PDF er kryptert"))
                     }
 
@@ -160,9 +159,13 @@ fun createdAt(ageInSeconds: Long): Date {
     return Date(System.currentTimeMillis() - ageInSeconds * 1000)
 }
 
-fun sjekkPdf(fil: ByteArray): Boolean {
-    val pdf = Loader.loadPDF(fil)
-    return !pdf.isEncrypted
+fun kryptertEllerUgyldigPdf(fil: ByteArray): Boolean {
+    try {
+        val pdf = Loader.loadPDF(fil)
+        return pdf.isEncrypted
+    } catch (e: Exception){
+        return true
+    }
 }
 
 fun sjekkFeilContentType(fil: ByteArray, contentType: ContentType): Boolean {
