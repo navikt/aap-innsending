@@ -93,7 +93,14 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                             if (contentType == ContentType.Application.Pdf) {
                                 fil
                             } else {
-                                pdfGen.bildeTilPfd(fil, contentType)
+                                try {
+                                    pdfGen.bildeTilPfd(fil, contentType)
+                                } catch (e: Exception){
+                                    return@post call.respond(
+                                        HttpStatusCode.UnprocessableEntity,
+                                        ErrorRespons("Feil ved omgjøring til pdf")
+                                    )
+                                }
                             }
                         }
 

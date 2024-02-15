@@ -2,6 +2,7 @@ package innsending.pdf
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import innsending.SECURE_LOGGER
 import innsending.http.HttpClientFactory
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -21,18 +22,25 @@ private val clientLatencyStats: Summary = Summary.build()
 class PdfGen(private val host: String) {
     private val httpClient = HttpClientFactory.create()
 
-    suspend fun bildeTilPfd(bildeFil: ByteArray, contentType:ContentType): ByteArray =
-        clientLatencyStats.startTimer().use {
+    suspend fun bildeTilPfd(bildeFil: ByteArray, contentType: ContentType): ByteArray {
+        val res = clientLatencyStats.startTimer().use {
             httpClient.post("$host/api/v1/genpdf/image/aap-pdfgen") {
                 contentType(contentType)
                 accept(ContentType.Application.Pdf)
                 setBody(bildeFil)
             }
-        }.body()
+        }
+        if (res.status.value >= 300) {
+            SECURE_LOGGER.error("feil i pdfgen: status ${res.status}")
+            throw Exception("Feil i pdfGen")
+        }
+        return res.body()
+    }
+
 
     suspend fun søknadTilPdf(json: ByteArray, mottattDato: LocalDateTime): ByteArray {
         val kvittering = json.toMap() + mapOf("mottattDato" to mottattDato.toString())
-        val data = SøknadPdfGen(SøkerPdfGen(SøkerPdfGen.Navn("","")),kvittering)
+        val data = SøknadPdfGen(SøkerPdfGen(SøkerPdfGen.Navn("", "")), kvittering)
 
         return clientLatencyStats.startTimer().use {
             httpClient.post("$host/api/v1/genpdf/aap-pdfgen/soknad") {
@@ -46,20 +54,20 @@ class PdfGen(private val host: String) {
 
 data class SøknadPdfGen(
     val søker: SøkerPdfGen,
-    val kvittering: Map<String,Any>
+    val kvittering: Map<String, Any>
 )
 
 data class SøkerPdfGen(
     val navn: Navn,
-){
+) {
     data class Navn(
         val fornavn: String,
         val etternavn: String
     )
 }
 
-private fun ByteArray.toMap(): Map<String,Any> {
+private fun ByteArray.toMap(): Map<String, Any> {
     val mapper = ObjectMapper()
-    val tr = object : TypeReference<Map<String,Any>>() {}
+    val tr = object : TypeReference<Map<String, Any>>() {}
     return mapper.readValue(this, tr)
 }
