@@ -6,6 +6,9 @@ metadata:
   labels:
     team: aap
     sub: innsending
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "50M"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "90"
 spec:
   image: {{image}}
   ingresses:
