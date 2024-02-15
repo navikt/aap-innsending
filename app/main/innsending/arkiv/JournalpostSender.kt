@@ -1,21 +1,16 @@
 package innsending.arkiv
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import innsending.SECURE_LOGGER
 import innsending.postgres.InnsendingMedFiler
 import innsending.postgres.InnsendingType
 import innsending.postgres.PostgresRepo
 import kotlinx.coroutines.runBlocking
-import org.slf4j.LoggerFactory
 import java.util.*
-
-private val logger = LoggerFactory.getLogger("JournalpostSender")
 
 class JournalpostSender(
     private val client: JoarkClient,
     private val repo: PostgresRepo,
 ) {
-
     fun arkiverSøknad(søknadSomPdf: ByteArray, innsending: InnsendingMedFiler) {
         fun dokumenter(): List<Journalpost.Dokument> {
             val orginalSøknadDokument = innsending.søknad?.let {
@@ -42,6 +37,7 @@ class JournalpostSender(
 
         val arkivResponse = client.opprettJournalpost(journalpost, innsending.id.toString())
         SECURE_LOGGER.info("Opprettet journalpost {} for {}", arkivResponse.journalpostId, innsending.personident)
+
         repo.loggførJournalføring(
             personIdent = innsending.personident,
             mottattDato = innsending.opprettet,
@@ -49,6 +45,7 @@ class JournalpostSender(
             innsendingsId = innsending.id,
             type = InnsendingType.SOKNAD
         )
+
         repo.slettInnsending(innsending.id)
     }
 
@@ -68,9 +65,9 @@ class JournalpostSender(
             datoMottatt = innsending.opprettet
         )
 
-        logger.info("Lagrer ettersending for {}: {}", innsending.id, journalpost)
         val arkivResponse = client.opprettJournalpost(journalpost, innsending.id.toString())
-        logger.info("Lagret {}", arkivResponse.journalpostId)
+        SECURE_LOGGER.info("Opprettet ettersending-journalpost {} for {}", arkivResponse.journalpostId, innsending.personident)
+
         repo.loggførJournalføring(
             personIdent = innsending.personident,
             mottattDato = innsending.opprettet,
@@ -80,7 +77,6 @@ class JournalpostSender(
         )
 
         repo.slettInnsending(innsending.id)
-        logger.info("Ettersendt {}", innsending.id)
     }
 
     private fun lagSøknadDokument(søknad: ByteArray, original: Journalpost.DokumentVariant?): Journalpost.Dokument {
