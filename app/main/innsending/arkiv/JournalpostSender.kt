@@ -97,7 +97,7 @@ class JournalpostSender(
         }
 
         return Journalpost.Dokument(
-            tittel = "Søknad",
+            tittel = "Søknad om Arbeidsavklaringspenger",
             brevkode = "NAV 11-13.05",
             dokumentVarianter = listOf(Journalpost.DokumentVariant(fysiskDokument = søknadSomPdf))
         )
