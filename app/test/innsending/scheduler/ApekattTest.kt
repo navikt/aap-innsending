@@ -122,15 +122,12 @@ class ApekattTest : H2TestBase() {
                 brevkode = "NAV 11-13.05",
                 dokumentVarianter = listOf(
                     Journalpost.DokumentVariant(
+                        filtype = "PDFA",
                         fysiskDokument = Base64.getEncoder().encodeToString(
                             Resource.read("/resources/pdf/minimal.pdf")
                         ),
-                    )
-                )
-            ),
-            Journalpost.Dokument(
-                tittel = "Orginal søknad json",
-                dokumentVarianter = listOf(
+                        variantformat = "ARKIV"
+                    ),
                     Journalpost.DokumentVariant(
                         filtype = "JSON",
                         fysiskDokument = Base64.getEncoder().encodeToString(

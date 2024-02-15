@@ -18,21 +18,13 @@ class JournalpostSender(
 
     fun arkiverSøknad(søknadSomPdf: ByteArray, innsending: InnsendingMedFiler) {
         fun dokumenter(): List<Journalpost.Dokument> {
-            val søknadDokument = lagSøknadDokument(søknadSomPdf)
-            val vedleggDokumenter = lagDokumenter(innsending)
             val orginalSøknadDokument = innsending.søknad?.let {
                 val encoded = Base64.getEncoder().encodeToString(it)
-                val orginalSøknadJson = Journalpost.DokumentVariant("JSON", encoded, "ORIGINAL")
-                Journalpost.Dokument(
-                    tittel = "Orginal søknad json",
-                    dokumentVarianter = listOf(orginalSøknadJson)
-                )
+                Journalpost.DokumentVariant("JSON", encoded, "ORIGINAL")
             }
-            return if (orginalSøknadDokument != null) {
-                listOf(søknadDokument) + vedleggDokumenter + orginalSøknadDokument
-            } else {
-                listOf(søknadDokument) + vedleggDokumenter
-            }
+            val søknadDokument = lagSøknadDokument(søknadSomPdf, orginalSøknadDokument)
+            val vedleggDokumenter = lagDokumenter(innsending)
+            return listOf(søknadDokument) + vedleggDokumenter
         }
 
         val journalpost = Journalpost(
@@ -91,7 +83,7 @@ class JournalpostSender(
         logger.info("Ettersendt {}", innsending.id)
     }
 
-    private fun lagSøknadDokument(søknad: ByteArray): Journalpost.Dokument {
+    private fun lagSøknadDokument(søknad: ByteArray, original: Journalpost.DokumentVariant?): Journalpost.Dokument {
         val søknadSomPdf = runBlocking {
             Base64.getEncoder().encodeToString(søknad)
         }
@@ -99,7 +91,10 @@ class JournalpostSender(
         return Journalpost.Dokument(
             tittel = "Søknad om Arbeidsavklaringspenger",
             brevkode = "NAV 11-13.05",
-            dokumentVarianter = listOf(Journalpost.DokumentVariant(fysiskDokument = søknadSomPdf))
+            dokumentVarianter = listOfNotNull(
+                Journalpost.DokumentVariant(fysiskDokument = søknadSomPdf),
+                original
+            )
         )
     }
 
