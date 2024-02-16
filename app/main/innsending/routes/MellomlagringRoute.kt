@@ -29,7 +29,7 @@ import java.util.*
 private val acceptedContentType =
     listOf(ContentType.Image.JPEG, ContentType.Image.PNG, ContentType.Application.Pdf)
 
-fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: PdfGen, prometheus: MeterRegistry) {
+fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: PdfGen) {
     route("/mellomlagring/søknad") {
 
         post {
@@ -87,7 +87,6 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                     val pdf: ByteArray = when (contentType) {
                         in acceptedContentType -> {
                             if (virusScanClient.hasVirus(fil, contentType)) {
-                                prometheus.counter("mellomlagring", listOf(Tag.of("feil", "virus"))).increment()
                                 SECURE_LOGGER.warn("Bruker prøvde å laste opp virus")
                                 return@post call.respond(
                                     HttpStatusCode.UnprocessableEntity,
@@ -100,7 +99,6 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                                 try {
                                     pdfGen.bildeTilPfd(fil, contentType)
                                 } catch (e: Exception) {
-                                    prometheus.counter("mellomlagring", listOf(Tag.of("feil", "pdfgen"))).increment()
                                     SECURE_LOGGER.error("Feil fra PDFgen", e)
                                     return@post call.respond(
                                         HttpStatusCode.UnprocessableEntity,
@@ -110,7 +108,6 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                             }
                         }
                         else -> {
-                            prometheus.counter("mellomlagring", listOf(Tag.of("feil", "filtype"))).increment()
                             SECURE_LOGGER.warn("Feil filtype ${contentType.contentType}")
                             return@post call.respond(
                                 HttpStatusCode.UnprocessableEntity,
@@ -120,7 +117,6 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                     }
 
                     if (kryptertEllerUgyldigPdf(pdf)) {
-                        prometheus.counter("mellomlagring", listOf(Tag.of("feil", "kryptert"))).increment()
                         return@post call.respond(HttpStatusCode.UnprocessableEntity, ErrorRespons("PDF er kryptert"))
                     }
 
@@ -131,7 +127,6 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                 }
 
                 else -> {
-                    prometheus.counter("mellomlagring", listOf(Tag.of("feil", "filtype"))).increment()
                     return@post call.respond(HttpStatusCode.UnprocessableEntity, ErrorRespons("Filtype ikke støttet"))
                 }
             }
