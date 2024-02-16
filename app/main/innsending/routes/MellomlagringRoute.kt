@@ -95,7 +95,8 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                             } else {
                                 try {
                                     pdfGen.bildeTilPfd(fil, contentType)
-                                } catch (e: Exception){
+                                } catch (e: Exception) {
+                                    SECURE_LOGGER.error("Feil fra PDFgen", e)
                                     return@post call.respond(
                                         HttpStatusCode.UnprocessableEntity,
                                         ErrorRespons("Feil ved omgjøring til pdf")
