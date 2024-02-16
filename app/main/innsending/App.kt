@@ -107,7 +107,7 @@ fun Application.server(
     routing {
         authenticate(TOKENX) {
             innsendingRoute(postgres, redis)
-            mellomlagerRoute(redis, antivirus, pdfGen)
+            mellomlagerRoute(redis, antivirus, pdfGen, prometheus)
         }
 
         actuator(prometheus, redis)
