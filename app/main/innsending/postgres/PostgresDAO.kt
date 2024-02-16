@@ -35,7 +35,7 @@ object PostgresDAO {
     private const val SELECT_SOKNAD_ETTERSENDING = """
         SELECT innsending_ettersending_ref FROM soknad_ettersending WHERE innsending_soknad_ref = ?
     """
-    private const val SELECT_LOGG_innsending = """
+    private const val SELECT_LOGG_INNSENDING = """
         SELECT journalpost_id, mottatt_dato, innsending_id FROM logg 
         WHERE innsending_id = ?
         ORDER BY mottatt_dato DESC
@@ -196,7 +196,7 @@ object PostgresDAO {
         )
     }
 
-    fun selectSoknadMedEttersendelser(innsendingId: UUID, con: Connection): MineAapSoknadMedEttersendinger {
+    fun selectSoknadMedEttersendelser(innsendingId: UUID, con: Connection): MineAapSoknadMedEttersendinger? {
         val ettersendinger = con.prepareStatement(SELECT_ETTERSENDINGER_FOR_INNSENDING).use { stmt ->
             stmt.setObject(1, innsendingId)
             val resultSet = stmt.executeQuery()
@@ -210,7 +210,7 @@ object PostgresDAO {
             }
         }
 
-        val soknadMedEttersendinger = con.prepareStatement(SELECT_LOGG_innsending).use { stmt ->
+        val soknadMedEttersendinger = con.prepareStatement(SELECT_LOGG_INNSENDING).use { stmt ->
             stmt.setObject(1, innsendingId)
 
             val resultSet = stmt.executeQuery()
@@ -222,9 +222,27 @@ object PostgresDAO {
                     innsendingsId = row.getObject("innsending_id") as UUID,
                     ettersendinger = ettersendinger
                 )
-            }.single()
+            }.singleOrNull()
         }
 
-        return soknadMedEttersendinger
+        if (soknadMedEttersendinger == null) {
+            val ikkeArkivertSøknadMedEttersendinger = con.prepareStatement(SELECT_INNSENDING).use { stmt ->
+                stmt.setObject(1, innsendingId)
+
+                val resultSet = stmt.executeQuery()
+
+                resultSet.map { row ->
+                    MineAapSoknadMedEttersendinger(
+                        journalpostId = null,
+                        mottattDato = row.getTimestamp("opprettet").toLocalDateTime(),
+                        innsendingsId = row.getObject("id") as UUID,
+                        ettersendinger = ettersendinger
+                    )
+                }.singleOrNull()
+            }
+            return ikkeArkivertSøknadMedEttersendinger
+        } else {
+            return soknadMedEttersendinger
+        }
     }
 }

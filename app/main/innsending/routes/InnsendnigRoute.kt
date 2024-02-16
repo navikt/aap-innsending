@@ -1,5 +1,6 @@
 package innsending.routes
 
+import innsending.SECURE_LOGGER
 import innsending.auth.personident
 import innsending.dto.Innsending
 import innsending.postgres.PostgresRepo
@@ -10,7 +11,6 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.util.pipeline.*
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.*
@@ -32,7 +32,13 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
                 "Mangler innsendingsId"
             )
 
-            call.respond(postgres.hentSøknadMedEttersendelser(innsendingsRef))
+            val søknadMedEttersendinger = postgres.hentSøknadMedEttersendelser(innsendingsRef)
+
+            if(søknadMedEttersendinger == null) {
+                call.respond(HttpStatusCode.NotFound, "Fant ikke søknad for angitt referanse")
+            } else {
+                call.respond(søknadMedEttersendinger)
+            }
         }
 
         post("/{ref}") {
@@ -48,7 +54,6 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
             postInnsending(postgres, redis, call)
         }
     }
-
 }
 
 private suspend fun postInnsending(postgres: PostgresRepo, redis: Redis, call: ApplicationCall, innsendingsRef: UUID? = null) {
@@ -62,8 +67,9 @@ private suspend fun postInnsending(postgres: PostgresRepo, redis: Redis, call: A
     }
 
     if (innsendingsRef != null && postgres.erRefTilknyttetPersonIdent(personIdent, innsendingsRef).not()) {
+        SECURE_LOGGER.error("$personIdent prøver å poste en innsending på $innsendingsRef, men disse hører ikke sammen")
         return call.respond(
-            HttpStatusCode.BadRequest,
+            HttpStatusCode.NotFound,
             "Denne innsendingenId'en finnes ikke for denne personen"
         )
     }

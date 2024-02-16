@@ -5,7 +5,6 @@ import innsending.dto.FilMetadata
 import innsending.dto.Innsending
 import innsending.dto.MineAapSoknad
 import innsending.dto.MineAapSoknadMedEttersendinger
-import innsending.routes.*
 import java.time.LocalDateTime
 import java.util.*
 import javax.sql.DataSource
@@ -111,7 +110,7 @@ class PostgresRepo(private val hikari: DataSource) {
         }
     }
 
-    fun hentSøknadMedEttersendelser(innsendingId: UUID): MineAapSoknadMedEttersendinger = hikari.transaction { con ->
+    fun hentSøknadMedEttersendelser(innsendingId: UUID): MineAapSoknadMedEttersendinger? = hikari.transaction { con ->
         PostgresDAO.selectSoknadMedEttersendelser(innsendingId, con)
     }
 }

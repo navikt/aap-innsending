@@ -170,7 +170,7 @@ class PostgresDAOTest : H2TestBase() {
             PostgresDAO.selectSoknadMedEttersendelser(innsendingId, it)
         }
 
-        assertEquals(res.ettersendinger.first().innsendingsId, ettersendingId)
+        assertEquals(res?.ettersendinger?.first()?.innsendingsId, ettersendingId)
     }
 
 }
