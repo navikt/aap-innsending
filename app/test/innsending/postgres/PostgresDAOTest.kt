@@ -94,8 +94,8 @@ class PostgresDAOTest : H2TestBase() {
 
         val innsending = PostgresDAO.selectInnsendingMedFiler(søknadId, h2.connection)
 
-        assertEquals(søknadId, innsending.id)
-        assertEquals(5, innsending.fil.size)
+        assertEquals(søknadId, innsending?.id)
+        assertEquals(5, innsending?.fil?.size)
     }
 
     @Test

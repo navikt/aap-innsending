@@ -157,7 +157,7 @@ object PostgresDAO {
         }.toList()
     }
 
-    fun selectInnsendingMedFiler(innsendingId: UUID, con: Connection): InnsendingMedFiler {
+    fun selectInnsendingMedFiler(innsendingId: UUID, con: Connection): InnsendingMedFiler? {
         val innsending = con.prepareStatement(SELECT_INNSENDING).use { stmt ->
             stmt.setObject(1, innsendingId)
             val resultSet = stmt.executeQuery()
@@ -170,7 +170,11 @@ object PostgresDAO {
                     søknad = row.getBytes("soknad"),
                     data = row.getBytes("data")
                 )
-            }.single()
+            }.singleOrNull()
+        }
+
+        if (innsending == null) {
+            return null
         }
 
         val filer = con.prepareStatement(SELECT_FILER).use { preparedStatement ->

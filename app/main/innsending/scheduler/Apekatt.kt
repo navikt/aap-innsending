@@ -28,6 +28,16 @@ class Apekatt(
                 innsendingIder.forEach { innsendingId ->
                     val innsending = repo.hentInnsending(innsendingId)
 
+                    if (innsending == null) {
+                        SECURE_LOGGER.error(
+                            """
+                            Failed to archive innsending=$innsendingId
+                            Not found in database. Already archived?
+                            """.trimIndent()
+                        )
+                        return@forEach // skip
+                    }
+
                     if (innsending.data != null) {
                         val pdf = pdfGen.søknadTilPdf(innsending.data, innsending.opprettet)
                         journalpostSender.arkiverSøknad(pdf, innsending)

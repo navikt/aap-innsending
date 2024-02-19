@@ -68,7 +68,7 @@ class PostgresRepo(private val hikari: DataSource) {
         PostgresDAO.selectInnsendinger(con)
     }
 
-    fun hentInnsending(søknadId: UUID): InnsendingMedFiler = hikari.transaction { con ->
+    fun hentInnsending(søknadId: UUID): InnsendingMedFiler? = hikari.transaction { con ->
         PostgresDAO.selectInnsendingMedFiler(søknadId, con)
     }
 
