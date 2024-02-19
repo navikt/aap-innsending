@@ -58,7 +58,7 @@ dependencies {
     // Instrument application
     implementation("io.opentelemetry:opentelemetry-sdk:1.35.0");
     implementation("io.opentelemetry:opentelemetry-sdk-metrics:1.35.0");
-    implementation("io.opentelemetry:opentelemetry-exporter-logging:1.34.1");
+    implementation("io.opentelemetry:opentelemetry-exporter-logging:1.35.0");
 //    implementation("io.opentelemetry:opentelemetry-semconv:1.34.1-alpha");
 
     // Instrument ktor
