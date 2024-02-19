@@ -23,13 +23,19 @@ data class Config(
         truststorePath = getEnvVar("KAFKA_TRUSTSTORE_PATH"),
         keystorePath = getEnvVar("KAFKA_KEYSTORE_PATH"),
         credstorePsw = getEnvVar("KAFKA_CREDSTORE_PASSWORD"),
-    )
+    ),
+    val oppslag: OppslagConfig = OppslagConfig()
 )
 
 data class RedisConfig(
     val uri: URI = URI(getEnvVar("REDIS_URI_MELLOMLAGER").also { SECURE_LOGGER.info("redis uri $it") }),
     val username: String = getEnvVar("REDIS_USERNAME_MELLOMLAGER"),
     val password: String = getEnvVar("REDIS_PASSWORD_MELLOMLAGER"),
+)
+
+data class OppslagConfig(
+    val host: String = "http://oppslag",
+    val scope: String = getEnvVar("OPPSLAG_SCOPE")
 )
 
 data class PostgresConfig(

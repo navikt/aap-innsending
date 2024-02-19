@@ -2,13 +2,15 @@ package innsending.pdf
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import innsending.Config
 import innsending.SECURE_LOGGER
 import innsending.http.HttpClientFactory
+import innsending.oppslag.OppslagClient
+import innsending.postgres.InnsendingMedFiler
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.prometheus.client.Summary
-import java.time.LocalDateTime
 
 private const val PDFGEN_CLIENT_SECONDS_METRICNAME = "PDFGEN_client_seconds"
 private val clientLatencyStats: Summary = Summary.build()
@@ -19,8 +21,10 @@ private val clientLatencyStats: Summary = Summary.build()
     .help("Latency pdfgen, in seconds")
     .register()
 
-class PdfGen(private val host: String) {
+class PdfGen(config: Config) {
+    private val host = config.pdfGenHost
     private val httpClient = HttpClientFactory.create()
+    private val pdlClient = OppslagClient(config)
 
     suspend fun bildeTilPfd(bildeFil: ByteArray, contentType: ContentType): ByteArray {
         val res = clientLatencyStats.startTimer().use {
@@ -38,9 +42,19 @@ class PdfGen(private val host: String) {
     }
 
 
-    suspend fun søknadTilPdf(json: ByteArray, mottattDato: LocalDateTime): ByteArray {
-        val kvittering = json.toMap() + mapOf("mottattDato" to mottattDato.toString())
-        val data = SøknadPdfGen(SøkerPdfGen(SøkerPdfGen.Navn("", "")), kvittering)
+    suspend fun søknadTilPdf(innsending: InnsendingMedFiler): ByteArray {
+        val json = innsending.data ?: error("mangler søknaden fra innsending (innsending.data)")
+        val personident = innsending.personident
+
+        val navn = pdlClient.hentNavn(personident).let { navn ->
+            SøkerPdfGen.Navn(
+                fornavn = navn.fornavn,
+                etternavn = navn.etternavn,
+            )
+        }
+
+        val kvittering = json.toMap() + mapOf("mottattDato" to innsending.opprettet.toString())
+        val data = SøknadPdfGen(SøkerPdfGen(navn), kvittering)
 
         return clientLatencyStats.startTimer().use {
             httpClient.post("$host/api/v1/genpdf/aap-pdfgen/soknad") {

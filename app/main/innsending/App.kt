@@ -55,7 +55,7 @@ fun Application.server(
 ) {
     val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
     val antivirus = ClamAVClient(config.virusScanHost)
-    val pdfGen = PdfGen(config.pdfGenHost)
+    val pdfGen = PdfGen(config)
     val postgres = PostgresRepo(datasource)
 
     val joarkClient = JoarkClient(config.azure, config.joark)

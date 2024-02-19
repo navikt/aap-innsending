@@ -47,6 +47,10 @@ internal object TestConfig {
                 truststorePath = "test",
                 keystorePath = "test",
                 credstorePsw = "test"
+            ),
+            oppslag = OppslagConfig(
+                host = "http://localhost:${fakes.oppslag.port()}",
+                scope = "api://dev-gcp.aap.oppslag/.default"
             )
         )
     }

@@ -39,7 +39,7 @@ class Apekatt(
                     }
 
                     if (innsending.data != null) {
-                        val pdf = pdfGen.søknadTilPdf(innsending.data, innsending.opprettet)
+                        val pdf = pdfGen.søknadTilPdf(innsending)
                         journalpostSender.arkiverSøknad(pdf, innsending)
 
                         minsideProducer.produce(innsending.personident)

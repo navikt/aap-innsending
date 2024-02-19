@@ -21,6 +21,7 @@ class Fakes : AutoCloseable {
     val tokenx = embeddedServer(Netty, port = 0, module = Application::tokenx).apply { start() }
     val joark = JoarkFake()
     val pdfGen = embeddedServer(Netty, port = 0, module = Application::pdfGen).apply { start() }
+    val oppslag = embeddedServer(Netty, port = 0, module = Application::oppslag).apply { start() }
     val virusScan = embeddedServer(Netty, port = 0, module = Application::virusScan).apply { start() }
 
     override fun close() {
@@ -70,8 +71,21 @@ fun Application.azure() {
     install(ContentNegotiation) { jackson() }
     routing {
         post("/token") {
-            val scope = "api://dev-fss.teamdokumenthandtering.dokarkiv/.default"
-            require(call.receiveText() == "client_id=test&client_secret=test&scope=$scope&grant_type=client_credentials")
+            val scopes = listOf(
+                "api://dev-fss.teamdokumenthandtering.dokarkiv/.default",
+                "api://dev-gcp.aap.oppslag/.default"
+            )
+
+            val request = call.receiveText()
+
+            require(
+                scopes
+                    .map { "client_id=test&client_secret=test&scope=$it&grant_type=client_credentials" }
+                    .any { it == request }
+            ) {
+                "Ukjent token request $request"
+            }
+
             call.respond(
                 Token(
                     expires_in = 3599,
@@ -94,6 +108,18 @@ fun Application.pdfGen() {
         post("/api/v1/genpdf/aap-pdfgen/soknad") {
             val res = Resource.read("/resources/pdf/minimal.pdf")
             call.respond(res)
+        }
+    }
+}
+
+fun Application.oppslag() {
+    install(ContentNegotiation) { jackson() }
+    routing {
+        get("/person/navn") {
+            call.respondText(
+                """{"fornavn": "Ola", "etternavn": "Nordmann"}""",
+                ContentType.Application.Json
+            )
         }
     }
 }
