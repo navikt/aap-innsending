@@ -4,14 +4,27 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import org.slf4j.Logger
+import io.micrometer.core.instrument.MeterRegistry
 
-abstract class JwtHttpClient(val config: HttpConfig) {
+abstract class HttpClientWrapper(val config: HttpConfig, registry: MeterRegistry) {
     abstract suspend fun getToken(): String
 
     val http by lazy { Client() }
 
-    inner class Client {
+    private val statusMeter by lazy {
+        registry.createCounter(
+            name = "http_client_status",
+            tags = listOf("client", "path", "status")
+        )
+    }
+
+    val latencyMeter by lazy {
+        registry.createTimer(
+            name = "${config.alias}_client_seconds",
+        )
+    }
+
+    inner class Client internal constructor() {
         @PublishedApi
         internal val client = HttpClientFactory.create()
 
@@ -21,7 +34,7 @@ abstract class JwtHttpClient(val config: HttpConfig) {
             crossinline request: HttpRequestBuilder.() -> Unit = {},
         ): HttpResult<RES>? {
             val catchedResponse: Result<HttpResponse> =
-                config.latencyMeter.timed {
+                latencyMeter.timer {
                     runCatching {
                         client.get(config.host + path) {
                             bearerAuth(getToken())
@@ -32,7 +45,10 @@ abstract class JwtHttpClient(val config: HttpConfig) {
                     }
                 }
 
-            return catchedResponse.fold(::onSuccess, ::onFailure)
+            return catchedResponse.fold(
+                onSuccess = { wrapSuccess(path, it) },
+                onFailure = { wrapFailure(path, it) }
+            )
         }
 
         suspend inline fun <reified REQ : Any, RES> post(
@@ -41,7 +57,7 @@ abstract class JwtHttpClient(val config: HttpConfig) {
             crossinline request: HttpRequestBuilder.() -> Unit = {},
         ): HttpResult<RES>? {
             val catchedResponse: Result<HttpResponse> =
-                config.latencyMeter.timed {
+                latencyMeter.timer {
                     runCatching {
                         client.post(config.host + path) {
                             contentType(ContentType.Application.Json)
@@ -53,13 +69,18 @@ abstract class JwtHttpClient(val config: HttpConfig) {
                     }
                 }
 
-            return catchedResponse.fold(::onSuccess, ::onFailure)
+            return catchedResponse.fold(
+                onSuccess = { wrapSuccess(path, it) },
+                onFailure = { wrapFailure(path, it) }
+            )
         }
     }
 
 
     @PublishedApi
-    internal fun <RES> onSuccess(response: HttpResponse): HttpResult<RES> {
+    internal fun <RES> wrapSuccess(path: Path, response: HttpResponse): HttpResult<RES> {
+        statusMeter.inc(listOf(config.alias, path.toString(), response.status.value.toString()))
+
         return when (response.status.value) {
             in 200..299 -> HttpResult.Ok(config, response)
             in 400..499 -> HttpResult.ClientError(config, response)
@@ -69,10 +90,9 @@ abstract class JwtHttpClient(val config: HttpConfig) {
     }
 
     @PublishedApi
-    internal fun <RES> onFailure(
-        e: Throwable,
-    ): HttpResult<RES>? {
-        config.log.error("Failed to execute POST operation", e)
+    internal fun <RES> wrapFailure(path: Path, e: Throwable): HttpResult<RES>? {
+        statusMeter.inc(listOf(config.alias, path.toString(), "error"))
+        config.log.error("Failed to execute POST $path", e)
         return null
     }
 
@@ -97,41 +117,4 @@ class Path private constructor(private val path: String) {
     }
 
     override fun toString(): String = path
-}
-
-open class HttpConfig(
-    open val host: String,
-    open val log: Logger,
-    open val latencyMeter: Meter.LATENCY,
-)
-
-sealed class HttpResult<T>(config: HttpConfig) {
-    val log by lazy { config.log }
-
-    class Ok<T>(config: HttpConfig, val response: HttpResponse) : HttpResult<T>(config) {
-
-        suspend inline fun <reified T : Any> getOrNull(): T? {
-            return runCatching {
-                response.body<T>()
-            }.onFailure {
-                log.error("Failed to deserialize response '{}'", response.call.request.url, it)
-            }.getOrNull()
-        }
-    }
-
-    class ClientError<T>(val config: HttpConfig, private val response: HttpResponse) : HttpResult<T>(config) {
-        suspend fun traceError(): Nothing? {
-            // todo: micrometer
-            log.error("HTTP ${response.status} for ${response.call.request.url} responded with ${response.bodyAsText()}")
-            return null
-        }
-    }
-
-    class ServerError<T>(val config: HttpConfig, private val response: HttpResponse) : HttpResult<T>(config) {
-        suspend fun traceError(): Nothing? {
-            // todo: micrometer
-            log.error("HTTP ${response.status} for ${response.call.request.url} responded with ${response.bodyAsText()}")
-            return null
-        }
-    }
 }

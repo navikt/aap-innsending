@@ -7,7 +7,6 @@ import innsending.arkiv.JoarkClient
 import innsending.arkiv.JournalpostSender
 import innsending.auth.TOKENX
 import innsending.auth.authentication
-import innsending.http.Meters
 import innsending.kafka.KafkaProducer
 import innsending.kafka.MinSideKafkaProducer
 import innsending.pdf.PdfGen
@@ -56,7 +55,7 @@ fun Application.server(
 ) {
     val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
     val antivirus = ClamAVClient(config.virusScanHost)
-    val pdfGen = PdfGen(config)
+    val pdfGen = PdfGen(config, prometheus)
     val postgres = PostgresRepo(datasource)
 
     val joarkClient = JoarkClient(config.azure, config.joark)
@@ -71,8 +70,6 @@ fun Application.server(
     ).apply {
         start()
     }
-
-    Meters.register(prometheus.prometheusRegistry)
 
     environment.monitor.subscribe(ApplicationStopping) {
         runBlocking {

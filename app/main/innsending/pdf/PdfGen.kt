@@ -3,16 +3,25 @@ package innsending.pdf
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import innsending.Config
-import innsending.http.*
+import innsending.http.HttpClientWrapper
+import innsending.http.HttpResult
+import innsending.http.Path
 import innsending.oppslag.OppslagClient
 import innsending.postgres.InnsendingMedFiler
 import io.ktor.http.*
+import io.micrometer.core.instrument.MeterRegistry
 
 typealias Image = ByteArray
 typealias Json = ByteArray
 typealias Pdf = ByteArray
 
-class PdfGen(config: Config) : JwtHttpClient(config.pdfGen) {
+class PdfGen(
+    config: Config,
+    registry: MeterRegistry,
+) : HttpClientWrapper(
+    config.pdfGen,
+    registry,
+) {
     private val pdlClient = OppslagClient(config)
 
     override suspend fun getToken(): String = "no auth"
@@ -44,15 +53,6 @@ class PdfGen(config: Config) : JwtHttpClient(config.pdfGen) {
             path = Path.from("/api/v1/genpdf/aap-pdfgen/soknad"),
             body = SøknadPdfGen(søker, kvittering),
         )
-    }
-
-    companion object {
-        val LATENCY_METER = Meters.create {
-            Meter.LATENCY(
-                name = "PDFGEN_client_seconds",
-                description = "Latency pdfgen, in seconds"
-            )
-        }
     }
 }
 

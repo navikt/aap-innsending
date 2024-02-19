@@ -17,6 +17,7 @@ import java.util.*
 
 private val logger = LoggerFactory.getLogger("App")
 
+// TODO: alltid returner JSON ved 200, 201, 400, 404, 500 osv
 fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
     route("/innsending") {
 

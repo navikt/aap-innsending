@@ -1,8 +1,6 @@
 package innsending
 
 import innsending.http.HttpConfig
-import innsending.http.Meter
-import innsending.pdf.PdfGen
 import no.nav.aap.kafka.KafkaConfig
 import no.nav.aap.ktor.client.AzureConfig
 import org.slf4j.Logger
@@ -36,8 +34,8 @@ data class Config(
 data class PdfGenConfig(
     override val host: String = "http://pdfgen",
     override val log: Logger = LoggerFactory.getLogger("secureLog"),
-    override val latencyMeter: Meter.LATENCY = PdfGen.LATENCY_METER
-) : HttpConfig(host, log, latencyMeter)
+    override val alias: String = "pdfgen",
+) : HttpConfig(host, log, alias)
 
 data class RedisConfig(
     val uri: URI = URI(getEnvVar("REDIS_URI_MELLOMLAGER").also { SECURE_LOGGER.info("redis uri $it") }),
