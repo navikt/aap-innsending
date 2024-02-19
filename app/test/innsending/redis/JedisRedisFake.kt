@@ -23,4 +23,6 @@ class JedisRedisFake : Redis {
     override fun expiresIn(key: Key): Long = 0
 
     override fun exists(key: Key): Boolean = cache.contains(str(key))
+
+    override fun close() {}
 }

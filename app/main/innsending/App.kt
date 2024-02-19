@@ -65,6 +65,7 @@ fun Application.server(
     environment.monitor.subscribe(ApplicationStopping) {
         arkivScheduler.close()
         minsideProducer.close()
+        redis.close()
     }
 
     install(MicrometerMetrics) { registry = prometheus }

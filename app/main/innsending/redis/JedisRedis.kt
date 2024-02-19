@@ -1,7 +1,6 @@
 package innsending.redis
 
 import innsending.RedisConfig
-import innsending.SECURE_LOGGER
 import redis.clients.jedis.DefaultJedisClientConfig
 import redis.clients.jedis.HostAndPort
 import redis.clients.jedis.JedisPool
@@ -16,7 +15,7 @@ data class Key(
     fun get(): ByteArray = "$prefix:$value".toByteArray()
 }
 
-interface Redis {
+interface Redis : AutoCloseable {
     fun set(key: Key, value: ByteArray, expireSec: Long)
     operator fun get(key: Key): ByteArray?
     fun del(key: Key)
@@ -75,5 +74,9 @@ class JedisRedis(config: RedisConfig) : Redis {
         pool.resource.use {
             return it.exists(key.get())
         }
+    }
+
+    override fun close() {
+        pool.close()
     }
 }
