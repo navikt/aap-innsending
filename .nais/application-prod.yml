@@ -39,6 +39,7 @@ spec:
         - host: dokarkiv.prod-fss-pub.nais.io
       rules:
         - application: pdfgen
+        - application: oppslag
         - application: clamav
           namespace: nais-system
   redis:
@@ -69,3 +70,5 @@ spec:
       value: https://dokarkiv.prod-fss-pub.nais.io
     - name: JOARK_SCOPE
       value: api://prod-fss.teamdokumenthandtering.dokarkiv/.default
+    - name: OPPSLAG_SCOPE
+      value: api://prod-gcp.aap.oppslag/.default
