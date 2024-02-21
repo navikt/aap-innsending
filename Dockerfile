@@ -26,11 +26,20 @@ ENV JAVA_HOME=/jre
 ENV LANG='nb_NO.UTF-8' LANGUAGE='nb_NO:nb' LC_ALL='nb:NO.UTF-8' TZ="Europe/Oslo"
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
+RUN apk add gcompat
+
 COPY --from=jre /customjre $JAVA_HOME
 COPY --from=javaagent /otel/javaagent.jar javaagent.jar
 COPY /app/build/libs/app-all.jar app.jar
 
-ENTRYPOINT ["java", "-javaagent:javaagent.jar", "-Djdk.tls.client.protocols=TLSv1.2", "-XX:ActiveProcessorCount=2", "-jar", "app.jar"]
+CMD [ \
+    "java", \
+    "-javaagent:javaagent.jar", \
+    "-Djdk.tls.client.protocols=TLSv1.2", \
+    "-XX:ActiveProcessorCount=2", \
+    "-jar", \
+    "app.jar" \
+]
 
 # use -XX:+UseParallelGC when 2 CPUs and 4G RAM.
 # use G1GC when using more than 4G RAM and/or more than 2 CPUs
