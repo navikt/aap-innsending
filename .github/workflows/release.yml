@@ -1,6 +1,17 @@
 name: release
 
 on:
+  workflow_dispatch:
+    inputs:
+      cluster:
+        description: Cluster
+        required: true
+        default: dev-gcp
+        type: choice
+        options:
+          - dev-gcp
+          - prod-gcp
+
   push:
     branches: [ main ]
     paths-ignore:
@@ -12,7 +23,7 @@ on:
 jobs:
   gradle:
     ## push til main eller etter branch (e.g. dependabot) er merget
-    if: github.event.pull_request.merged || github.event_name == 'push'
+    if: github.event.pull_request.merged || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     permissions:
       contents: write
       actions: read
@@ -23,7 +34,7 @@ jobs:
 
   dev:
     ## push til main eller etter branch (e.g. dependabot) er merget
-    if: github.event.pull_request.merged || github.event_name == 'push'
+    if: github.event.pull_request.merged || github.event_name == 'push' || github.event.inputs.cluster == 'dev-gcp'
     permissions:
       contents: read
       id-token: write
@@ -35,7 +46,7 @@ jobs:
       manifest: .nais/application-dev.yml
 
   prod:
-    if: github.event.pull_request.merged || github.event_name == 'push'
+    if: github.event.pull_request.merged || github.event_name == 'push' || github.event.inputs.cluster == 'prod-gcp'
     permissions:
       contents: read
       id-token: write
