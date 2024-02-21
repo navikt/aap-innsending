@@ -62,7 +62,7 @@ fun Application.server(
     val pdfGen = PdfGen(config, prometheus)
     val postgres = PostgresRepo(datasource)
 
-    val joarkClient = JoarkClient(config.azure, config.joark)
+    val joarkClient = JoarkClient(config, prometheus)
     val journalpostSender = JournalpostSender(joarkClient, postgres)
     val arkivScheduler = Apekatt(
         config,

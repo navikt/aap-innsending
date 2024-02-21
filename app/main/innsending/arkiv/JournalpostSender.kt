@@ -11,7 +11,7 @@ class JournalpostSender(
     private val client: JoarkClient,
     private val repo: PostgresRepo,
 ) {
-    fun arkiverSøknad(søknadSomPdf: ByteArray, innsending: InnsendingMedFiler) {
+    suspend fun arkiverSøknad(søknadSomPdf: ByteArray, innsending: InnsendingMedFiler) {
         fun dokumenter(): List<Journalpost.Dokument> {
             val orginalSøknadDokument = innsending.søknad?.let {
                 val encoded = Base64.getEncoder().encodeToString(it)
@@ -49,7 +49,7 @@ class JournalpostSender(
         repo.slettInnsending(innsending.id)
     }
 
-    fun arkiverEttersending(innsending: InnsendingMedFiler) {
+    suspend fun arkiverEttersending(innsending: InnsendingMedFiler) {
         val vedleggDokumenter = lagDokumenter(innsending)
 
         val journalpost = Journalpost(

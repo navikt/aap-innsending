@@ -83,7 +83,7 @@ class Apekatt(
         }
     }
 
-    private fun arkiverEttersending(innsending: InnsendingMedFiler) {
+    private suspend fun arkiverEttersending(innsending: InnsendingMedFiler) {
         journalpostSender.arkiverEttersending(innsending)
     }
 
