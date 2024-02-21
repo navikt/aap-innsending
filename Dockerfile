@@ -30,7 +30,7 @@ COPY --from=jre /customjre $JAVA_HOME
 COPY --from=javaagent /otel/javaagent.jar javaagent.jar
 COPY /app/build/libs/app-all.jar app.jar
 
-CMD ["java", "-javaagent:javaagent.jar", "-XX:ActiveProcessorCount=2", "-jar", "app.jar"]
+CMD ["java", "-javaagent:javaagent.jar", "-Djdk.tls.client.protocols=TLSv1.2", "-XX:ActiveProcessorCount=2", "-jar", "app.jar"]
 
 # use -XX:+UseParallelGC when 2 CPUs and 4G RAM.
 # use G1GC when using more than 4G RAM and/or more than 2 CPUs
