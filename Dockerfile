@@ -15,24 +15,23 @@ RUN jlink \
     --compress=2 \
     --output /customjre
 
+
+
+FROM scratch as javaagent
+ADD https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/latest/download/opentelemetry-javaagent.jar /instrumentations/java/javaagent.jar
+
+
+
 FROM alpine:3.19.1 as app
 ENV JAVA_HOME=/jre
 ENV LANG='nb_NO.UTF-8' LANGUAGE='nb_NO:nb' LC_ALL='nb:NO.UTF-8' TZ="Europe/Oslo"
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
-#RUN apk --no-cache add curl
-#RUN curl -L -O https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/latest/download/opentelemetry-javaagent.jar
-
 COPY --from=jre /customjre $JAVA_HOME
+COPY --from=javaagent /instrumentations/java/javaagent.jar /app/javaagent.jar
 COPY /app/build/libs/app-all.jar app.jar
 
-#ENV JAVA_TOOL_OPTIONS \
-#    -javaagent:./opentelemetry-javaagent.jar \
-#    OTEL_TRACES_EXPORTER=otlp \
-#    OTEL_METRICS_EXPORTER=prometheus \
-#    OTEL_LOGS_EXPORTER=none
-
-CMD ["java", "-XX:ActiveProcessorCount=2", "-jar", "app.jar"]
+CMD ["java", "-javaagent:/app/javaagent.jar", "-XX:ActiveProcessorCount=2", "-jar", "app.jar"]
 
 # use -XX:+UseParallelGC when 2 CPUs and 4G RAM.
 # use G1GC when using more than 4G RAM and/or more than 2 CPUs
