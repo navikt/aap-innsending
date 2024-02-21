@@ -44,7 +44,7 @@ dependencies {
     implementation("org.flywaydb:flyway-core:10.7.2")
     implementation("org.flywaydb:flyway-database-postgresql:10.8.1")
     runtimeOnly("net.logstash.logback:logstash-logback-encoder:7.4")
-    runtimeOnly("org.postgresql:postgresql:42.7.1")
+    runtimeOnly("org.postgresql:postgresql:42.7.2")
 
 //    implementation("io.opentelemetry:opentelemetry-sdk:1.34.1")
 //    implementation("io.opentelemetry:opentelemetry-exporter-logging:1.34.1")
