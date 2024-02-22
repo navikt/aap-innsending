@@ -1,0 +1,4 @@
+io.opentelemetry.javaagent.shaded.instrumentation.javaagent.jmx.JmxMetricInsightInstaller
+io.opentelemetry.javaagent.instrumentation.oshi.OshiMetricsInstaller
+io.opentelemetry.javaagent.shaded.instrumentation.javaagent.runtimemetrics.java17.Java17RuntimeMetricsInstaller
+io.opentelemetry.javaagent.shaded.instrumentation.javaagent.runtimemetrics.java8.Java8RuntimeMetricsInstaller

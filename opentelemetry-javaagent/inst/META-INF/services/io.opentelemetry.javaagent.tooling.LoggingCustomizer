@@ -1,0 +1,3 @@
+io.opentelemetry.javaagent.tooling.NoopLoggingCustomizer
+io.opentelemetry.javaagent.logging.application.ApplicationLoggingCustomizer
+io.opentelemetry.javaagent.logging.simple.Slf4jSimpleLoggingCustomizer
