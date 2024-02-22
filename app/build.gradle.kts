@@ -45,6 +45,7 @@ dependencies {
     implementation("org.flywaydb:flyway-database-postgresql:10.8.1")
 
     implementation("io.ktor:ktor-server-cors:$ktorVersion")
+    implementation("io.ktor:ktor-server-webjars")
     implementation("io.ktor:ktor-server-openapi:$ktorVersion")
     implementation("io.ktor:ktor-server-swagger:$ktorVersion") // swaggerUI()
     implementation("io.swagger.codegen.v3:swagger-codegen-generators:1.0.36") // openAPI() med StaticHtmlCodegen
