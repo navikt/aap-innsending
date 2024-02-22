@@ -1,3 +1,0 @@
-io.opentelemetry.exporter.logging.otlp.internal.LoggingMetricExporterProvider
-io.opentelemetry.exporter.logging.internal.LoggingMetricExporterProvider
-io.opentelemetry.exporter.otlp.internal.OtlpMetricExporterProvider

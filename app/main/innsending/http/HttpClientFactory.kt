@@ -10,7 +10,6 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.serialization.jackson.*
-import io.opentelemetry.instrumentation.ktor.v2_0.client.KtorClientTracing
 
 internal object HttpClientFactory {
     fun create(): HttpClient = HttpClient(CIO) {
@@ -18,16 +17,11 @@ internal object HttpClientFactory {
             requestTimeoutMillis = 25_000
             connectTimeoutMillis = 5_000
         }
+
         install(HttpRequestRetry)
 
-        install(KtorClientTracing) {
-            setOpenTelemetry(InnsendingOpenTelemetry.client)
-        }
-
         install(Logging) {
-            logger = object : Logger {
-                override fun log(message: String) = SECURE_LOGGER.info(message)
-            }
+            logger = ClientLogger
             level = LogLevel.ALL
         }
 
@@ -38,5 +32,11 @@ internal object HttpClientFactory {
                 registerModule(JavaTimeModule())
             }
         }
+    }
+}
+
+internal object ClientLogger : Logger {
+    override fun log(message: String) {
+        SECURE_LOGGER.info(message)
     }
 }

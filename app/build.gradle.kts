@@ -46,26 +46,6 @@ dependencies {
     runtimeOnly("net.logstash.logback:logstash-logback-encoder:7.4")
     runtimeOnly("org.postgresql:postgresql:42.7.2")
 
-//    implementation("io.opentelemetry:opentelemetry-sdk:1.34.1")
-//    implementation("io.opentelemetry:opentelemetry-exporter-logging:1.34.1")
-    //implementation("io.opentelemetry:opentelemetry-extension-kotlin:1.34.1")
-
-    //implementation("io.opentelemetry:opentelemetry-bom:1.34.1")
-    
-    // Manually instrumentation
-    implementation("io.opentelemetry:opentelemetry-api:1.34.1")
-
-    // Instrument application
-    implementation("io.opentelemetry:opentelemetry-sdk:1.35.0");
-    implementation("io.opentelemetry:opentelemetry-sdk-metrics:1.35.0");
-    implementation("io.opentelemetry:opentelemetry-exporter-logging:1.35.0");
-//    implementation("io.opentelemetry:opentelemetry-semconv:1.34.1-alpha");
-
-    // Instrument ktor
-    implementation("io.opentelemetry.instrumentation:opentelemetry-ktor-2.0:2.0.0-alpha")
-    //implementation("io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:2.0.0-alpha")
-
-
     testImplementation(kotlin("test"))
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     testImplementation("com.h2database:h2:2.2.224")

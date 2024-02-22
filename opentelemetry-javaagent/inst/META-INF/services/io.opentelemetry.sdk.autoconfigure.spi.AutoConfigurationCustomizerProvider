@@ -1,4 +1,0 @@
-io.opentelemetry.javaagent.tooling.AgentTracerProviderConfigurer
-io.opentelemetry.javaagent.tooling.config.ConfigurationPropertiesSupplier
-io.opentelemetry.javaagent.tooling.config.OtlpProtocolPropertiesSupplier
-io.opentelemetry.sdk.extension.incubator.metric.viewconfig.ViewConfigCustomizer
