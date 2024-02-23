@@ -141,12 +141,7 @@ fun Application.server(
 
         actuator(prometheus, redis)
 
-        swaggerUI(path = "swagger", swaggerFile = "openapi.yaml") {
-            customStyle("https://raw.githubusercontent.com/ilyamixaltik/swagger-themes/main/themes/nord-dark.css")
-        }
-//        openAPI(path="openapi", swaggerFile = "openapi/openapi.yaml") {
-//            codegen = StaticHtmlCodegen()
-//        }
+        swaggerUI(path = "swagger", swaggerFile = "openapi.yaml")
     }
 }
 
