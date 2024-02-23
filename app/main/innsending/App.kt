@@ -32,7 +32,6 @@ import io.ktor.server.netty.*
 import io.ktor.server.plugins.callloging.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
-import io.ktor.server.plugins.openapi.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.plugins.swagger.*
 import io.ktor.server.request.*
@@ -142,11 +141,12 @@ fun Application.server(
 
         actuator(prometheus, redis)
 
-        openAPI(path = "openapi", swaggerFile = "openapi/openapi.yaml") {
-            this.opts.config.outputDir = "res/openapi"
+        swaggerUI(path = "swagger", swaggerFile = "openapi.yaml") {
+            customStyle("https://raw.githubusercontent.com/ilyamixaltik/swagger-themes/main/themes/nord-dark.css")
         }
-
-        swaggerUI(path="swagger", swaggerFile = "openapi/openapi.yaml")
+//        openAPI(path="openapi", swaggerFile = "openapi/openapi.yaml") {
+//            codegen = StaticHtmlCodegen()
+//        }
     }
 }
 

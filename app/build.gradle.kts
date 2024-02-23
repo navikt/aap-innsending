@@ -47,10 +47,10 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
 
     implementation("io.ktor:ktor-server-cors:$ktorVersion")
-    implementation("io.ktor:ktor-server-webjars:$ktorVersion")
     implementation("io.ktor:ktor-server-swagger:$ktorVersion") // swaggerUI()
-    implementation("io.ktor:ktor-server-openapi:$ktorVersion")
-    implementation("io.swagger.codegen.v3:swagger-codegen-generators:1.0.46")
+    implementation("io.ktor:ktor-server-webjars:$ktorVersion") // staticFiles()
+//    implementation("io.ktor:ktor-server-openapi:$ktorVersion")
+//    implementation("io.swagger.codegen.v3:swagger-codegen-generators:1.0.46")
 
     runtimeOnly("net.logstash.logback:logstash-logback-encoder:7.4")
     runtimeOnly("org.postgresql:postgresql:42.7.2")
