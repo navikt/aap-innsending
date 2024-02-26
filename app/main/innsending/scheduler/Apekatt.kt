@@ -20,16 +20,17 @@ class Apekatt(
     private val journalpostSender: JournalpostSender,
     private val minsideProducer: KafkaProducer
 ) : AutoCloseable {
-    private val job: Job = CoroutineScope(Dispatchers.Default).launch {
+    private val job: Job = CoroutineScope(Dispatchers.IO).launch {
         while (this.isActive) {
             try {
+                prometheus.counter("apekatt.isactive").increment()
                 val innsendingIder = repo.hentAlleInnsendinger()
                 prometheus.gauge("innsendinger", innsendingIder.size)
                 innsendingIder.forEach { innsendingId ->
                     val innsending = repo.hentInnsending(innsendingId)
 
                     if (innsending == null) {
-                        SECURE_LOGGER.error(
+                        SECURE_LOGGER.warn(
                             """
                             Failed to archive innsending=$innsendingId
                             Not found in database. Already archived?
@@ -50,8 +51,13 @@ class Apekatt(
                     prometheus.counter("innsending", listOf(Tag.of("resultat", "ok"))).increment()
                 }
             } catch (t: Throwable) {
-                if (t is CancellationException) throw t
-                if (t is KafkaProducerException) throw t
+                if (t is CancellationException) {
+                    SECURE_LOGGER.info("Cancellation exception fanget", t)
+                    throw t
+                }
+                if (t is KafkaProducerException) {
+                    continue
+                }
 
                 SECURE_LOGGER.error("Klarte ikke å arkivere", t)
                 prometheus.counter("innsending", listOf(Tag.of("resultat", "feilet"))).increment()
