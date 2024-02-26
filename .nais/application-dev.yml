@@ -36,7 +36,6 @@ spec:
       rules:
         - application: innsyn
         - application: soknad
-        - application: min-side-microfrontend
         - application: tms-utkast
           namespace: min-side
           cluster: dev-gcp
