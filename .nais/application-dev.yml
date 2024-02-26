@@ -69,8 +69,9 @@ spec:
     enabled: true
     path: /actuator/metrics
   observability:
-    tracing:
+    autoInstrumentation:
       enabled: true
+      runtime: "java"
   secureLogs:
     enabled: true
   env:
