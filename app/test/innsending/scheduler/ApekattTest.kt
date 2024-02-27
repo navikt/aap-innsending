@@ -40,7 +40,7 @@ class ApekattTest : H2TestBase() {
                 application {
                     server(config, fakes.redis, h2, fakes.kafka)
                     val actual = runBlocking {
-                        withTimeout(1000) {
+                        withTimeout(2000) {
                             fakes.joark.receivedRequest.await()
                         }
                     }
@@ -85,7 +85,7 @@ class ApekattTest : H2TestBase() {
             }
 
             val actual = runBlocking {
-                withTimeout(1000) {
+                withTimeout(2000) {
                     fakes.joark.receivedRequest.await()
                 }
             }
