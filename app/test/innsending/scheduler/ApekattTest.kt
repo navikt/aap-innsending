@@ -4,12 +4,10 @@ import innsending.Fakes
 import innsending.Resource
 import innsending.TestConfig
 import innsending.arkiv.Journalpost
-import innsending.kafka.KafkaFake
 import innsending.postgres.H2TestBase
 import innsending.postgres.PostgresDAO
 import innsending.postgres.toByteArray
 import innsending.postgres.transaction
-import innsending.redis.JedisRedisFake
 import innsending.server
 import io.ktor.server.testing.*
 import kotlinx.coroutines.runBlocking
@@ -25,7 +23,6 @@ class ApekattTest : H2TestBase() {
     @Test
     fun `journalfører søknad`() {
         Fakes().use { fakes ->
-            val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
 
             h2.transaction {
@@ -41,7 +38,7 @@ class ApekattTest : H2TestBase() {
 
             testApplication {
                 application {
-                    server(config, jedis, h2, KafkaFake)
+                    server(config, fakes.redis, h2, fakes.kafka)
                     val actual = runBlocking {
                         withTimeout(1000) {
                             fakes.joark.receivedRequest.await()
@@ -62,7 +59,6 @@ class ApekattTest : H2TestBase() {
     @Test
     fun `journalfører ettersendelse `() {
         Fakes().use { fakes ->
-            val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
 
             h2.transaction {
@@ -85,7 +81,7 @@ class ApekattTest : H2TestBase() {
             }
 
             testApplication {
-                application { server(config, jedis, h2, KafkaFake) }
+                application { server(config, fakes.redis, h2, fakes.kafka) }
             }
 
             val actual = runBlocking {
