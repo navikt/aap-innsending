@@ -11,6 +11,7 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-read-timeout: "90"
 spec:
   image: {{image}}
+  leaderElection: true
   ingresses:
     - https://aap-innsending.intern.dev.nav.no
   replicas:

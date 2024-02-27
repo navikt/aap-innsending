@@ -8,6 +8,7 @@ metadata:
     sub: innsending
 spec:
   image: {{image}}
+  leaderElection: true
   replicas:
     cpuThresholdPercentage: 90
     disableAutoScaling: true
