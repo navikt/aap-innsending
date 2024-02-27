@@ -28,10 +28,11 @@ class Apekatt(
     private val mutex = Mutex()
     private var isRunning: Boolean = false
 
-    private suspend fun innsendinger(): Flow<InnsendingMedFiler> = flow {
+    private fun innsendinger(): Flow<InnsendingMedFiler> = flow {
         while (mutex.withLock { isRunning }) {
             if (leaderElector.isLeader()) {
                 repo.hentAlleInnsendinger()
+                    .also { prometheus.gauge("innsendinger", it.size) }
                     .mapNotNull { repo.hentInnsending(it) }
                     .forEach { emit(it) }
             }
