@@ -52,7 +52,7 @@ internal object TestConfig {
                 host = "http://localhost:${fakes.oppslag.port()}",
                 scope = "api://dev-gcp.aap.oppslag/.default"
             ),
-            leaderElectorPath = "http://localhost:${fakes.leaderElector.port()}"
+            leaderElectorPath = "localhost:${fakes.leaderElector.port()}"
         )
     }
 }

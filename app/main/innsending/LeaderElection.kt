@@ -21,7 +21,7 @@ class LeaderElection(
     fun isLeader(): Boolean {
         try {
             val response = runBlocking {
-                client.get(config.leaderElectorPath).body<LeaderResponse>()
+                client.get("http://${config.leaderElectorPath}").body<LeaderResponse>()
             }
             val leader = response.name
             val isLeader = hostname == leader
