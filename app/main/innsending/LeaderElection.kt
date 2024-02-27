@@ -1,9 +1,14 @@
 package innsending
 
-import innsending.http.HttpClientFactory
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
+import io.ktor.serialization.jackson.*
 import kotlinx.coroutines.runBlocking
 import java.net.InetAddress
 
@@ -14,7 +19,7 @@ data class LeaderResponse(
 
 class LeaderElection(
     private val config: Config,
-    private val client: HttpClient = HttpClientFactory.create(),
+    private val client: HttpClient = silentHttpClient(),
 ) {
     private val hostname = InetAddress.getLocalHost().hostName
 
@@ -37,3 +42,14 @@ class LeaderElection(
         }
     }
 }
+
+fun silentHttpClient(): HttpClient =
+    HttpClient(CIO) {
+        install(ContentNegotiation) {
+            jackson {
+                disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                registerModule(JavaTimeModule())
+            }
+        }
+    }

@@ -5,7 +5,6 @@ import innsending.Config
 import innsending.LeaderElection
 import innsending.SECURE_LOGGER
 import innsending.arkiv.JournalpostSender
-import innsending.http.HttpClientFactory
 import innsending.kafka.KafkaProducer
 import innsending.kafka.KafkaProducerException
 import innsending.pdf.PdfGen
@@ -18,7 +17,7 @@ import kotlinx.coroutines.flow.flow
 private const val TI_SEKUNDER = 10_000L
 
 class Apekatt(
-    private val config: Config,
+    config: Config,
     private val pdfGen: PdfGen,
     private val repo: PostgresRepo,
     private val prometheus: MeterRegistry,
@@ -26,7 +25,7 @@ class Apekatt(
     private val minsideProducer: KafkaProducer
 ) {
     private val scope = CoroutineScope(Dispatchers.IO)
-    private val leaderElector = LeaderElection(config, HttpClientFactory.create())
+    private val leaderElector = LeaderElection(config)
 
     // Only initialize for pod marked as elected leader
     private lateinit var job: Job

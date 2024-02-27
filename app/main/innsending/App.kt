@@ -7,7 +7,6 @@ import innsending.arkiv.JoarkClient
 import innsending.arkiv.JournalpostSender
 import innsending.auth.TOKENX
 import innsending.auth.authentication
-import innsending.http.HttpClientFactory
 import innsending.kafka.KafkaProducer
 import innsending.kafka.MinSideKafkaProducer
 import innsending.pdf.PdfGen
@@ -19,8 +18,6 @@ import innsending.routes.actuator
 import innsending.routes.innsendingRoute
 import innsending.routes.mellomlagerRoute
 import innsending.scheduler.Apekatt
-import io.ktor.client.call.*
-import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
@@ -41,7 +38,6 @@ import kotlinx.coroutines.runBlocking
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
-import java.net.InetAddress
 import javax.sql.DataSource
 
 val SECURE_LOGGER: Logger = LoggerFactory.getLogger("secureLog")
