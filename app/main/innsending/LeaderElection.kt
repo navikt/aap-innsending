@@ -10,12 +10,15 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.serialization.jackson.*
 import kotlinx.coroutines.runBlocking
+import org.slf4j.LoggerFactory
 import java.net.InetAddress
 
 data class LeaderResponse(
     val name: String,
     val last_update: String,
 )
+
+private val log = LoggerFactory.getLogger(LeaderElection::class.java)
 
 class LeaderElection(
     private val config: Config,
@@ -31,13 +34,13 @@ class LeaderElection(
             val leader = response.name
             val isLeader = hostname == leader
             if (isLeader) {
-                SECURE_LOGGER.info("I ($hostname) am the leader")
+                log.info("I ($hostname) am the leader")
             } else {
-                SECURE_LOGGER.info("I ($hostname) am not the leader, leader is $leader")
+                log.info("I ($hostname) am not the leader, leader is $leader")
             }
             return isLeader
         } catch (e: Exception) {
-            SECURE_LOGGER.error("Failed to get leader", e)
+            log.error("Failed to get leader", e)
             return false
         }
     }
