@@ -10,6 +10,7 @@ import innsending.postgres.PostgresRepo
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tag
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.flow
 
 private const val TI_SEKUNDER = 10_000L
 
@@ -24,15 +25,26 @@ class Apekatt(
 
     // Only initialize for pod marked as elected leader
     private lateinit var job: Job
+    private var isRunning = false
 
     fun start() {
+        isRunning = true
+        val flow = flow {
+            while (isRunning) {
+                val innsendingIder = repo.hentAlleInnsendinger()
+                prometheus.gauge("innsendinger", innsendingIder.size)
+                innsendingIder.forEach { id ->
+                    emit(id)
+                }
+            }
+        }
+
         job = scope.launch {
             while (this.isActive) {
                 try {
                     prometheus.counter("apekatt.isactive").increment()
-                    val innsendingIder = repo.hentAlleInnsendinger()
-                    prometheus.gauge("innsendinger", innsendingIder.size)
-                    innsendingIder.forEach { innsendingId ->
+                    flow.collect { innsendingId ->
+
                         val innsending = repo.hentInnsending(innsendingId)
 
                         if (innsending == null) {
@@ -42,7 +54,7 @@ class Apekatt(
                             Not found in database. Already archived?
                             """.trimIndent()
                             )
-                            return@forEach // skip
+                            return@collect
                         }
 
                         if (innsending.data != null) {
@@ -76,6 +88,8 @@ class Apekatt(
     }
 
     fun stop() {
+        isRunning = false
+
         if (::job.isInitialized && !job.isCompleted) {
             runBlocking {
                 job.cancelAndJoin()
