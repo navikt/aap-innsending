@@ -36,6 +36,8 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
@@ -62,14 +64,21 @@ fun Application.server(
 
     val joarkClient = JoarkClient(config.azure, config.joark)
     val journalpostSender = JournalpostSender(joarkClient, postgres)
-    val arkivScheduler = Apekatt(pdfGen, postgres, prometheus, journalpostSender, minsideProducer)
-
-    val leaderElector = LeaderElection(config, HttpClientFactory.create())
-    if (leaderElector.isLeader()) {
-        arkivScheduler.start()
+    val arkivScheduler = Apekatt(
+        config,
+        pdfGen,
+        postgres,
+        prometheus,
+        journalpostSender,
+        minsideProducer,
+    ).apply {
+        start()
     }
 
     environment.monitor.subscribe(ApplicationStopping) {
+        runBlocking {
+            delay(1000)
+        }
         arkivScheduler.stop()
         minsideProducer.close()
         redis.close()
