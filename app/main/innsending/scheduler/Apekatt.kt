@@ -48,8 +48,8 @@ class Apekatt(
         job = scope.launch {
             while (this.isActive && isRunning) {
                 try {
-                    prometheus.counter("apekatt.isactive").increment()
                     flow.collect { innsendingId ->
+                        prometheus.counter("apekatt.isactive").increment()
 
                         val innsending = repo.hentInnsending(innsendingId)
 
