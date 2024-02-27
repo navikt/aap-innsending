@@ -29,16 +29,15 @@ class InnsendingTest : H2TestBase() {
     @Test
     fun `kan sende inn søknad med 1 fil`() {
         Fakes().use { fakes ->
-            val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
             val tokenx = TokenXGen(config.tokenx)
             val filId1 = Key(value = UUID.randomUUID().toString(), prefix = "12345678910")
             val filId2 = Key(value = UUID.randomUUID().toString(), prefix = "12345678910")
 
             testApplication {
-                application { server(config, jedis, h2, KafkaFake) }
-                jedis.set(filId1, byteArrayOf(), 60)
-                jedis.set(filId2, byteArrayOf(), 60)
+                application { server(config, fakes.redis, h2, fakes.kafka) }
+                fakes.redis.set(filId1, byteArrayOf(), 60)
+                fakes.redis.set(filId2, byteArrayOf(), 60)
 
                 val res = jsonHttpClient.post("/innsending") {
                     bearerAuth(tokenx.generate("12345678910"))
@@ -73,12 +72,11 @@ class InnsendingTest : H2TestBase() {
     @Test
     fun `feiler ved manglende filer`() {
         Fakes().use { fakes ->
-            val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
             val jwkGen = TokenXGen(config.tokenx)
             println(JSONObject({ "søknad" }))
             testApplication {
-                application { server(config, jedis, h2, KafkaFake) }
+                application { server(config, fakes.redis, h2, fakes.kafka) }
 
                 val res = jsonHttpClient.post("/innsending") {
                     bearerAuth(jwkGen.generate("12345678910"))
@@ -107,16 +105,15 @@ class InnsendingTest : H2TestBase() {
     @Test
     fun `kan sende inn ettersending`() {
         Fakes().use { fakes ->
-            val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
             val tokenx = TokenXGen(config.tokenx)
             val filId1 = Key(UUID.randomUUID().toString(), prefix = "12345678910")
             val filId2 = Key(UUID.randomUUID().toString(), prefix = "12345678910")
 
             testApplication {
-                application { server(config, jedis, h2, KafkaFake) }
-                jedis.set(filId1, byteArrayOf(), 60)
-                jedis.set(filId2, byteArrayOf(), 60)
+                application { server(config, fakes.redis, h2, fakes.kafka) }
+                fakes.redis.set(filId1, byteArrayOf(), 60)
+                fakes.redis.set(filId2, byteArrayOf(), 60)
 
                 val res = jsonHttpClient.post("/innsending") {
                     bearerAuth(tokenx.generate("12345678910"))
@@ -149,7 +146,6 @@ class InnsendingTest : H2TestBase() {
     @Test
     fun `kan sende inn ettersending med soknadRef hvor soknad ikke er journalført`() {
         Fakes().use { fakes ->
-            val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
             val tokenx = TokenXGen(config.tokenx)
             val soknadRef = UUID.randomUUID()
@@ -157,9 +153,9 @@ class InnsendingTest : H2TestBase() {
             val filId2 = Key(UUID.randomUUID().toString(), prefix = "12345678910")
 
             testApplication {
-                application { server(config, jedis, h2, KafkaFake) }
-                jedis.set(filId1, byteArrayOf(), 60)
-                jedis.set(filId2, byteArrayOf(), 60)
+                application { server(config, fakes.redis, h2, fakes.kafka) }
+                fakes.redis.set(filId1, byteArrayOf(), 60)
+                fakes.redis.set(filId2, byteArrayOf(), 60)
 
                 h2.transaction { con ->
                     PostgresDAO.insertInnsending(
@@ -203,7 +199,6 @@ class InnsendingTest : H2TestBase() {
     @Test
     fun `kan sende inn ettersending med soknadRef hvor soknad er journalført`() {
         Fakes().use { fakes ->
-            val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
             val tokenx = TokenXGen(config.tokenx)
             val soknadRef = UUID.randomUUID()
@@ -211,9 +206,9 @@ class InnsendingTest : H2TestBase() {
             val filId2 = Key(UUID.randomUUID().toString(), prefix = "12345678910")
 
             testApplication {
-                application { server(config, jedis, h2, KafkaFake) }
-                jedis.set(filId1, byteArrayOf(), 60)
-                jedis.set(filId2, byteArrayOf(), 60)
+                application { server(config, fakes.redis, h2, fakes.kafka) }
+                fakes.redis.set(filId1, byteArrayOf(), 60)
+                fakes.redis.set(filId2, byteArrayOf(), 60)
 
                 h2.transaction { con ->
                     PostgresDAO.insertLogg(

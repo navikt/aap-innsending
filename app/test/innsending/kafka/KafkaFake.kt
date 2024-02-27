@@ -1,11 +1,17 @@
 package innsending.kafka
 
-object KafkaFake: KafkaProducer {
+class KafkaFake: KafkaProducer {
+    private val messages = mutableListOf<String>()
+
     override fun produce(personident: String) {
-        TODO("Not yet implemented")
+        messages.add(personident)
     }
 
     override fun close() {
-        TODO("Not yet implemented")
+        messages.clear()
+    }
+
+    fun hasProduced(personident: String): Boolean {
+        return messages.contains(personident)
     }
 }

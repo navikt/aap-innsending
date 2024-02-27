@@ -24,19 +24,18 @@ class MellomlagringTest: H2TestBase() {
     @Test
     fun `kan mellomlagre søknad`() {
         Fakes().use { fakes ->
-            val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
             val jwkGen = TokenXGen(config.tokenx)
 
             testApplication {
-                application { server(config, jedis, h2, KafkaFake) }
+                application { server(config, fakes.redis, h2, fakes.kafka) }
                 val res = client.post("/mellomlagring/søknad") {
                     contentType(ContentType.Application.Json)
                     bearerAuth(jwkGen.generate("12345678910"))
                     setBody("""{"soknadId":"1234"}""")
                 }
                 assertEquals(HttpStatusCode.OK, res.status)
-                assertEquals("""{"soknadId":"1234"}""", String(jedis[Key("12345678910")]!!))
+                assertEquals("""{"soknadId":"1234"}""", String(fakes.redis[Key("12345678910")]!!))
             }
         }
     }
@@ -44,13 +43,12 @@ class MellomlagringTest: H2TestBase() {
     @Test
     fun `kan hente mellomlagring søknad`() {
         Fakes().use { fakes ->
-            val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
             val jwkGen = TokenXGen(config.tokenx)
 
             testApplication {
-                application { server(config, jedis, h2, KafkaFake) }
-                jedis.set(Key("12345678910"), """{"søknadId":"1234"}""".toByteArray(), 50)
+                application { server(config, fakes.redis, h2, fakes.kafka) }
+                fakes.redis.set(Key("12345678910"), """{"søknadId":"1234"}""".toByteArray(), 50)
 
                 val res = client.get("/mellomlagring/søknad") {
                     accept(ContentType.Application.Json)
@@ -66,13 +64,12 @@ class MellomlagringTest: H2TestBase() {
     @Test
     fun `kan slette mellomlagret søknad`() {
         Fakes().use { fakes ->
-            val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
             val jwkGen = TokenXGen(config.tokenx)
 
             testApplication {
-                application { server(config, jedis, h2, KafkaFake) }
-                jedis.set(Key("12345678910"), """{"søknadId":"1234"}""".toByteArray(), 50)
+                application { server(config, fakes.redis, h2, fakes.kafka) }
+                fakes.redis.set(Key("12345678910"), """{"søknadId":"1234"}""".toByteArray(), 50)
 
                 val del = client.delete("/mellomlagring/søknad") {
                     accept(ContentType.Application.Json)
@@ -80,7 +77,7 @@ class MellomlagringTest: H2TestBase() {
                 }
                 assertEquals(HttpStatusCode.OK, del.status)
 
-                assertNull(jedis[Key("12345678910")])
+                assertNull(fakes.redis[Key("12345678910")])
             }
         }
     }
@@ -88,12 +85,11 @@ class MellomlagringTest: H2TestBase() {
     @Test
     fun `ingen mellomlagring returnerer 404`() {
         Fakes().use { fakes ->
-            val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
             val jwkGen = TokenXGen(config.tokenx)
 
             testApplication {
-                application { server(config, jedis, h2, KafkaFake) }
+                application { server(config, fakes.redis, h2, fakes.kafka) }
 
                 val res = client.get("/mellomlagring/søknad") {
                     accept(ContentType.Application.Json)
@@ -107,14 +103,13 @@ class MellomlagringTest: H2TestBase() {
     @Test
     fun `kan mellomlagre fil`() {
         Fakes().use { fakes ->
-            val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
             val jwkGen = TokenXGen(config.tokenx)
             testApplication {
                 val client = createClient {
                     install(ContentNegotiation) { jackson() }
                 }
-                application { server(config, jedis, h2, KafkaFake) }
+                application { server(config, fakes.redis, h2, fakes.kafka) }
                 val res = client.submitFormWithBinaryData(url = "/mellomlagring/fil",
                     formData = formData {
                         append("document", Resource.read("/resources/images/bilde.jpg"), Headers.build {
@@ -129,7 +124,7 @@ class MellomlagringTest: H2TestBase() {
                 assertEquals(HttpStatusCode.Created, res.status)
                 val respons = res.body<MellomlagringRespons>()
                 val key = Key(respons.filId, prefix = "12345678910")
-                assertEquals(String(Resource.read("/resources/pdf/minimal.pdf")), jedis[key]?.let(::String))
+                assertEquals(String(Resource.read("/resources/pdf/minimal.pdf")), fakes.redis[key]?.let(::String))
             }
         }
     }
@@ -137,14 +132,13 @@ class MellomlagringTest: H2TestBase() {
     @Test
     fun `kan ikke mellomlagre tom pdf`() {
         Fakes().use { fakes ->
-            val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
             val jwkGen = TokenXGen(config.tokenx)
             testApplication {
                 val client = createClient {
                     install(ContentNegotiation) { jackson() }
                 }
-                application { server(config, jedis, h2, KafkaFake) }
+                application { server(config, fakes.redis, h2, fakes.kafka) }
                 val res = client.submitFormWithBinaryData(url = "/mellomlagring/fil",
                     formData = formData {
                         append("document", Resource.read("/resources/pdf/tom.pdf"), Headers.build {
@@ -164,14 +158,13 @@ class MellomlagringTest: H2TestBase() {
     @Test
     fun `kan ikke mellomlagre tom png`() {
         Fakes().use { fakes ->
-            val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
             val jwkGen = TokenXGen(config.tokenx)
             testApplication {
                 val client = createClient {
                     install(ContentNegotiation) { jackson() }
                 }
-                application { server(config, jedis, h2, KafkaFake) }
+                application { server(config, fakes.redis, h2, fakes.kafka) }
                 val res = client.submitFormWithBinaryData(url = "/mellomlagring/fil",
                     formData = formData {
                         append("document", Resource.read("/resources/images/tom.png"), Headers.build {
@@ -191,14 +184,13 @@ class MellomlagringTest: H2TestBase() {
     @Test
     fun `kan hente mellomlagret fil`() {
         Fakes().use { fakes ->
-            val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
             val tokenx = TokenXGen(config.tokenx)
             val id = UUID.randomUUID()
             testApplication {
-                application { server(config, jedis, h2, KafkaFake) }
+                application { server(config, fakes.redis, h2, fakes.kafka) }
                 val key = Key(value = id.toString(), prefix = "12345678910")
-                jedis.set(key, String(Resource.read("/resources/pdf/minimal.pdf")).toByteArray(), 50)
+                fakes.redis.set(key, String(Resource.read("/resources/pdf/minimal.pdf")).toByteArray(), 50)
 
                 val res = client.get("/mellomlagring/fil/$id") {
                     accept(ContentType.Application.Pdf)
@@ -213,14 +205,13 @@ class MellomlagringTest: H2TestBase() {
     @Test
     fun `kan mellomlagre og hente fil`() {
         Fakes().use { fakes ->
-            val jedis = JedisRedisFake()
             val config = TestConfig.default(fakes)
             val tokenx = TokenXGen(config.tokenx)
             testApplication {
                 val client = createClient {
                     install(ContentNegotiation) { jackson() }
                 }
-                application { server(config, jedis, h2, KafkaFake) }
+                application { server(config, fakes.redis, h2, fakes.kafka) }
                 val resLagre = client.submitFormWithBinaryData(url = "/mellomlagring/fil",
                     formData = formData {
                         append("document", Resource.read("/resources/images/bilde.jpg"), Headers.build {

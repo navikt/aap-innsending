@@ -31,15 +31,16 @@ class Apekatt(
     private fun innsendinger(): Flow<InnsendingMedFiler> = flow {
         while (mutex.withLock { isRunning }) {
             if (leaderElector.isLeader()) {
+                if (job.isActive) {
+                    prometheus.counter("apekatt.isactive").increment()
+                }
+
                 repo.hentAlleInnsendinger()
                     .also { prometheus.gauge("innsendinger", it.size) }
                     .mapNotNull { repo.hentInnsending(it) }
                     .forEach { emit(it) }
             }
 
-            if (job.isActive) {
-                prometheus.counter("apekatt.isactive").increment()
-            }
 
             delay(1_000)
         }
