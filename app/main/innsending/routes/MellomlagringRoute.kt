@@ -5,6 +5,7 @@ import innsending.antivirus.ClamAVClient
 import innsending.auth.personident
 import innsending.dto.ErrorRespons
 import innsending.dto.MellomlagringRespons
+import innsending.http.HttpResult
 import innsending.pdf.PdfGen
 import innsending.redis.EnDagSekunder
 import innsending.redis.Key
@@ -15,8 +16,7 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.micrometer.core.instrument.MeterRegistry
-import io.micrometer.core.instrument.Tag
+import io.ktor.util.pipeline.*
 import org.apache.pdfbox.Loader
 import org.apache.tika.Tika
 import java.net.URI
@@ -26,7 +26,7 @@ import java.time.LocalDateTime
 import java.util.*
 
 
-private val acceptedContentType =
+private val SUPPORTED_TYPES =
     listOf(ContentType.Image.JPEG, ContentType.Image.PNG, ContentType.Application.Pdf)
 
 fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: PdfGen) {
@@ -52,11 +52,15 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
 
             if (søknad != null) {
                 val age = redis.createdAt(personIdent)
-                val createdAt =  LocalDateTime.ofInstant(Instant.ofEpochMilli(age), TimeZone.getDefault().toZoneId())
-                call.respond(HttpStatusCode.OK, SøknadFinnesRespons("aap-søknad", URI("https://www.nav.no/aap/soknad").toURL(), createdAt))
+                val createdAt = LocalDateTime.ofInstant(Instant.ofEpochMilli(age), TimeZone.getDefault().toZoneId())
+                call.respond(
+                    HttpStatusCode.OK,
+                    SøknadFinnesRespons("aap-søknad", URI("https://www.nav.no/aap/soknad").toURL(), createdAt)
+                )
             } else {
                 call.respond(HttpStatusCode.NotFound, SøknadFinnesRespons())
-            }}
+            }
+        }
 
         delete {
             val key = Key(call.personident())
@@ -72,64 +76,56 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                 prefix = call.personident()
             )
 
-            when (val mottattFil = call.receiveMultipart().readAllParts().single()) {
-                is PartData.FileItem -> {
-                    val fil = mottattFil.streamProvider().readBytes()
-                    val contentType = requireNotNull(mottattFil.contentType) { "contentType i multipartForm mangler" }
+            val multipartFile = multipartFileOrNull()
+                ?: return@post call.respond(
+                    HttpStatusCode.UnprocessableEntity,
+                    ErrorRespons("Request was either form-data or missing its multipart-file.")
+                )
 
-                    if (fil.isEmpty() || sjekkFeilContentType(fil, contentType)) {
-                        return@post call.respond(
-                            HttpStatusCode.UnprocessableEntity,
-                            ErrorRespons("Filtype ikke støttet")
-                        )
-                    }
+            val fil = multipartFile.streamProvider().readBytes().also {
+                if (it.isEmpty()) return@post call.respond(
+                    HttpStatusCode.UnprocessableEntity,
+                    ErrorRespons("Filen er tom")
+                )
+            }
 
-                    val pdf: ByteArray = when (contentType) {
-                        in acceptedContentType -> {
-                            if (virusScanClient.hasVirus(fil, contentType)) {
-                                SECURE_LOGGER.warn("Bruker prøvde å laste opp virus")
-                                return@post call.respond(
-                                    HttpStatusCode.UnprocessableEntity,
-                                    ErrorRespons("Fant virus i fil")
-                                )
-                            }
-                            if (contentType == ContentType.Application.Pdf) {
-                                fil
-                            } else {
-                                try {
-                                    pdfGen.bildeTilPfd(fil, contentType)
-                                } catch (e: Exception) {
-                                    SECURE_LOGGER.error("Feil fra PDFgen", e)
-                                    return@post call.respond(
-                                        HttpStatusCode.UnprocessableEntity,
-                                        ErrorRespons("Feil ved omgjøring til pdf")
-                                    )
-                                }
-                            }
-                        }
-                        else -> {
-                            SECURE_LOGGER.warn("Feil filtype ${contentType.contentType}")
-                            return@post call.respond(
-                                HttpStatusCode.UnprocessableEntity,
-                                ErrorRespons("Filtype ikke støttet")
-                            )
-                        }
-                    }
-
-                    if (kryptertEllerUgyldigPdf(pdf)) {
-                        return@post call.respond(HttpStatusCode.UnprocessableEntity, ErrorRespons("PDF er kryptert"))
-                    }
-
-                    // prefikser med innlogget bruker for å hindre at andre brukere kan hente andres filer
-                    redis.set(key, pdf, EnDagSekunder)
-
-                    call.respond(status = HttpStatusCode.Created, MellomlagringRespons(key.value))
+            val contentType = multipartFile.contentType?.also {
+                if (it.isNotSupported(fil)) {
+                    return@post call.respond(
+                        HttpStatusCode.BadRequest,
+                        ErrorRespons("Filtype $it er ikke støttet. Filtypen må være en av $SUPPORTED_TYPES")
+                    )
                 }
+            } ?: return@post call.respond(
+                HttpStatusCode.BadRequest,
+                ErrorRespons("Content-Type i multipart fil mangler.")
+            )
 
-                else -> {
-                    return@post call.respond(HttpStatusCode.UnprocessableEntity, ErrorRespons("Filtype ikke støttet"))
+            if (virusScanClient.hasVirus(fil, contentType)) {
+                SECURE_LOGGER.warn("Bruker prøvde å laste opp virus")
+                return@post call.respond(
+                    HttpStatusCode.UnprocessableEntity,
+                    ErrorRespons("Fant virus i fil")
+                )
+            }
+
+            val pdf = when (contentType) {
+                ContentType.Application.Pdf -> fil
+                else -> when (val res = pdfGen.bildeTilPfd(fil, contentType)) {
+                    is HttpResult.Ok -> res.getOrNull() ?: return@post failedToDeserialize()
+                    is HttpResult.ClientError -> res.traceError() ?: return@post pdfGenReportsIncorrectUsage()
+                    is HttpResult.ServerError -> res.traceError() ?: return@post pdfGenReportsInternalError()
+                    null -> return@post failedToSetupPdfClient()
                 }
             }
+
+            if (kryptertEllerUgyldigPdf(pdf)) {
+                return@post call.respond(HttpStatusCode.UnprocessableEntity, ErrorRespons("PDF er kryptert"))
+            }
+
+            redis.set(key, pdf, EnDagSekunder)
+
+            call.respond(status = HttpStatusCode.Created, MellomlagringRespons(key.value))
         }
 
         get("/{filId}") {
@@ -166,6 +162,38 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
         }
     }
 }
+
+private suspend fun PipelineContext<Unit, ApplicationCall>.multipartFileOrNull(): PartData.FileItem? =
+    call.receiveMultipart().readAllParts().singleOrNull() as? PartData.FileItem
+
+private suspend fun PipelineContext<Unit, ApplicationCall>.failedToSetupPdfClient() {
+    call.respond(
+        HttpStatusCode.InternalServerError,
+        ErrorRespons("Innsending has incorrectly setup its http client toward PdfGen. Check Innsending's logs.")
+    )
+}
+
+private suspend fun PipelineContext<Unit, ApplicationCall>.pdfGenReportsInternalError() {
+    call.respond(
+        HttpStatusCode.InternalServerError,
+        ErrorRespons("PdfGen failed internally, check PdfGen's logs.")
+    )
+}
+
+private suspend fun PipelineContext<Unit, ApplicationCall>.pdfGenReportsIncorrectUsage() {
+    call.respond(
+        HttpStatusCode.InternalServerError,
+        ErrorRespons("Innsending is using PdfGen wrong. Check Innsending's logs.")
+    )
+}
+
+private suspend fun PipelineContext<Unit, ApplicationCall>.failedToDeserialize() {
+    call.respond(
+        HttpStatusCode.InternalServerError,
+        ErrorRespons("Innsending failed to deserialize (read) the response from PdfGen. Check Innsending's logs.")
+    )
+}
+
 fun createdAt(ageInSeconds: Long): Date {
     return Date(System.currentTimeMillis() - ageInSeconds * 1000)
 }
@@ -174,21 +202,21 @@ fun kryptertEllerUgyldigPdf(fil: ByteArray): Boolean {
     try {
         val pdf = Loader.loadPDF(fil)
         return pdf.isEncrypted
-    } catch (e: Exception){
+    } catch (e: Exception) {
         return true
     }
 }
 
-fun sjekkFeilContentType(fil: ByteArray, contentType: ContentType): Boolean {
-    val filtype = Tika().detect(fil)
-    SECURE_LOGGER.info("sjekker filtype $filtype == $contentType")
+fun ContentType.isNotSupported(fil: ByteArray): Boolean =
+    runCatching {
+        val filtype = Tika().detect(fil)
+        SECURE_LOGGER.info("sjekker filtype $filtype == $contentType")
+        this !in SUPPORTED_TYPES || filtype != contentType
+    }.getOrDefault(true)
 
-
-    return filtype!=contentType.toString()
-}
 
 data class SøknadFinnesRespons(
-    val tittel:String?=null,
-    val link:URL?=null,
-    val sistEndret:LocalDateTime?=null
+    val tittel: String? = null,
+    val link: URL? = null,
+    val sistEndret: LocalDateTime? = null
 )

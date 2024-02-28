@@ -1,7 +1,10 @@
 package innsending
 
+import innsending.http.HttpConfig
+import innsending.pdf.PdfGen
 import no.nav.aap.kafka.KafkaConfig
 import no.nav.aap.ktor.client.AzureConfig
+import org.slf4j.LoggerFactory
 import java.net.URI
 
 private fun getEnvVar(envar: String) = System.getenv(envar) ?: error("missing envvar $envar")
@@ -16,7 +19,7 @@ data class Config(
     ),
     val joark: JoarkConfig = JoarkConfig(),
     val tokenx: TokenXConfig = TokenXConfig(),
-    val pdfGenHost: String = "http://pdfgen",
+    val pdfGen: PdfGenConfig = PdfGenConfig,
     val virusScanHost: String = "http://clamav.nais-system",
     val kafka: KafkaConfig = KafkaConfig(
         brokers = getEnvVar("KAFKA_BROKERS"),
@@ -26,6 +29,12 @@ data class Config(
     ),
     val oppslag: OppslagConfig = OppslagConfig(),
     val leaderElectorPath: String = getEnvVar("ELECTOR_PATH"),
+)
+
+data object PdfGenConfig : HttpConfig(
+    host = "http://pdfgen",
+    log = LoggerFactory.getLogger("secureLog"),
+    latencyMeter = PdfGen.LATENCY_METER
 )
 
 data class RedisConfig(
