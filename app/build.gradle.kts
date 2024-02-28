@@ -46,7 +46,8 @@ dependencies {
 
     implementation("io.ktor:ktor-server-cors:$ktorVersion")
     implementation("io.ktor:ktor-server-openapi:$ktorVersion")
-    runtimeOnly("io.ktor:ktor-server-swagger:$ktorVersion")
+    implementation("io.ktor:ktor-server-swagger:$ktorVersion") // swaggerUI()
+    implementation("io.swagger.codegen.v3:swagger-codegen-generators:1.0.36") // openAPI() med StaticHtmlCodegen
 
     runtimeOnly("net.logstash.logback:logstash-logback-encoder:7.4")
     runtimeOnly("org.postgresql:postgresql:42.7.2")

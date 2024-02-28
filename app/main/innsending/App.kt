@@ -34,10 +34,12 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.openapi.*
 import io.ktor.server.plugins.statuspages.*
+import io.ktor.server.plugins.swagger.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
+import io.swagger.codegen.v3.generators.html.StaticHtmlCodegen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.slf4j.Logger
@@ -144,6 +146,9 @@ fun Application.server(
         }
 
         actuator(prometheus, redis)
-        openAPI(path = "openapi", swaggerFile = "openapi/documentation.yaml")
+        openAPI(path = "openapi", swaggerFile = "openapi/documentation.yaml") {
+            codegen = StaticHtmlCodegen()
+        }
+        swaggerUI(path = "swagger", swaggerFile = "openapi/documentation.yaml")
     }
 }
