@@ -6,12 +6,17 @@ import java.util.*
 import javax.sql.DataSource
 
 abstract class H2TestBase {
-    protected val h2: DataSource by lazy {
+    protected val h2: DataSource =
         Hikari.createAndMigrate(
             TestConfig.postgres,
             arrayOf("classpath:db/migration")
-        )
-    }
+        ) {
+            initializationFailTimeout = 30000
+            idleTimeout = 10000
+            connectionTimeout = 10000
+            maxLifetime = 900000
+            connectionTestQuery = "SELECT 1"
+        }
 
     @BeforeEach
     fun clearTables() {

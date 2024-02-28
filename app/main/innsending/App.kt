@@ -139,7 +139,7 @@ fun Application.server(
             mellomlagerRoute(redis, antivirus, pdfGen)
         }
 
-        actuator(prometheus, redis)
+        actuator(prometheus, redis, arkivScheduler)
 
         swaggerUI(path = "swagger", swaggerFile = "openapi.yaml")
     }

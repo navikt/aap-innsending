@@ -14,6 +14,7 @@ internal object Hikari {
     fun createAndMigrate(
         config: PostgresConfig,
         locations: Array<String> = arrayOf("classpath:db/migration", "classpath:db/gcp"),
+        additionalConf: HikariConfig.() -> Unit = {}
     ): DataSource =
         HikariDataSource(
             HikariConfig().apply {
@@ -27,7 +28,7 @@ internal object Hikari {
                 connectionTimeout = 1000
                 maxLifetime = 30001
                 driverClassName = config.driver
-            }
+            }.apply(additionalConf)
         ).apply {
             Flyway
                 .configure()
