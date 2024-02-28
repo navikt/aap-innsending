@@ -33,7 +33,9 @@ internal object TestConfig {
             pdfGen = PdfGenConfig(
                 "http://localhost:${fakes.pdfGen.port()}"
             ),
-            virusScanHost = "http://localhost:${fakes.virusScan.port()}",
+            clamAV = ClamAVConfig(
+                "http://localhost:${fakes.virusScan.port()}"
+            ),
             azure = AzureConfig(
                 tokenEndpoint = URI.create("http://localhost:${fakes.azure.port()}/token").toURL(),
                 clientId = "test",

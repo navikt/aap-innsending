@@ -67,6 +67,25 @@ abstract class HttpClientWrapper(val config: HttpConfig, registry: MeterRegistry
                 .map { response -> ApiResult.from(config, response) }
                 .getOrElse { err -> ApiResult.from(config, err) }
         }
+        suspend inline fun <reified REQ : Any> put(
+            path: Path,
+            body: REQ,
+            crossinline request: HttpRequestBuilder.() -> Unit = {},
+        ): ApiResult {
+            val maybeResult = doCall(path) {
+                client.put(config.host + path) {
+                    contentType(ContentType.Application.Json)
+                    bearerAuth(getToken())
+                    accept(ContentType.Application.Json)
+                    setBody(body)
+                    apply(request)
+                }
+            }
+
+            return maybeResult
+                .map { response -> ApiResult.from(config, response) }
+                .getOrElse { err -> ApiResult.from(config, err) }
+        }
 
         @PublishedApi
         internal suspend fun doCall(path: Path, block: suspend (Path) -> HttpResponse): Result<HttpResponse> {

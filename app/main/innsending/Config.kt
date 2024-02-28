@@ -18,7 +18,6 @@ data class Config(
     val joark: JoarkConfig = JoarkConfig(),
     val tokenx: TokenXConfig = TokenXConfig(),
     val pdfGen: PdfGenConfig = PdfGenConfig(),
-    val virusScanHost: String = "http://clamav.nais-system",
     val kafka: KafkaConfig = KafkaConfig(
         brokers = getEnvVar("KAFKA_BROKERS"),
         truststorePath = getEnvVar("KAFKA_TRUSTSTORE_PATH"),
@@ -26,6 +25,7 @@ data class Config(
         credstorePsw = getEnvVar("KAFKA_CREDSTORE_PASSWORD"),
     ),
     val oppslag: OppslagConfig = OppslagConfig(),
+    val clamAV: ClamAVConfig = ClamAVConfig(),
     val leaderElectorPath: String = getEnvVar("ELECTOR_PATH"),
 )
 
@@ -46,6 +46,14 @@ data class RedisConfig(
 data class OppslagConfig(
     override val host: String = "http://oppslag",
     val scope: String = getEnvVar("OPPSLAG_SCOPE")
+) : HttpConfig(
+    host,
+    SECURE_LOG,
+    "oppslag",
+)
+
+data class ClamAVConfig(
+    override val host: String = "http://clamav.nais-system",
 ) : HttpConfig(
     host,
     SECURE_LOG,

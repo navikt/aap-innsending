@@ -58,7 +58,7 @@ fun Application.server(
     minsideProducer: KafkaProducer = MinSideKafkaProducer(config.kafka),
 ) {
     val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
-    val antivirus = ClamAVClient(config.virusScanHost)
+    val antivirus = ClamAVClient(config, prometheus)
     val pdfGen = PdfGen(config, prometheus)
     val postgres = PostgresRepo(datasource)
 

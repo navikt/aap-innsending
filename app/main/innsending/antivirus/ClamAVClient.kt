@@ -1,33 +1,40 @@
 package innsending.antivirus
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import innsending.http.HttpClientFactory
-import io.ktor.client.call.*
-import io.ktor.client.request.*
+import innsending.Config
+import innsending.http.ApiResult
+import innsending.http.HttpClientWrapper
+import innsending.http.Path
 import io.ktor.http.*
-import io.prometheus.client.Summary
+import io.micrometer.core.instrument.MeterRegistry
 
-private const val CLAMAV_CLIENT_SECONDS_METRICNAME = "CLAMAV_client_seconds"
-private val clientLatencyStats: Summary = Summary.build()
-    .name(CLAMAV_CLIENT_SECONDS_METRICNAME)
-    .quantile(0.5, 0.05) // Add 50th percentile (= median) with 5% tolerated error
-    .quantile(0.9, 0.01) // Add 90th percentile with 1% tolerated error
-    .quantile(0.99, 0.001) // Add 99th percentile with 0.1% tolerated error
-    .help("Latency clamav, in seconds")
-    .register()
-
-class ClamAVClient(private val host:String) {
-    private val httpClient = HttpClientFactory.create()
-    suspend fun hasVirus(fil: ByteArray, contentType: ContentType): Boolean =
-        clientLatencyStats.startTimer().use {
-            httpClient.put("$host/scan") {
-                accept(ContentType.Application.Json)
-                setBody(fil)
-                contentType(contentType)
-            }
+class ClamAVClient(
+    config: Config,
+    registry: MeterRegistry,
+) : HttpClientWrapper(
+    config.clamAV,
+    registry,
+) {
+    suspend fun hasVirus(fil: ByteArray, contentType: ContentType): Boolean {
+        val result = http.put(Path.from("/scan"), fil) {
+            contentType(contentType)
         }
-            .body<List<ScanResult>>()
-            .any{ it.result == ScanResult.Result.FOUND }
+
+        val scanResult: List<ScanResult> = when (result) {
+            is ApiResult.Ok -> result.getOrNull<List<ScanResult>>().orEmpty()
+            is ApiResult.ClientError -> result.getNullAndTrace() ?: emptyList()
+            is ApiResult.ServerError -> result.getNullAndTrace() ?: emptyList()
+            is ApiResult.UnknownError -> result.getNullAndTrace() ?: emptyList()
+        }
+
+        return scanResult.any {
+            it.result == ScanResult.Result.FOUND
+        }
+    }
+
+    override suspend fun getToken(): String {
+        return "no auth"
+    }
 }
 
 
