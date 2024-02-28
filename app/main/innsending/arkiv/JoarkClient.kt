@@ -6,13 +6,14 @@ import innsending.http.HttpClientWrapper
 import innsending.http.Path
 import io.ktor.client.request.*
 import io.micrometer.prometheus.PrometheusMeterRegistry
-import no.nav.aap.ktor.client.AzureAdTokenProvider
+import no.nav.aap.ktor.client.auth.azure.AzureAdTokenProvider
 
 class JoarkClient(
     config: Config,
     registry: PrometheusMeterRegistry,
 ) : HttpClientWrapper(config.joark, registry) {
-    private val tokenProvider = AzureAdTokenProvider(config.azure, config.joark.scope)
+    private val scope = config.joark.scope
+    private val tokenProvider = AzureAdTokenProvider(config.azure)
 
     suspend fun opprettJournalpost(
         journalpost: Journalpost,
@@ -34,6 +35,6 @@ class JoarkClient(
     }
 
     override suspend fun getToken(): String {
-        return tokenProvider.getClientCredentialToken()
+        return tokenProvider.getClientCredentialToken(scope)
     }
 }

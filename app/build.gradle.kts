@@ -4,7 +4,7 @@ plugins {
     application
 }
 
-val aapLibVersion = "3.7.162"
+val aapLibVersion = "4.0.3"
 val ktorVersion = "2.3.8"
 
 application {
@@ -12,10 +12,10 @@ application {
 }
 
 dependencies {
-    implementation("com.github.navikt.aap-libs:ktor-auth-azuread:$aapLibVersion")
+    implementation("com.github.navikt.aap-libs:ktor-auth:$aapLibVersion")
     implementation("com.github.navikt.aap-libs:kafka:$aapLibVersion")
-    implementation("org.apache.kafka:kafka-clients:3.7.0")
 
+    implementation("org.apache.kafka:kafka-clients:3.7.0")
     implementation("no.nav.tms.mikrofrontend.selector:builder:20230704114948-74aa2e9")
 
     implementation("io.ktor:ktor-server-core:$ktorVersion")
@@ -44,11 +44,13 @@ dependencies {
     implementation("org.flywaydb:flyway-core:10.8.1")
     implementation("org.flywaydb:flyway-database-postgresql:10.8.1")
 
-    implementation("io.ktor:ktor-server-cors:$ktorVersion")
-    implementation("io.ktor:ktor-server-webjars")
-    implementation("io.ktor:ktor-server-openapi:$ktorVersion")
-    implementation("io.ktor:ktor-server-swagger:$ktorVersion") // swaggerUI()
-    implementation("io.swagger.codegen.v3:swagger-codegen-generators:1.0.36") // openAPI() med StaticHtmlCodegen
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+
+//    implementation("io.ktor:ktor-server-cors:$ktorVersion")
+//    implementation("io.ktor:ktor-server-webjars:$ktorVersion")
+//    implementation("io.ktor:ktor-server-swagger:$ktorVersion") // swaggerUI()
+//    implementation("io.ktor:ktor-server-openapi:$ktorVersion")
+//    implementation("io.swagger.codegen.v3:swagger-codegen-generators:1.0.46") // openAPI() med StaticHtmlCodegen
 
     runtimeOnly("net.logstash.logback:logstash-logback-encoder:7.4")
     runtimeOnly("org.postgresql:postgresql:42.7.2")

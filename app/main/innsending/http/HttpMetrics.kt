@@ -11,7 +11,7 @@ fun MeterRegistry.createTimer(
     name: String,
 ): HttpMetric.TIMER {
     return if (registredMeters.containsKey(name)) {
-        SECURE_LOG.warn("Timer with name $name already exists")
+        SECURE_LOG.debug("Timer with name $name already exists")
         registredMeters[name] as HttpMetric.TIMER
     } else {
         HttpMetric.TIMER(name, this).also {
@@ -25,7 +25,7 @@ fun MeterRegistry.createCounter(
     tags: List<String>,
 ): HttpMetric.COUNTER {
     return if (registredMeters.containsKey(name)) {
-        SECURE_LOG.warn("Counter with name $name already exists")
+        SECURE_LOG.debug("Counter with name $name already exists")
         registredMeters[name] as HttpMetric.COUNTER
     } else {
         HttpMetric.COUNTER(name, tags, this).also {

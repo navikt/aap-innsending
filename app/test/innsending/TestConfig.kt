@@ -1,7 +1,7 @@
 package innsending
 
 import no.nav.aap.kafka.KafkaConfig
-import no.nav.aap.ktor.client.AzureConfig
+import no.nav.aap.ktor.client.auth.azure.AzureConfig
 import java.net.URI
 
 internal object TestConfig {
@@ -37,9 +37,11 @@ internal object TestConfig {
                 "http://localhost:${fakes.virusScan.port()}"
             ),
             azure = AzureConfig(
-                tokenEndpoint = URI.create("http://localhost:${fakes.azure.port()}/token").toURL(),
+                tokenEndpoint = "http://localhost:${fakes.azure.port()}/token",
                 clientId = "test",
-                clientSecret = "test"
+                clientSecret = "test",
+                jwksUri = "",
+                issuer = "test"
             ),
             tokenx = TokenXConfig(
                 clientId = "aap-innsending",

@@ -30,11 +30,7 @@ internal object HttpClientFactory {
         }
 
         install(ContentNegotiation) {
-            jackson {
-                disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-                disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-                registerModule(JavaTimeModule())
-            }
+            json()
         }
     }
 }
@@ -42,5 +38,13 @@ internal object HttpClientFactory {
 internal object ClientLogger : Logger {
     override fun log(message: String) {
         SECURE_LOG.info(message)
+    }
+}
+
+internal fun ContentNegotiation.Config.json() {
+    jackson {
+        disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+        disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+        registerModule(JavaTimeModule())
     }
 }

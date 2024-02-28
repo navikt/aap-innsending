@@ -1,8 +1,6 @@
 package innsending.routes
 
-import innsending.Fakes
-import innsending.TestConfig
-import innsending.TokenXGen
+import innsending.*
 import innsending.dto.FilMetadata
 import innsending.dto.Innsending
 import innsending.kafka.KafkaFake
@@ -11,12 +9,8 @@ import innsending.postgres.PostgresDAO
 import innsending.postgres.transaction
 import innsending.redis.JedisRedisFake
 import innsending.redis.Key
-import innsending.server
-import io.ktor.client.*
-import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.serialization.jackson.*
 import io.ktor.server.testing.*
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
@@ -39,7 +33,7 @@ class InnsendingTest : H2TestBase() {
                 fakes.redis.set(filId1, byteArrayOf(), 60)
                 fakes.redis.set(filId2, byteArrayOf(), 60)
 
-                val res = jsonHttpClient.post("/innsending") {
+                val res = http.post("/innsending") {
                     bearerAuth(tokenx.generate("12345678910"))
                     contentType(ContentType.Application.Json)
                     setBody(
@@ -78,7 +72,7 @@ class InnsendingTest : H2TestBase() {
             testApplication {
                 application { server(config, fakes.redis, h2, fakes.kafka) }
 
-                val res = jsonHttpClient.post("/innsending") {
+                val res = http.post("/innsending") {
                     bearerAuth(jwkGen.generate("12345678910"))
                     contentType(ContentType.Application.Json)
                     setBody(
@@ -115,7 +109,7 @@ class InnsendingTest : H2TestBase() {
                 fakes.redis.set(filId1, byteArrayOf(), 60)
                 fakes.redis.set(filId2, byteArrayOf(), 60)
 
-                val res = jsonHttpClient.post("/innsending") {
+                val res = http.post("/innsending") {
                     bearerAuth(tokenx.generate("12345678910"))
                     contentType(ContentType.Application.Json)
                     setBody(
@@ -168,7 +162,7 @@ class InnsendingTest : H2TestBase() {
                     )
                 }
 
-                val res = jsonHttpClient.post("/innsending/$soknadRef") {
+                val res = http.post("/innsending/$soknadRef") {
                     bearerAuth(tokenx.generate("12345678910"))
                     contentType(ContentType.Application.Json)
                     setBody(
@@ -221,7 +215,7 @@ class InnsendingTest : H2TestBase() {
                     )
                 }
 
-                val res = jsonHttpClient.post("/innsending/$soknadRef") {
+                val res = http.post("/innsending/$soknadRef") {
                     bearerAuth(tokenx.generate("12345678910"))
                     contentType(ContentType.Application.Json)
                     setBody(
@@ -248,10 +242,4 @@ class InnsendingTest : H2TestBase() {
             }
         }
     }
-
-    private val ApplicationTestBuilder.jsonHttpClient: HttpClient
-        get() =
-            createClient {
-                install(ContentNegotiation) { jackson() }
-            }
 }

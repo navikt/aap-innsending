@@ -26,8 +26,7 @@ abstract class HttpClientWrapper(val config: HttpConfig, registry: MeterRegistry
     }
 
     inner class Client internal constructor() {
-        @PublishedApi
-        internal val client by lazy {
+        val client by lazy {
             HttpClientFactory.create()
         }
 
@@ -35,7 +34,7 @@ abstract class HttpClientWrapper(val config: HttpConfig, registry: MeterRegistry
             path: Path,
             request: HttpRequestBuilder.() -> Unit = {},
         ): ApiResult {
-            val maybeResult = doCall(path) {
+            val maybeResult = traceCall(path) {
                 client.get(config.host + path) {
                     bearerAuth(getToken())
                     accept(ContentType.Application.Json)
@@ -53,7 +52,7 @@ abstract class HttpClientWrapper(val config: HttpConfig, registry: MeterRegistry
             body: REQ,
             crossinline request: HttpRequestBuilder.() -> Unit = {},
         ): ApiResult {
-            val maybeResult = doCall(path) {
+            val maybeResult = traceCall(path) {
                 client.post(config.host + path) {
                     contentType(ContentType.Application.Json)
                     bearerAuth(getToken())
@@ -67,12 +66,13 @@ abstract class HttpClientWrapper(val config: HttpConfig, registry: MeterRegistry
                 .map { response -> ApiResult.from(config, response) }
                 .getOrElse { err -> ApiResult.from(config, err) }
         }
+
         suspend inline fun <reified REQ : Any> put(
             path: Path,
             body: REQ,
             crossinline request: HttpRequestBuilder.() -> Unit = {},
         ): ApiResult {
-            val maybeResult = doCall(path) {
+            val maybeResult = traceCall(path) {
                 client.put(config.host + path) {
                     contentType(ContentType.Application.Json)
                     bearerAuth(getToken())
@@ -87,8 +87,8 @@ abstract class HttpClientWrapper(val config: HttpConfig, registry: MeterRegistry
                 .getOrElse { err -> ApiResult.from(config, err) }
         }
 
-        @PublishedApi
-        internal suspend fun doCall(path: Path, block: suspend (Path) -> HttpResponse): Result<HttpResponse> {
+        //        @PublishedApi
+        suspend fun traceCall(path: Path, block: suspend (Path) -> HttpResponse): Result<HttpResponse> {
             return latencyMeter.timer {
                 runCatching {
                     block(path)

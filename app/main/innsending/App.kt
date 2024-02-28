@@ -22,7 +22,6 @@ import innsending.routes.actuator
 import innsending.routes.innsendingRoute
 import innsending.routes.mellomlagerRoute
 import innsending.scheduler.Apekatt
-import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -31,15 +30,11 @@ import io.ktor.server.metrics.micrometer.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.callloging.*
 import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.plugins.cors.routing.*
-import io.ktor.server.plugins.openapi.*
 import io.ktor.server.plugins.statuspages.*
-import io.ktor.server.plugins.swagger.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
-import io.swagger.codegen.v3.generators.html.StaticHtmlCodegen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.slf4j.Logger
@@ -93,10 +88,10 @@ fun Application.server(
     }
 
     // Brukes av swagger
-    install(CORS) {
-        anyHost()
-        allowHeader(HttpHeaders.ContentType)
-    }
+//    install(CORS) {
+//        anyHost()
+//        allowHeader(HttpHeaders.ContentType)
+//    }
 
     authentication(config.tokenx)
 
@@ -132,11 +127,7 @@ fun Application.server(
     }
 
     install(ContentNegotiation) {
-        jackson {
-            registerModule(JavaTimeModule())
-            disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-            setSerializationInclusion(JsonInclude.Include.NON_NULL)
-        }
+        json()
     }
 
     routing {
@@ -146,9 +137,16 @@ fun Application.server(
         }
 
         actuator(prometheus, redis)
-        openAPI(path = "openapi", swaggerFile = "openapi/documentation.yaml") {
-            codegen = StaticHtmlCodegen()
-        }
-        swaggerUI(path = "swagger", swaggerFile = "openapi/documentation.yaml")
+//
+//        swaggerUI(path = "swagger", swaggerFile = "openapi.yaml") {
+//            customStyle("https://raw.githubusercontent.com/ilyamixaltik/swagger-themes/main/themes/nord-dark.css")
+//        }
     }
 }
+
+internal fun ContentNegotiationConfig.json() =
+    jackson {
+        registerModule(JavaTimeModule())
+        disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+        setSerializationInclusion(JsonInclude.Include.NON_NULL)
+    }

@@ -5,12 +5,10 @@ import innsending.dto.MellomlagringRespons
 import innsending.postgres.H2TestBase
 import innsending.redis.Key
 import io.ktor.client.call.*
-import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.serialization.jackson.*
 import io.ktor.server.testing.*
 import org.junit.jupiter.api.Test
 import java.util.*
@@ -27,7 +25,7 @@ class MellomlagringTest : H2TestBase() {
 
             testApplication {
                 application { server(config, fakes.redis, h2, fakes.kafka) }
-                val res = client.post("/mellomlagring/søknad") {
+                val res = http.post("/mellomlagring/søknad") {
                     contentType(ContentType.Application.Json)
                     bearerAuth(jwkGen.generate("12345678910"))
                     setBody("""{"soknadId":"1234"}""")
@@ -48,7 +46,7 @@ class MellomlagringTest : H2TestBase() {
                 application { server(config, fakes.redis, h2, fakes.kafka) }
                 fakes.redis.set(Key("12345678910"), """{"søknadId":"1234"}""".toByteArray(), 50)
 
-                val res = client.get("/mellomlagring/søknad") {
+                val res = http.get("/mellomlagring/søknad") {
                     accept(ContentType.Application.Json)
                     bearerAuth(jwkGen.generate("12345678910"))
                 }
@@ -69,7 +67,7 @@ class MellomlagringTest : H2TestBase() {
                 application { server(config, fakes.redis, h2, fakes.kafka) }
                 fakes.redis.set(Key("12345678910"), """{"søknadId":"1234"}""".toByteArray(), 50)
 
-                val del = client.delete("/mellomlagring/søknad") {
+                val del = http.delete("/mellomlagring/søknad") {
                     accept(ContentType.Application.Json)
                     bearerAuth(jwkGen.generate("12345678910"))
                 }
@@ -89,7 +87,7 @@ class MellomlagringTest : H2TestBase() {
             testApplication {
                 application { server(config, fakes.redis, h2, fakes.kafka) }
 
-                val res = client.get("/mellomlagring/søknad") {
+                val res = http.get("/mellomlagring/søknad") {
                     accept(ContentType.Application.Json)
                     bearerAuth(jwkGen.generate("12345678910"))
                 }
@@ -104,11 +102,9 @@ class MellomlagringTest : H2TestBase() {
             val config = TestConfig.default(fakes)
             val jwkGen = TokenXGen(config.tokenx)
             testApplication {
-                val client = createClient {
-                    install(ContentNegotiation) { jackson() }
-                }
+
                 application { server(config, fakes.redis, h2, fakes.kafka) }
-                val res = client.submitFormWithBinaryData(url = "/mellomlagring/fil",
+                val res = http.submitFormWithBinaryData(url = "/mellomlagring/fil",
                     formData = formData {
                         append("document", Resource.read("/resources/images/bilde.jpg"), Headers.build {
                             append(HttpHeaders.ContentDisposition, "filename=bilde.jpg")
@@ -133,11 +129,8 @@ class MellomlagringTest : H2TestBase() {
             val config = TestConfig.default(fakes)
             val jwkGen = TokenXGen(config.tokenx)
             testApplication {
-                val client = createClient {
-                    install(ContentNegotiation) { jackson() }
-                }
                 application { server(config, fakes.redis, h2, fakes.kafka) }
-                val res = client.submitFormWithBinaryData(url = "/mellomlagring/fil",
+                val res = http.submitFormWithBinaryData(url = "/mellomlagring/fil",
                     formData = formData {
                         append("document", Resource.read("/resources/pdf/tom.pdf"), Headers.build {
                             append(HttpHeaders.ContentDisposition, "filename=tom.pdf")
@@ -159,11 +152,8 @@ class MellomlagringTest : H2TestBase() {
             val config = TestConfig.default(fakes)
             val jwkGen = TokenXGen(config.tokenx)
             testApplication {
-                val client = createClient {
-                    install(ContentNegotiation) { jackson() }
-                }
                 application { server(config, fakes.redis, h2, fakes.kafka) }
-                val res = client.submitFormWithBinaryData(url = "/mellomlagring/fil",
+                val res = http.submitFormWithBinaryData(url = "/mellomlagring/fil",
                     formData = formData {
                         append("document", Resource.read("/resources/images/tom.png"), Headers.build {
                             append(HttpHeaders.ContentDisposition, "filename=tom.png")
@@ -190,7 +180,7 @@ class MellomlagringTest : H2TestBase() {
                 val key = Key(value = id.toString(), prefix = "12345678910")
                 fakes.redis.set(key, String(Resource.read("/resources/pdf/minimal.pdf")).toByteArray(), 50)
 
-                val res = client.get("/mellomlagring/fil/$id") {
+                val res = http.get("/mellomlagring/fil/$id") {
                     accept(ContentType.Application.Pdf)
                     bearerAuth(tokenx.generate("12345678910"))
                 }
@@ -207,11 +197,9 @@ class MellomlagringTest : H2TestBase() {
             val tokenx = TokenXGen(config.tokenx)
 
             testApplication {
-                val client = createClient {
-                    install(ContentNegotiation) { jackson() }
-                }
                 application { server(config, fakes.redis, h2, fakes.kafka) }
-                val resLagre = client.submitFormWithBinaryData(url = "/mellomlagring/fil",
+
+                val resLagre = http.submitFormWithBinaryData(url = "/mellomlagring/fil",
                     formData = formData {
                         append(
                             key = "document",
@@ -230,7 +218,7 @@ class MellomlagringTest : H2TestBase() {
 
                 val respons = resLagre.body<MellomlagringRespons>()
 
-                val resHent = client.get("/mellomlagring/fil/${respons.filId}") {
+                val resHent = http.get("/mellomlagring/fil/${respons.filId}") {
                     accept(ContentType.Application.Pdf)
                     bearerAuth(tokenx.generate("12345678910"))
                 }

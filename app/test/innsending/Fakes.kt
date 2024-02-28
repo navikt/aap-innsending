@@ -1,13 +1,10 @@
 package innsending
 
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import innsending.arkiv.ArkivResponse
 import innsending.arkiv.Journalpost
 import innsending.kafka.KafkaFake
 import innsending.redis.JedisRedisFake
 import io.ktor.http.*
-import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
@@ -44,7 +41,8 @@ class Fakes : AutoCloseable {
 }
 
 fun Application.tokenx() {
-    install(ContentNegotiation) { jackson() }
+    install(ContentNegotiation) { json() }
+
     routing {
         get("/jwks") {
             call.respondText(TOKEN_X_JWKS)
@@ -53,7 +51,8 @@ fun Application.tokenx() {
 }
 
 fun Application.leaderElector() {
-    install(ContentNegotiation) { jackson() }
+    install(ContentNegotiation) { json() }
+
     routing {
         get {
             val hostname = InetAddress.getLocalHost().hostName
@@ -70,16 +69,17 @@ class JoarkFake : AutoCloseable {
     private fun create(): NettyApplicationEngine =
         embeddedServer(Netty, port = 0, module = {
             install(ContentNegotiation) {
-                jackson {
-                    disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-                    registerModule(JavaTimeModule())
-                }
+                json()
             }
 
             routing {
                 post("/rest/journalpostapi/v1/journalpost") {
                     receivedRequest.complete(call.receive())
-                    call.respond(HttpStatusCode.OK, ArkivResponse("1234", true, emptyList()))
+
+                    call.respond(
+                        HttpStatusCode.OK,
+                        ArkivResponse("1234", true, emptyList())
+                    )
                 }
             }
         })
@@ -88,7 +88,10 @@ class JoarkFake : AutoCloseable {
 }
 
 fun Application.azure() {
-    install(ContentNegotiation) { jackson() }
+    install(ContentNegotiation) {
+        json()
+    }
+
     routing {
         post("/token") {
             val scopes = listOf(
@@ -119,7 +122,10 @@ fun Application.azure() {
 data class Token(val expires_in: Long, val access_token: String)
 
 fun Application.pdfGen() {
-    install(ContentNegotiation) { jackson() }
+    install(ContentNegotiation) {
+        json()
+    }
+
     routing {
         post("/api/v1/genpdf/image/aap-pdfgen") {
             val res = Resource.read("/resources/pdf/minimal.pdf")
@@ -133,7 +139,10 @@ fun Application.pdfGen() {
 }
 
 fun Application.oppslag() {
-    install(ContentNegotiation) { jackson() }
+    install(ContentNegotiation) {
+        json()
+    }
+
     routing {
         get("/person/navn") {
             call.respondText(
@@ -145,7 +154,10 @@ fun Application.oppslag() {
 }
 
 fun Application.virusScan() {
-    install(ContentNegotiation) { jackson() }
+    install(ContentNegotiation) {
+        json()
+    }
+
     routing {
         put("/scan") {
             call.respondText(
@@ -160,4 +172,8 @@ object Resource {
     fun read(path: String): ByteArray = requireNotNull(this::class.java.getResource(path)).readBytes()
 }
 
-fun NettyApplicationEngine.port() = runBlocking { resolvedConnectors() }.first { it.type == ConnectorType.HTTP }.port
+fun NettyApplicationEngine.port(): Int {
+    return runBlocking { resolvedConnectors() }
+        .first { it.type == ConnectorType.HTTP }
+        .port
+}
