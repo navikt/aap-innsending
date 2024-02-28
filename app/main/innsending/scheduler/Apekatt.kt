@@ -41,7 +41,7 @@ class Apekatt(
                     .forEach { emit(it) }
             }
 
-            delay(1_000)
+            delay(60_000)
         }
     }
 
