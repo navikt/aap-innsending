@@ -3,7 +3,7 @@ package innsending.http
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import innsending.SECURE_LOGGER
+import innsending.SECURE_LOG
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
@@ -41,6 +41,6 @@ internal object HttpClientFactory {
 
 internal object ClientLogger : Logger {
     override fun log(message: String) {
-        SECURE_LOGGER.info(message)
+        SECURE_LOG.info(message)
     }
 }

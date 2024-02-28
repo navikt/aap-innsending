@@ -1,6 +1,7 @@
 package innsending.routes
 
-import innsending.SECURE_LOGGER
+import innsending.APP_LOG
+import innsending.SECURE_LOG
 import innsending.auth.personident
 import innsending.dto.Innsending
 import innsending.postgres.PostgresRepo
@@ -11,13 +12,9 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.*
 
-private val logger = LoggerFactory.getLogger("App")
-
-// TODO: alltid returner JSON ved 200, 201, 400, 404, 500 osv
 fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
     route("/innsending") {
 
@@ -35,14 +32,14 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
 
             val søknadMedEttersendinger = postgres.hentSøknadMedEttersendelser(innsendingsRef)
 
-            if(søknadMedEttersendinger == null) {
+            if (søknadMedEttersendinger == null) {
                 call.respond(HttpStatusCode.NotFound, "Fant ikke søknad for angitt referanse")
             } else {
                 call.respond(søknadMedEttersendinger)
             }
         }
 
-        // todo: add vedlegg-refs
+        // todo: add vedlegg-refs for å kunne resette expiry på alt
         post("/{ref}") {
             val innsendingsRef = call.parameters["ref"]?.let(UUID::fromString) ?: return@post call.respond(
                 HttpStatusCode.BadRequest,
@@ -59,7 +56,12 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
 }
 
 // todo: set expiry hver gang noe endres, også for vedlegg
-private suspend fun postInnsending(postgres: PostgresRepo, redis: Redis, call: ApplicationCall, innsendingsRef: UUID? = null) {
+private suspend fun postInnsending(
+    postgres: PostgresRepo,
+    redis: Redis,
+    call: ApplicationCall,
+    innsendingsRef: UUID? = null
+) {
     val personIdent = call.personident()
     val innsending = call.receive<Innsending>()
 
@@ -70,7 +72,7 @@ private suspend fun postInnsending(postgres: PostgresRepo, redis: Redis, call: A
     }
 
     if (innsendingsRef != null && postgres.erRefTilknyttetPersonIdent(personIdent, innsendingsRef).not()) {
-        SECURE_LOGGER.error("$personIdent prøver å poste en innsending på $innsendingsRef, men disse hører ikke sammen")
+        SECURE_LOG.error("$personIdent prøver å poste en innsending på $innsendingsRef, men disse hører ikke sammen")
         return call.respond(
             HttpStatusCode.NotFound,
             "Denne innsendingenId'en finnes ikke for denne personen"
@@ -78,9 +80,9 @@ private suspend fun postInnsending(postgres: PostgresRepo, redis: Redis, call: A
     }
 
     val innsendingId = UUID.randomUUID()
-    logger.trace("Mottok innsending med id {}", innsendingId)
+    APP_LOG.trace("Mottok innsending med id {}", innsendingId)
 
-    val filerMedInnhold = innsending.filer.associateWith {fil ->
+    val filerMedInnhold = innsending.filer.associateWith { fil ->
         redis[Key(value = fil.id, prefix = personIdent)]
             ?: return call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret fil")
     }.toList()

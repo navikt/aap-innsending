@@ -2,7 +2,7 @@ package innsending.scheduler
 
 import innsending.Config
 import innsending.LeaderElection
-import innsending.SECURE_LOGGER
+import innsending.SECURE_LOG
 import innsending.arkiv.JournalpostSender
 import innsending.http.HttpResult
 import innsending.kafka.KafkaProducer
@@ -43,7 +43,6 @@ class Apekatt(
                     .forEach { emit(it) }
             }
 
-
             delay(1_000)
         }
     }
@@ -59,10 +58,10 @@ class Apekatt(
 
                     prometheus.counter("innsending", listOf(Tag.of("resultat", "ok"))).increment()
                 } catch (cancel: CancellationException) {
-                    SECURE_LOGGER.info("Cancellation exception fanget", cancel)
+                    SECURE_LOG.info("Cancellation exception fanget", cancel)
                     throw cancel
                 } catch (e: Exception) {
-                    SECURE_LOGGER.error("Klarte ikke å arkivere", e)
+                    SECURE_LOG.error("Klarte ikke å arkivere", e)
                     prometheus.counter("innsending", listOf(Tag.of("resultat", "feilet"))).increment()
                     delay(10_000)
                 }
@@ -96,7 +95,7 @@ class Apekatt(
             is HttpResult.ClientError -> res.traceError()
             is HttpResult.ServerError -> res.traceError()
             null -> null.also {
-                SECURE_LOGGER.error("Klarte ikke sende søknad til PdfGen.")
+                SECURE_LOG.error("Klarte ikke sende søknad til PdfGen.")
             }
         } ?: error("Feilet arkivering av søknad, prøv igjen...")
 

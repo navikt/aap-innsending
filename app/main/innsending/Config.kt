@@ -4,7 +4,6 @@ import innsending.http.HttpConfig
 import no.nav.aap.kafka.KafkaConfig
 import no.nav.aap.ktor.client.AzureConfig
 import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import java.net.URI
 
 private fun getEnvVar(envar: String) = System.getenv(envar) ?: error("missing envvar $envar")
@@ -33,12 +32,12 @@ data class Config(
 
 data class PdfGenConfig(
     override val host: String = "http://pdfgen",
-    override val log: Logger = LoggerFactory.getLogger("secureLog"),
+    override val log: Logger = SECURE_LOG,
     override val alias: String = "pdfgen",
 ) : HttpConfig(host, log, alias)
 
 data class RedisConfig(
-    val uri: URI = URI(getEnvVar("REDIS_URI_MELLOMLAGER").also { SECURE_LOGGER.info("redis uri $it") }),
+    val uri: URI = URI(getEnvVar("REDIS_URI_MELLOMLAGER").also { SECURE_LOG.info("redis uri $it") }),
     val username: String = getEnvVar("REDIS_USERNAME_MELLOMLAGER"),
     val password: String = getEnvVar("REDIS_PASSWORD_MELLOMLAGER"),
 )
