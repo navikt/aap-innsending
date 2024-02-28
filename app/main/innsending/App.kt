@@ -1,12 +1,16 @@
 package innsending
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import innsending.antivirus.ClamAVClient
 import innsending.arkiv.JoarkClient
 import innsending.arkiv.JournalpostSender
+import innsending.auth.PersonidentException
 import innsending.auth.TOKENX
 import innsending.auth.authentication
+import innsending.dto.ErrorCode
+import innsending.dto.error
 import innsending.kafka.KafkaProducer
 import innsending.kafka.MinSideKafkaProducer
 import innsending.pdf.PdfGen
@@ -18,7 +22,6 @@ import innsending.routes.actuator
 import innsending.routes.innsendingRoute
 import innsending.routes.mellomlagerRoute
 import innsending.scheduler.Apekatt
-import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -27,9 +30,9 @@ import io.ktor.server.metrics.micrometer.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.callloging.*
 import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.plugins.openapi.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
-import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
@@ -101,8 +104,18 @@ fun Application.server(
 
     install(StatusPages) {
         exception<Throwable> { call, cause ->
-            SECURE_LOG.error("Uhåndtert feil ved kall til '{}'", call.request.local.uri, cause)
-            call.respondText(text = "Feil i tjeneste: ${cause.message}", status = HttpStatusCode.InternalServerError)
+            when (cause) {
+                is PersonidentException -> call.error(cause.error)
+                else -> {
+                    SECURE_LOG.error(
+                        "Uhåndtert feil ved kall til '{}'",
+                        call.request.local.uri,
+                        cause
+                    )
+
+                    call.error(ErrorCode.UNKNOWN_ERROR)
+                }
+            }
         }
     }
 
@@ -110,6 +123,7 @@ fun Application.server(
         jackson {
             registerModule(JavaTimeModule())
             disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+            setSerializationInclusion(JsonInclude.Include.NON_NULL)
         }
     }
 
@@ -120,5 +134,6 @@ fun Application.server(
         }
 
         actuator(prometheus, redis)
+        openAPI(path = "openapi", swaggerFile = "openapi/documentation.yaml")
     }
 }

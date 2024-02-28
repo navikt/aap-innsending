@@ -3,7 +3,9 @@ package innsending.routes
 import innsending.APP_LOG
 import innsending.SECURE_LOG
 import innsending.auth.personident
+import innsending.dto.ErrorCode
 import innsending.dto.Innsending
+import innsending.dto.error
 import innsending.postgres.PostgresRepo
 import innsending.redis.Key
 import innsending.redis.Redis
@@ -16,39 +18,54 @@ import java.time.LocalDateTime
 import java.util.*
 
 fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
+
+    /**
+     * Innsending av søknad
+     */
     route("/innsending") {
 
+        /**
+         * Hent alle søknader for innlogget bruker
+         */
         get("/søknader") {
             val personIdent = call.personident()
+            val søknader = postgres.hentAlleSøknader(personIdent)
 
-            call.respond(postgres.hentAlleSøknader(personIdent))
+            call.respond(
+                HttpStatusCode.OK,
+                søknader
+            )
         }
 
+        /**
+         * Hent søknad for innlogget bruker
+         */
         get("/søknader/{ref}/ettersendinger") {
-            val innsendingsRef = call.parameters["ref"]?.let(UUID::fromString) ?: return@get call.respond(
-                HttpStatusCode.BadRequest,
-                "Mangler innsendingsId"
+            val ref = call.parameters["ref"]?.let(UUID::fromString)
+                ?: return@get call.error(ErrorCode.REQ_MISSING_INNSENDING_REF)
+
+            val søknadMedEttersendinger = postgres.hentSøknadMedEttersendelser(ref)
+                ?: return@get call.error(ErrorCode.NOT_FOUND_SOKNAD)
+
+            call.respond(
+                HttpStatusCode.OK,
+                søknadMedEttersendinger
             )
-
-            val søknadMedEttersendinger = postgres.hentSøknadMedEttersendelser(innsendingsRef)
-
-            if (søknadMedEttersendinger == null) {
-                call.respond(HttpStatusCode.NotFound, "Fant ikke søknad for angitt referanse")
-            } else {
-                call.respond(søknadMedEttersendinger)
-            }
         }
 
-        // todo: add vedlegg-refs for å kunne resette expiry på alt
+        /**
+         * Lagre innsending med referanse
+         */
         post("/{ref}") {
-            val innsendingsRef = call.parameters["ref"]?.let(UUID::fromString) ?: return@post call.respond(
-                HttpStatusCode.BadRequest,
-                "Mangler innsendingsId"
-            )
+            val ref = call.parameters["ref"]?.let(UUID::fromString)
+                ?: return@post call.error(ErrorCode.REQ_MISSING_INNSENDING_REF)
 
-            postInnsending(postgres, redis, call, innsendingsRef)
+            postInnsending(postgres, redis, call, ref)
         }
 
+        /**
+         * Lagre innsending
+         */
         post {
             postInnsending(postgres, redis, call)
         }
@@ -68,24 +85,22 @@ private suspend fun postInnsending(
     // Avoid duplicates
     val innsendingHash = Key(innsending.hashCode().toString())
     if (redis.exists(innsendingHash)) {
-        call.respond(HttpStatusCode.Conflict, "Denne innsendingen har vi allerede mottatt")
+        call.error(ErrorCode.DUPLICATE_INNSENDING)
     }
 
     if (innsendingsRef != null && postgres.erRefTilknyttetPersonIdent(personIdent, innsendingsRef).not()) {
         SECURE_LOG.error("$personIdent prøver å poste en innsending på $innsendingsRef, men disse hører ikke sammen")
-        return call.respond(
-            HttpStatusCode.NotFound,
-            "Denne innsendingenId'en finnes ikke for denne personen"
-        )
+        return call.error(ErrorCode.NOT_FOUND_INNSENDING)
     }
 
     val innsendingId = UUID.randomUUID()
     APP_LOG.trace("Mottok innsending med id {}", innsendingId)
 
-    val filerMedInnhold = innsending.filer.associateWith { fil ->
-        redis[Key(value = fil.id, prefix = personIdent)]
-            ?: return call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret fil")
-    }.toList()
+    val filerMedInnhold = innsending.filer
+        .associateWith { fil ->
+            redis[Key(value = fil.id, prefix = personIdent)]
+                ?: return call.error(ErrorCode.NOT_FOUND_FILE)
+        }.toList()
 
     postgres.lagreInnsending(
         innsendingId = innsendingId,
@@ -97,8 +112,7 @@ private suspend fun postInnsending(
     )
 
     innsending.filer.forEach { fil ->
-        val key = Key(value = fil.id, prefix = personIdent)
-        redis.del(key)
+        redis.del(Key(fil.id, personIdent))
     }
 
     redis.del(Key(personIdent))
@@ -106,5 +120,5 @@ private suspend fun postInnsending(
     // Avoid duplicates
     redis.set(innsendingHash, byteArrayOf(), 60)
 
-    call.respond(HttpStatusCode.OK, "Vi har mottatt innsendingen din")
+    call.respond(HttpStatusCode.Created)
 }

@@ -1,31 +1,34 @@
 package innsending.oppslag
 
 import innsending.Config
-import innsending.http.HttpClientFactory
+import innsending.http.ApiResult
+import innsending.http.HttpClientWrapper
+import innsending.http.Path
 import io.ktor.client.call.*
 import io.ktor.client.request.*
-import io.ktor.http.*
+import io.micrometer.core.instrument.MeterRegistry
 import no.nav.aap.ktor.client.AzureAdTokenProvider
 import java.util.*
 
-class OppslagClient(config: Config) {
-    private val client = HttpClientFactory.create()
+class OppslagClient(
+    config: Config,
+    registry: MeterRegistry,
+) : HttpClientWrapper(
+    config.oppslag,
+    registry,
+) {
     private val oppslagConfig = config.oppslag
     private val tokenProvider = AzureAdTokenProvider(config.azure, oppslagConfig.scope)
 
-    suspend fun hentNavn(personident: String): Navn {
-        val res = client.get(oppslagConfig.host + "/person/navn") {
-            accept(ContentType.Application.Json)
-            bearerAuth(tokenProvider.getClientCredentialToken())
+    suspend fun hentNavn(personident: String): ApiResult {
+        return http.get(Path.from("/person/navn")) {
             header("personident", personident)
             header("Nav-CallId", UUID.randomUUID().toString())
         }
+    }
 
-        return if (res.status.isSuccess()) {
-            res.body<Navn>()
-        } else {
-            error("klarte ikke hente navn fra PDL")
-        }
+    override suspend fun getToken(): String {
+        return tokenProvider.getClientCredentialToken()
     }
 }
 

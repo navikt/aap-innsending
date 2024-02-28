@@ -4,9 +4,7 @@ import innsending.Config
 import innsending.LeaderElection
 import innsending.SECURE_LOG
 import innsending.arkiv.JournalpostSender
-import innsending.http.HttpResult
 import innsending.kafka.KafkaProducer
-import innsending.pdf.Pdf
 import innsending.pdf.PdfGen
 import innsending.postgres.InnsendingMedFiler
 import innsending.postgres.PostgresRepo
@@ -90,15 +88,7 @@ class Apekatt(
     }
 
     private suspend fun arkiverSøknad(innsending: InnsendingMedFiler) {
-        val pdf = when (val res = pdfGen.søknadTilPdf(innsending)) {
-            is HttpResult.Ok -> res.getOrNull<Pdf>()
-            is HttpResult.ClientError -> res.traceError()
-            is HttpResult.ServerError -> res.traceError()
-            null -> null.also {
-                SECURE_LOG.error("Klarte ikke sende søknad til PdfGen.")
-            }
-        } ?: error("Feilet arkivering av søknad, prøv igjen...")
-
+        val pdf = pdfGen.søknadTilPdf(innsending)
         journalpostSender.arkiverSøknad(pdf, innsending)
         minsideProducer.produce(innsending.personident)
     }

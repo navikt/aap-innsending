@@ -3,16 +3,16 @@ package innsending.pdf
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import innsending.Config
+import innsending.http.ApiResult
 import innsending.http.HttpClientWrapper
-import innsending.http.HttpResult
 import innsending.http.Path
+import innsending.oppslag.Navn
 import innsending.oppslag.OppslagClient
 import innsending.postgres.InnsendingMedFiler
 import io.ktor.http.*
 import io.micrometer.core.instrument.MeterRegistry
 
 typealias Image = ByteArray
-typealias Json = ByteArray
 typealias Pdf = ByteArray
 
 class PdfGen(
@@ -22,12 +22,10 @@ class PdfGen(
     config.pdfGen,
     registry,
 ) {
-    private val pdlClient = OppslagClient(config)
+    private val oppslagClient = OppslagClient(config, registry)
 
-    override suspend fun getToken(): String = "no auth"
-
-    suspend fun bildeTilPfd(img: Image, contentType: ContentType): HttpResult<Pdf>? {
-        return http.post<Image, Pdf>(
+    suspend fun bildeTilPfd(img: Image, contentType: ContentType): ApiResult {
+        return http.post<Image>(
             path = Path.from("/api/v1/genpdf/image/aap-pdfgen"),
             body = img
         ) {
@@ -35,24 +33,36 @@ class PdfGen(
         }
     }
 
-    suspend fun søknadTilPdf(innsending: InnsendingMedFiler): HttpResult<Pdf>? {
-        val json = innsending.data ?: error("mangler søknaden fra innsending (innsending.data)")
-        val personident = innsending.personident
-
-        val navn = pdlClient.hentNavn(personident).let { navn ->
-            SøkerPdfGen.Navn(
-                fornavn = navn.fornavn,
-                etternavn = navn.etternavn,
-            )
+    suspend fun søknadTilPdf(innsending: InnsendingMedFiler): Pdf {
+        val pdlNavn = when (val oppslagResult = oppslagClient.hentNavn(innsending.personident)) {
+            is ApiResult.Ok -> oppslagResult.getOrNull<Navn>() ?: error("Failed to get navn from oppslag result")
+            is ApiResult.ClientError -> error(oppslagResult.getMessage())
+            is ApiResult.ServerError -> error(oppslagResult.getMessage())
+            is ApiResult.UnknownError -> throw oppslagResult.err
         }
 
+        val navn = SøkerPdfGen.Navn(pdlNavn.fornavn, pdlNavn.etternavn)
+        val json = innsending.data ?: error("mangler søknaden fra innsending (innsending.data)")
         val kvittering = json.toMap() + mapOf("mottattDato" to innsending.opprettet.toString())
         val søker = SøkerPdfGen(navn)
 
-        return http.post<SøknadPdfGen, Pdf>(
+        val response = http.post<SøknadPdfGen>(
             path = Path.from("/api/v1/genpdf/aap-pdfgen/soknad"),
             body = SøknadPdfGen(søker, kvittering),
         )
+
+        val pdf = when (response) {
+            is ApiResult.Ok -> response.getOrNull<Pdf>() ?: error("Failed to get pdf from pdf-gen response")
+            is ApiResult.ClientError -> error(response.getMessage())
+            is ApiResult.ServerError -> error(response.getMessage())
+            is ApiResult.UnknownError -> throw response.err
+        }
+
+        return pdf
+    }
+
+    override suspend fun getToken(): String {
+        return "no auth"
     }
 }
 

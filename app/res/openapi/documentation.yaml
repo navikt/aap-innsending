@@ -1,0 +1,703 @@
+openapi: "3.0.3"
+info:
+  title: "innsending API"
+  description: "innsending API"
+  version: "1.0.0"
+servers:
+- url: "https://innsending"
+paths:
+  /actuator/live:
+    get:
+      description: ""
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "live"
+  /actuator/metrics:
+    get:
+      description: ""
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+  /actuator/ready:
+    get:
+      description: ""
+      responses:
+        "200":
+          description: ""
+          content:
+            '*/*':
+              schema:
+                type: "object"
+  /innsending:
+    post:
+      description: "Lagre innsending"
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              $ref: "#/components/schemas/Innsending"
+        required: true
+      responses:
+        "500":
+          description: "Internal Server Error"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "404":
+          description: "Not Found"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "422":
+          description: "Unprocessable Entity"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "400":
+          description: "Bad Request"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "401":
+          description: "Unauthorized"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "409":
+          description: "Conflict"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "200":
+          description: ""
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "201":
+          description: "Created"
+          content:
+            '*/*':
+              schema:
+                type: "object"
+  /innsending/{ref}:
+    post:
+      description: "Lagre innsending med referanse"
+      parameters:
+      - name: "ref"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              $ref: "#/components/schemas/Innsending"
+        required: true
+      responses:
+        "200":
+          description: ""
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "500":
+          description: "Internal Server Error"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "404":
+          description: "Not Found"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "422":
+          description: "Unprocessable Entity"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "400":
+          description: "Bad Request"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "401":
+          description: "Unauthorized"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "409":
+          description: "Conflict"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "201":
+          description: "Created"
+          content:
+            '*/*':
+              schema:
+                type: "object"
+  /innsending/søknader:
+    get:
+      description: "Hent alle søknader for innlogget bruker"
+      responses:
+        "500":
+          description: "Internal Server Error"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "404":
+          description: "Not Found"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "422":
+          description: "Unprocessable Entity"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "400":
+          description: "Bad Request"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "401":
+          description: "Unauthorized"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "409":
+          description: "Conflict"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/MineAapSoknad"
+  /innsending/søknader/{ref}/ettersendinger:
+    get:
+      description: "Hent søknad for innlogget bruker"
+      parameters:
+      - name: "ref"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/MineAapSoknadMedEttersendinger"
+  /mellomlagring/fil:
+    post:
+      description: "Lagre fil for inlogget bruker. Slettes etter 1 dag"
+      responses:
+        "500":
+          description: "Internal Server Error"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "404":
+          description: "Not Found"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "422":
+          description: "Unprocessable Entity"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "400":
+          description: "Bad Request"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "401":
+          description: "Unauthorized"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "409":
+          description: "Conflict"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "200":
+          description: ""
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "201":
+          description: "Created"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/MellomlagringRespons"
+  /mellomlagring/fil/{filId}:
+    delete:
+      description: "Slett fil for innlogget bruker"
+      parameters:
+      - name: "filId"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "400":
+          description: "Bad Request"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "500":
+          description: "Internal Server Error"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "404":
+          description: "Not Found"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "422":
+          description: "Unprocessable Entity"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "401":
+          description: "Unauthorized"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "409":
+          description: "Conflict"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "object"
+    get:
+      description: "Hent fil for innlogget bruker"
+      parameters:
+      - name: "filId"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "500":
+          description: "Internal Server Error"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "404":
+          description: "Not Found"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "422":
+          description: "Unprocessable Entity"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "400":
+          description: "Bad Request"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "401":
+          description: "Unauthorized"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "409":
+          description: "Conflict"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "200":
+          description: ""
+          content:
+            '*/*':
+              schema:
+                type: "string"
+  /mellomlagring/søknad:
+    delete:
+      description: "Slett søknad for innlogget bruker"
+      responses:
+        "500":
+          description: "Internal Server Error"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "404":
+          description: "Not Found"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "422":
+          description: "Unprocessable Entity"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "400":
+          description: "Bad Request"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "401":
+          description: "Unauthorized"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "409":
+          description: "Conflict"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "object"
+    get:
+      description: "Hent søknad for innlogget bruker"
+      responses:
+        "500":
+          description: "Internal Server Error"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "404":
+          description: "Not Found"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "422":
+          description: "Unprocessable Entity"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "400":
+          description: "Bad Request"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "401":
+          description: "Unauthorized"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "409":
+          description: "Conflict"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "array"
+                items:
+                  type: "string"
+                  format: "byte"
+    post:
+      description: "Lagre søknad for inlogget bruker. Slettes etter 1 dag"
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: "array"
+              items:
+                type: "string"
+                format: "byte"
+        required: true
+      responses:
+        "500":
+          description: "Internal Server Error"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "404":
+          description: "Not Found"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "422":
+          description: "Unprocessable Entity"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "400":
+          description: "Bad Request"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "401":
+          description: "Unauthorized"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "409":
+          description: "Conflict"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "200":
+          description: ""
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "201":
+          description: "Created"
+          content:
+            '*/*':
+              schema:
+                type: "object"
+  /mellomlagring/søknad/finnes:
+    get:
+      description: "Hent søknad med link til søknadsskjema hvis den finnes"
+      responses:
+        "500":
+          description: "Internal Server Error"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "404":
+          description: "Not Found"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "422":
+          description: "Unprocessable Entity"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "400":
+          description: "Bad Request"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "401":
+          description: "Unauthorized"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "409":
+          description: "Conflict"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SøknadFinnesRespons"
+components:
+  schemas:
+    FilMetadata:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+        tittel:
+          type: "string"
+      required:
+      - "id"
+      - "tittel"
+    Innsending:
+      type: "object"
+      properties:
+        kvittering:
+          type: "string"
+        soknad:
+          type: "string"
+        filer:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/FilMetadata"
+      required:
+      - "filer"
+    MineAapSoknad:
+      type: "object"
+      properties:
+        mottattDato:
+          type: "string"
+          format: "date-time"
+        journalpostId:
+          type: "string"
+        innsendingsId:
+          type: "string"
+          format: "uuid"
+      required:
+      - "mottattDato"
+      - "innsendingsId"
+    MineAapEttersending:
+      type: "object"
+      properties:
+        mottattDato:
+          type: "string"
+          format: "date-time"
+        journalpostId:
+          type: "string"
+        innsendingsId:
+          type: "string"
+          format: "uuid"
+      required:
+      - "mottattDato"
+      - "innsendingsId"
+    MineAapSoknadMedEttersendinger:
+      type: "object"
+      properties:
+        mottattDato:
+          type: "string"
+          format: "date-time"
+        journalpostId:
+          type: "string"
+        innsendingsId:
+          type: "string"
+          format: "uuid"
+        ettersendinger:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/MineAapEttersending"
+      required:
+      - "mottattDato"
+      - "innsendingsId"
+      - "ettersendinger"
+    ApiError:
+      type: "object"
+      properties:
+        error:
+          type: "string"
+          enum:
+          - "CLIENT_SETUP_ERR"
+          - "CLIENT_INTERNAL_ERR"
+          - "CLIENT_USAGE_ERR"
+          - "DESERIALIZE_ERR"
+          - "NOT_FOUND_FILE"
+          - "NOT_FOUND_SOKNAD"
+          - "NOT_FOUND_INNSENDING"
+          - "UNPROC_ENCRYPTED_PDF"
+          - "UNPROC_VIRUS"
+          - "UNPROC_EMPTY_FILE"
+          - "REQ_MISSING_MULTIPART_FILE"
+          - "REQ_MISSING_CONTENT_TYPE"
+          - "REQ_WRONG_CONTENT_TYPE"
+          - "REQ_MISSING_FILID"
+          - "REQ_MISSING_INNSENDING_REF"
+          - "REQ_MISSING_JWT"
+          - "REQ_MISSING_PID"
+          - "DUPLICATE_INNSENDING"
+          - "UNAUTH_TOKENX"
+          - "UNKNOWN_ERROR"
+        msg:
+          type: "string"
+      required:
+      - "error"
+      - "msg"
+    MellomlagringRespons:
+      type: "object"
+      properties:
+        filId:
+          type: "string"
+      required:
+      - "filId"
+    SøknadFinnesRespons:
+      type: "object"
+      properties:
+        tittel:
+          type: "string"
+        link:
+          type: "string"
+          format: "url"
+        sistEndret:
+          type: "string"
+          format: "date-time"

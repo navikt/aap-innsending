@@ -60,7 +60,7 @@ class InnsendingTest : H2TestBase() {
                     )
                 }
 
-                assertEquals(HttpStatusCode.OK, res.status)
+                assertEquals(HttpStatusCode.Created, res.status)
 
                 assertEquals(1, countInnsending())
                 assertEquals(2, countFiler())
@@ -134,7 +134,7 @@ class InnsendingTest : H2TestBase() {
                     )
                 }
 
-                assertEquals(HttpStatusCode.OK, res.status)
+                assertEquals(HttpStatusCode.Created, res.status)
 
                 assertEquals(1, countInnsending())
                 assertEquals(2, countFiler())
@@ -187,7 +187,7 @@ class InnsendingTest : H2TestBase() {
                     )
                 }
 
-                assertEquals(HttpStatusCode.OK, res.status)
+                assertEquals(HttpStatusCode.Created, res.status)
 
                 assertEquals(2, countInnsending())
                 assertEquals(2, countFiler())
@@ -240,7 +240,7 @@ class InnsendingTest : H2TestBase() {
                     )
                 }
 
-                assertEquals(HttpStatusCode.OK, res.status)
+                assertEquals(HttpStatusCode.Created, res.status)
 
                 assertEquals(1, countInnsending())
                 assertEquals(2, countFiler())

@@ -72,5 +72,5 @@ tasks {
 
 kotlin.sourceSets["main"].kotlin.srcDirs("main")
 kotlin.sourceSets["test"].kotlin.srcDirs("test")
-sourceSets["main"].resources.srcDirs("main")
+sourceSets["main"].resources.srcDirs("res")
 sourceSets["test"].resources.srcDirs("test")

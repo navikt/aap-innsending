@@ -32,7 +32,7 @@ class MellomlagringTest : H2TestBase() {
                     bearerAuth(jwkGen.generate("12345678910"))
                     setBody("""{"soknadId":"1234"}""")
                 }
-                assertEquals(HttpStatusCode.OK, res.status)
+                assertEquals(HttpStatusCode.Created, res.status)
                 assertEquals("""{"soknadId":"1234"}""", String(fakes.redis[Key("12345678910")]!!))
             }
         }

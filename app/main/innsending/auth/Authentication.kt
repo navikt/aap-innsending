@@ -4,21 +4,24 @@ import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
 import innsending.SECURE_LOG
 import innsending.TokenXConfig
-import io.ktor.http.*
+import innsending.dto.ErrorCode
+import innsending.dto.error
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
-import io.ktor.server.response.*
 import java.util.*
 import java.util.concurrent.TimeUnit
 
 const val TOKENX = "tokenx"
 
+class PersonidentException(val error: ErrorCode) : RuntimeException(error.msg)
+
 internal fun ApplicationCall.personident(): String {
-    return requireNotNull(principal<JWTPrincipal>()) {
-        "principal mangler i ktor auth"
-    }.getClaim("pid", String::class)
-        ?: error("pid mangler i tokenx claims")
+    val principal = principal<JWTPrincipal>()
+        ?: throw PersonidentException(ErrorCode.REQ_MISSING_JWT)
+
+    return principal.getClaim("pid", String::class)
+        ?: throw PersonidentException(ErrorCode.REQ_MISSING_PID)
 }
 
 fun Application.authentication(config: TokenXConfig) {
@@ -30,7 +33,7 @@ fun Application.authentication(config: TokenXConfig) {
     authentication {
         jwt(TOKENX) {
             verifier(idPortenProvider, config.issuer)
-            challenge { _, _ -> call.respond(HttpStatusCode.Unauthorized, "TokenX validering feilet") }
+            challenge { _, _ -> call.error(ErrorCode.UNAUTH_TOKENX) }
             validate { cred ->
                 val now = Date()
 

@@ -3,7 +3,6 @@ package innsending
 import innsending.http.HttpConfig
 import no.nav.aap.kafka.KafkaConfig
 import no.nav.aap.ktor.client.AzureConfig
-import org.slf4j.Logger
 import java.net.URI
 
 private fun getEnvVar(envar: String) = System.getenv(envar) ?: error("missing envvar $envar")
@@ -32,9 +31,11 @@ data class Config(
 
 data class PdfGenConfig(
     override val host: String = "http://pdfgen",
-    override val log: Logger = SECURE_LOG,
-    override val alias: String = "pdfgen",
-) : HttpConfig(host, log, alias)
+) : HttpConfig(
+    host,
+    SECURE_LOG,
+    "pdfgen",
+)
 
 data class RedisConfig(
     val uri: URI = URI(getEnvVar("REDIS_URI_MELLOMLAGER").also { SECURE_LOG.info("redis uri $it") }),
@@ -43,8 +44,12 @@ data class RedisConfig(
 )
 
 data class OppslagConfig(
-    val host: String = "http://oppslag",
+    override val host: String = "http://oppslag",
     val scope: String = getEnvVar("OPPSLAG_SCOPE")
+) : HttpConfig(
+    host,
+    SECURE_LOG,
+    "oppslag",
 )
 
 data class PostgresConfig(
