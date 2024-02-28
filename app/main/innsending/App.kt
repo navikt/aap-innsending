@@ -30,6 +30,7 @@ import io.ktor.server.metrics.micrometer.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.callloging.*
 import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.plugins.openapi.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
@@ -137,9 +138,9 @@ fun Application.server(
         }
 
         actuator(prometheus, redis)
-//
-//        swaggerUI(path = "swagger", swaggerFile = "openapi.yaml") {
-//            customStyle("https://raw.githubusercontent.com/ilyamixaltik/swagger-themes/main/themes/nord-dark.css")
+
+//        openAPI(path = "openapi", swaggerFile = "openapi.yaml") {
+//            this.opts.config.outputDir = "build/openapi"
 //        }
     }
 }
