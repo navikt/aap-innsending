@@ -1,8 +1,20 @@
 package innsending.http
 
+import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.Summary
 
+object Meters {
+    private val meters: MutableList<Meter> = mutableListOf()
+
+    fun create(meter: () -> Meter.LATENCY): Meter.LATENCY =
+        meter().also(meters::add)
+
+    fun register(collector: CollectorRegistry) =
+        meters.forEach { meter -> meter.register(collector) }
+}
+
 sealed interface Meter {
+    fun register(collector: CollectorRegistry)
 
     class LATENCY(
         private val name: String,
@@ -16,6 +28,10 @@ sealed interface Meter {
                 .quantile(0.99, 0.001) // Add 99th percentile with 0.1% tolerated error
                 .help(description)
                 .register()
+        }
+
+        override fun register(collector: CollectorRegistry) {
+            collector.register(latency)
         }
 
         suspend fun <T> timed(block: suspend () -> T): T =

@@ -2,9 +2,7 @@ package innsending.routes
 
 import innsending.*
 import innsending.dto.MellomlagringRespons
-import innsending.kafka.KafkaFake
 import innsending.postgres.H2TestBase
-import innsending.redis.JedisRedisFake
 import innsending.redis.Key
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -19,7 +17,7 @@ import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
-class MellomlagringTest: H2TestBase() {
+class MellomlagringTest : H2TestBase() {
 
     @Test
     fun `kan mellomlagre søknad`() {
@@ -207,6 +205,7 @@ class MellomlagringTest: H2TestBase() {
         Fakes().use { fakes ->
             val config = TestConfig.default(fakes)
             val tokenx = TokenXGen(config.tokenx)
+
             testApplication {
                 val client = createClient {
                     install(ContentNegotiation) { jackson() }
@@ -214,26 +213,34 @@ class MellomlagringTest: H2TestBase() {
                 application { server(config, fakes.redis, h2, fakes.kafka) }
                 val resLagre = client.submitFormWithBinaryData(url = "/mellomlagring/fil",
                     formData = formData {
-                        append("document", Resource.read("/resources/images/bilde.jpg"), Headers.build {
-                            append(HttpHeaders.ContentDisposition, "filename=bilde.jpg")
-                            append(HttpHeaders.ContentType, "image/jpeg")
-                        })
+                        append(
+                            key = "document",
+                            value = Resource.read("/resources/images/bilde.jpg"),
+                            headers = Headers.build {
+                                append(HttpHeaders.ContentDisposition, "filename=bilde.jpg")
+                                append(HttpHeaders.ContentType, "image/jpeg")
+                            })
                     },
                     block = {
                         bearerAuth(tokenx.generate("12345678910"))
                     }
                 )
 
-
                 assertEquals(HttpStatusCode.Created, resLagre.status)
+
                 val respons = resLagre.body<MellomlagringRespons>()
 
                 val resHent = client.get("/mellomlagring/fil/${respons.filId}") {
                     accept(ContentType.Application.Pdf)
                     bearerAuth(tokenx.generate("12345678910"))
                 }
+
                 assertEquals(HttpStatusCode.OK, resHent.status)
-                assertEquals(String(Resource.read("/resources/pdf/minimal.pdf")), String(resHent.readBytes()))
+
+                assertEquals(
+                    expected = String(Resource.read("/resources/pdf/minimal.pdf")),
+                    actual = String(resHent.readBytes())
+                )
             }
         }
     }

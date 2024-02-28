@@ -100,9 +100,9 @@ class Path private constructor(private val path: String) {
 }
 
 open class HttpConfig(
-    val host: String,
-    val log: Logger,
-    val latencyMeter: Meter.LATENCY,
+    open val host: String,
+    open val log: Logger,
+    open val latencyMeter: Meter.LATENCY,
 )
 
 sealed class HttpResult<T>(config: HttpConfig) {

@@ -207,13 +207,14 @@ fun kryptertEllerUgyldigPdf(fil: ByteArray): Boolean {
     }
 }
 
-fun ContentType.isNotSupported(fil: ByteArray): Boolean =
+fun ContentType.isSupported(fil: ByteArray): Boolean =
     runCatching {
         val filtype = Tika().detect(fil)
         SECURE_LOGGER.info("sjekker filtype $filtype == $contentType")
-        this !in SUPPORTED_TYPES || filtype != contentType
-    }.getOrDefault(true)
+        this in SUPPORTED_TYPES && filtype == this.toString()
+    }.getOrDefault(false)
 
+fun ContentType.isNotSupported(fil: ByteArray): Boolean = !isSupported(fil)
 
 data class SøknadFinnesRespons(
     val tittel: String? = null,

@@ -41,6 +41,7 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
             }
         }
 
+        // todo: add vedlegg-refs
         post("/{ref}") {
             val innsendingsRef = call.parameters["ref"]?.let(UUID::fromString) ?: return@post call.respond(
                 HttpStatusCode.BadRequest,
@@ -56,6 +57,7 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
     }
 }
 
+// todo: set expiry hver gang noe endres, også for vedlegg
 private suspend fun postInnsending(postgres: PostgresRepo, redis: Redis, call: ApplicationCall, innsendingsRef: UUID? = null) {
     val personIdent = call.personident()
     val innsending = call.receive<Innsending>()

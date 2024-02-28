@@ -30,7 +30,9 @@ internal object TestConfig {
                 baseUrl = "http://localhost:${fakes.joark.port}",
                 scope = "api://dev-fss.teamdokumenthandtering.dokarkiv/.default"
             ),
-            pdfGenHost = "http://localhost:${fakes.pdfGen.port()}",
+            pdfGen = PdfGenConfig(
+                "http://localhost:${fakes.pdfGen.port()}"
+            ),
             virusScanHost = "http://localhost:${fakes.virusScan.port()}",
             azure = AzureConfig(
                 tokenEndpoint = URI.create("http://localhost:${fakes.azure.port()}/token").toURL(),

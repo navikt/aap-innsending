@@ -4,7 +4,9 @@ import innsending.Config
 import innsending.LeaderElection
 import innsending.SECURE_LOGGER
 import innsending.arkiv.JournalpostSender
+import innsending.http.HttpResult
 import innsending.kafka.KafkaProducer
+import innsending.pdf.Pdf
 import innsending.pdf.PdfGen
 import innsending.postgres.InnsendingMedFiler
 import innsending.postgres.PostgresRepo
@@ -50,12 +52,9 @@ class Apekatt(
         while (this.isActive) {
             innsendinger().collect { innsending ->
                 try {
-                    if (innsending.data != null) {
-                        val pdf = pdfGen.søknadTilPdf(innsending)
-                        journalpostSender.arkiverSøknad(pdf, innsending)
-                        minsideProducer.produce(innsending.personident)
-                    } else {
-                        journalpostSender.arkiverEttersending(innsending)
+                    when (innsending.data != null) {
+                        true -> arkiverSøknad(innsending)
+                        false -> arkiverEttersending(innsending)
                     }
 
                     prometheus.counter("innsending", listOf(Tag.of("resultat", "ok"))).increment()
@@ -85,5 +84,23 @@ class Apekatt(
                 job.cancelAndJoin()
             }
         }
+    }
+
+    private fun arkiverEttersending(innsending: InnsendingMedFiler) {
+        journalpostSender.arkiverEttersending(innsending)
+    }
+
+    private suspend fun arkiverSøknad(innsending: InnsendingMedFiler) {
+        val pdf = when (val res = pdfGen.søknadTilPdf(innsending)) {
+            is HttpResult.Ok -> res.getOrNull<Pdf>()
+            is HttpResult.ClientError -> res.traceError()
+            is HttpResult.ServerError -> res.traceError()
+            null -> null.also {
+                SECURE_LOGGER.error("Klarte ikke sende søknad til PdfGen.")
+            }
+        } ?: error("Feilet arkivering av søknad, prøv igjen...")
+
+        journalpostSender.arkiverSøknad(pdf, innsending)
+        minsideProducer.produce(innsending.personident)
     }
 }

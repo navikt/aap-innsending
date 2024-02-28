@@ -7,6 +7,7 @@ import innsending.arkiv.JoarkClient
 import innsending.arkiv.JournalpostSender
 import innsending.auth.TOKENX
 import innsending.auth.authentication
+import innsending.http.Meters
 import innsending.kafka.KafkaProducer
 import innsending.kafka.MinSideKafkaProducer
 import innsending.pdf.PdfGen
@@ -70,6 +71,8 @@ fun Application.server(
     ).apply {
         start()
     }
+
+    Meters.register(prometheus.prometheusRegistry)
 
     environment.monitor.subscribe(ApplicationStopping) {
         runBlocking {

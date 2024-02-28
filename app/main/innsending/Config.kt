@@ -1,9 +1,11 @@
 package innsending
 
 import innsending.http.HttpConfig
+import innsending.http.Meter
 import innsending.pdf.PdfGen
 import no.nav.aap.kafka.KafkaConfig
 import no.nav.aap.ktor.client.AzureConfig
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.net.URI
 
@@ -19,7 +21,7 @@ data class Config(
     ),
     val joark: JoarkConfig = JoarkConfig(),
     val tokenx: TokenXConfig = TokenXConfig(),
-    val pdfGen: PdfGenConfig = PdfGenConfig,
+    val pdfGen: PdfGenConfig = PdfGenConfig(),
     val virusScanHost: String = "http://clamav.nais-system",
     val kafka: KafkaConfig = KafkaConfig(
         brokers = getEnvVar("KAFKA_BROKERS"),
@@ -31,11 +33,11 @@ data class Config(
     val leaderElectorPath: String = getEnvVar("ELECTOR_PATH"),
 )
 
-data object PdfGenConfig : HttpConfig(
-    host = "http://pdfgen",
-    log = LoggerFactory.getLogger("secureLog"),
-    latencyMeter = PdfGen.LATENCY_METER
-)
+data class PdfGenConfig(
+    override val host: String = "http://pdfgen",
+    override val log: Logger = LoggerFactory.getLogger("secureLog"),
+    override val latencyMeter: Meter.LATENCY = PdfGen.LATENCY_METER
+) : HttpConfig(host, log, latencyMeter)
 
 data class RedisConfig(
     val uri: URI = URI(getEnvVar("REDIS_URI_MELLOMLAGER").also { SECURE_LOGGER.info("redis uri $it") }),

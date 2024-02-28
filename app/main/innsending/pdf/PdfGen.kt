@@ -3,10 +3,7 @@ package innsending.pdf
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import innsending.Config
-import innsending.http.HttpResult
-import innsending.http.JwtHttpClient
-import innsending.http.Meter
-import innsending.http.Path
+import innsending.http.*
 import innsending.oppslag.OppslagClient
 import innsending.postgres.InnsendingMedFiler
 import io.ktor.http.*
@@ -49,19 +46,13 @@ class PdfGen(config: Config) : JwtHttpClient(config.pdfGen) {
         )
     }
 
-    private suspend fun HttpResult<Pdf>.toPdf(): Pdf? {
-        return when (this) {
-            is HttpResult.Ok -> getOrNull<Pdf>()
-            is HttpResult.ClientError -> traceError()
-            is HttpResult.ServerError -> traceError()
-        }
-    }
-
     companion object {
-        val LATENCY_METER = Meter.LATENCY(
-            name = "PDFGEN_client_seconds",
-            description = "Latency pdfgen, in seconds"
-        )
+        val LATENCY_METER = Meters.create {
+            Meter.LATENCY(
+                name = "PDFGEN_client_seconds",
+                description = "Latency pdfgen, in seconds"
+            )
+        }
     }
 }
 
