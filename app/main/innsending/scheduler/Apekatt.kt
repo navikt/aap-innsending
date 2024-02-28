@@ -69,6 +69,8 @@ class Apekatt(
         }
     }
 
+    fun isLive(): Boolean = job.isActive
+
     fun start() {
         isRunning = true
     }
