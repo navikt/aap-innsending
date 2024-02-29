@@ -48,8 +48,8 @@ class Apekatt(
 
     private val job: Job = CoroutineScope(Dispatchers.IO).launch {
         while (this.isActive) {
-            innsendinger().collect { innsending ->
-                try {
+            try {
+                innsendinger().collect { innsending ->
                     if (innsending.data != null) {
                         val pdf = pdfGen.søknadTilPdf(innsending)
                         journalpostSender.arkiverSøknad(pdf, innsending)
@@ -59,16 +59,15 @@ class Apekatt(
                     }
 
                     prometheus.counter("innsending", listOf(Tag.of("resultat", "ok"))).increment()
-                } catch (cancel: CancellationException) {
-                    SECURE_LOGGER.info("Cancellation exception fanget", cancel)
-                    throw cancel
-                } catch (e: Exception) {
-                    SECURE_LOGGER.error("Klarte ikke å arkivere", e)
-                    prometheus.counter("innsending", listOf(Tag.of("resultat", "feilet"))).increment()
-                    delay(10_000)
                 }
+            } catch (cancel: CancellationException) {
+                SECURE_LOGGER.info("Cancellation exception fanget", cancel)
+                throw cancel
+            } catch (e: Exception) {
+                SECURE_LOGGER.error("Klarte ikke å arkivere", e)
+                prometheus.counter("innsending", listOf(Tag.of("resultat", "feilet"))).increment()
+                delay(10_000)
             }
-
             delay(1_000)
         }
     }

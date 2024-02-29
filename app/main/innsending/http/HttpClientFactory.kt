@@ -14,7 +14,7 @@ import io.ktor.serialization.jackson.*
 internal object HttpClientFactory {
     fun create(): HttpClient = HttpClient(CIO) {
         install(HttpTimeout) {
-            requestTimeoutMillis = 25_000
+            requestTimeoutMillis = 60_000
             connectTimeoutMillis = 5_000
         }
 
