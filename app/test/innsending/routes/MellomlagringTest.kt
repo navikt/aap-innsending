@@ -250,7 +250,7 @@ class MellomlagringTest: H2TestBase() {
             val filId2 = UUID.randomUUID()
 
             testApplication {
-                application { server(config, jedis, h2, KafkaFake) }
+                application { server(config, jedis, h2, fakes.kafka) }
                 jedis.set(Key("12345678910"), """{"søknadId":"1234"}""".toByteArray(), 50)
 
                 val key = Key(value = filId.toString(), prefix = "12345678910")
