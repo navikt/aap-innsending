@@ -29,18 +29,20 @@ class Apekatt(
     private var isRunning: Boolean = false
 
     private fun innsendinger(): Flow<InnsendingMedFiler> = flow {
-        if (leaderElector.isLeader()) {
-            prometheus.gauge("is_apekatt_flowing", 0)
-            repo.hentAlleInnsendinger()
-                .also { prometheus.gauge("innsendinger", it.size) }
-                .mapNotNull { repo.hentInnsending(it) }
-                .forEach {
-                    prometheus.gauge("is_apekatt_flowing", 1)
-                    emit(it)
-                }
-        }
+        while (true) {
+            if (leaderElector.isLeader()) {
+                prometheus.gauge("is_apekatt_flowing", 1)
+                repo.hentAlleInnsendinger()
+                    .also { prometheus.gauge("innsendinger", it.size) }
+                    .mapNotNull { repo.hentInnsending(it) }
+                    .forEach {
+                        emit(it)
+                    }
+            }
 
-        delay(60_000)
+            prometheus.gauge("is_apekatt_flowing", 0)
+            delay(60_000)
+        }
     }
 
     private val job: Job = CoroutineScope(Dispatchers.IO).launch {
