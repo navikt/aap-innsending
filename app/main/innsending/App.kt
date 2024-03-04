@@ -67,15 +67,13 @@ fun Application.server(
         prometheus,
         journalpostSender,
         minsideProducer,
-    ).apply {
-        start()
-    }
+    )
 
     environment.monitor.subscribe(ApplicationStopping) {
         runBlocking {
             delay(1000)
         }
-        arkivScheduler.stop()
+        arkivScheduler.close()
         minsideProducer.close()
         redis.close()
     }
