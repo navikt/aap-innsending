@@ -4,14 +4,11 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import innsending.PostgresConfig
 import org.flywaydb.core.Flyway
-import org.slf4j.LoggerFactory
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.util.*
 import javax.sql.DataSource
-
-private val logger = LoggerFactory.getLogger("App")
 
 internal object Hikari {
     fun createAndMigrate(

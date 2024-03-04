@@ -29,7 +29,7 @@ private val log = LoggerFactory.getLogger("App")
 private val acceptedContentType =
     listOf(ContentType.Image.JPEG, ContentType.Image.PNG, ContentType.Application.Pdf)
 
-const val CONTENT_LENGHT_LIMIT = 100 * 1024 * 1024 // 100 MB
+const val CONTENT_LENGHT_LIMIT = 50 * 1024 * 1024 // 100 MB
 
 fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: PdfGen) {
     route("/mellomlagring/søknad") {
@@ -85,25 +85,15 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                 is PartData.FileItem -> {
                     val stream = mottattFil.streamProvider()
 
-                    val contentLength = mottattFil.headers[HttpHeaders.ContentLength]?.toInt()
-                        ?: stream.available().also { estimate ->
-                            log.info(
-                                """
-                                Missing Content-Length header in multipart.
-                                Will use estimated bytes ($estimate).
-                            """.trimIndent()
-                            )
-                        }
-
-                    if (contentLength > CONTENT_LENGHT_LIMIT) {
-                        log.warn("Filen er for stor. Maks størrelse er 100 MB")
+                    val fil = stream.readBytes()
+                    if (fil.size > CONTENT_LENGHT_LIMIT) {
 //                        return@post call.respond(
 //                            HttpStatusCode.UnprocessableEntity,
-//                            ErrorRespons("Filen er for stor. Maks størrelse er 100 MB")
+//                            ErrorRespons("Filen er for stor. Maks tillat filstørresle er 50MB.")
 //                        )
+                        log.info("Filen er for stor (${fil.size}). Maks tillat filstørresle er 50MB.")
                     }
 
-                    val fil = stream.readBytes()
                     val contentType = requireNotNull(mottattFil.contentType) { "contentType i multipartForm mangler" }
 
                     if (fil.isEmpty() || sjekkFeilContentType(fil, contentType)) {

@@ -25,7 +25,6 @@ data class Config(
         credstorePsw = getEnvVar("KAFKA_CREDSTORE_PASSWORD"),
     ),
     val oppslag: OppslagConfig = OppslagConfig(),
-    val leaderElectorPath: String = getEnvVar("ELECTOR_PATH"),
 )
 
 data class RedisConfig(

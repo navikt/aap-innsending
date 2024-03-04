@@ -1,7 +1,5 @@
 package innsending.scheduler
 
-import innsending.Config
-import innsending.LeaderElection
 import innsending.SECURE_LOGGER
 import innsending.arkiv.JournalpostSender
 import innsending.kafka.KafkaProducer
@@ -12,33 +10,29 @@ import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tag
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 
 class Apekatt(
-    config: Config,
     private val pdfGen: PdfGen,
     private val repo: PostgresRepo,
     private val prometheus: MeterRegistry,
     private val journalpostSender: JournalpostSender,
     private val minsideProducer: KafkaProducer
 ) : AutoCloseable {
-    private val leaderElector = LeaderElection(config)
-    private val mutex = Mutex()
-    private var isRunning: Boolean = false
 
     private fun innsendinger(): Flow<InnsendingMedFiler> = flow {
         while (true) {
-            if (leaderElector.isLeader()) {
-                prometheus.counter("is_apekatt_flowing").increment()
-                repo.hentAlleInnsendinger()
-                    .also { prometheus.counter("innsendinger").increment(it.size.toDouble()) }
-                    .mapNotNull { repo.hentInnsending(it) }
-                    .forEach {
-                        emit(it)
-                    }
+            prometheus.counter("is_apekatt_flowing").increment()
+
+            if (job.isActive) {
+                prometheus.counter("is_apekatt_active").increment()
             }
+
+            repo.hentAlleInnsendinger()
+                .also { prometheus.counter("innsendinger").increment(it.size.toDouble()) }
+                .mapNotNull { repo.hentInnsending(it) }
+                .forEach { emit(it) }
 
             delay(60_000)
         }
@@ -47,23 +41,22 @@ class Apekatt(
     private val job: Job = CoroutineScope(Dispatchers.IO).launch {
         while (this.isActive) {
             try {
-                innsendinger().collect { innsending ->
-                    if (innsending.data != null) {
-                        val pdf = pdfGen.søknadTilPdf(innsending)
-                        journalpostSender.arkiverSøknad(pdf, innsending)
-                        minsideProducer.produce(innsending.personident)
-                    } else {
-                        journalpostSender.arkiverEttersending(innsending)
-                    }
+                innsendinger()
+                    .distinctUntilChanged()
+                    .collect { innsending ->
 
-                    prometheus.counter("innsending", listOf(Tag.of("resultat", "ok"))).increment()
-                    mutex.withLock {
-                        isRunning = true
-                        prometheus.counter("is_apekatt_active").increment()
+                        when (innsending.data) {
+                            null -> journalpostSender.arkiverEttersending(innsending)
+                            else -> {
+                                val pdf = pdfGen.søknadTilPdf(innsending)
+                                journalpostSender.arkiverSøknad(pdf, innsending)
+                                minsideProducer.produce(innsending.personident)
+                            }
+                        }
+
+                        prometheus.counter("innsending", listOf(Tag.of("resultat", "ok"))).increment()
                     }
-                }
             } catch (e: Exception) {
-                mutex.withLock { isRunning = false }
                 if (e is CancellationException) throw e
                 SECURE_LOGGER.error("Klarte ikke å arkivere", e)
                 prometheus.counter("innsending", listOf(Tag.of("resultat", "feilet"))).increment()

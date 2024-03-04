@@ -61,7 +61,6 @@ fun Application.server(
     val joarkClient = JoarkClient(config.azure, config.joark)
     val journalpostSender = JournalpostSender(joarkClient, postgres)
     val arkivScheduler = Apekatt(
-        config,
         pdfGen,
         postgres,
         prometheus,

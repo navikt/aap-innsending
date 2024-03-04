@@ -25,7 +25,6 @@ class Fakes : AutoCloseable {
     val pdfGen = embeddedServer(Netty, port = 0, module = Application::pdfGen).apply { start() }
     val oppslag = embeddedServer(Netty, port = 0, module = Application::oppslag).apply { start() }
     val virusScan = embeddedServer(Netty, port = 0, module = Application::virusScan).apply { start() }
-    val leaderElector = embeddedServer(Netty, port = 0, module = Application::leaderElector).apply { start() }
     val joark = JoarkFake()
     val redis = JedisRedisFake()
     val kafka = KafkaFake()
@@ -36,7 +35,6 @@ class Fakes : AutoCloseable {
         pdfGen.stop(0L, 0L)
         oppslag.stop(0L, 0L)
         virusScan.stop(0L, 0L)
-        leaderElector.stop(0L, 0L)
         joark.close()
         redis.close()
         kafka.close()
@@ -48,16 +46,6 @@ fun Application.tokenx() {
     routing {
         get("/jwks") {
             call.respondText(TOKEN_X_JWKS)
-        }
-    }
-}
-
-fun Application.leaderElector() {
-    install(ContentNegotiation) { jackson() }
-    routing {
-        get {
-            val hostname = InetAddress.getLocalHost().hostName
-            call.respond(LeaderResponse(name = hostname, "2021-01-01T00:00:00"))
         }
     }
 }
