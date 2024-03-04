@@ -31,7 +31,7 @@ class Apekatt(
     private fun innsendinger(): Flow<InnsendingMedFiler> = flow {
         while (true) {
             if (leaderElector.isLeader()) {
-                prometheus.gauge("is_apekatt_flowing", 1)
+                prometheus.counter("is_apekatt_flowing").increment()
                 repo.hentAlleInnsendinger()
                     .also { prometheus.gauge("innsendinger", it.size) }
                     .mapNotNull { repo.hentInnsending(it) }
@@ -40,7 +40,6 @@ class Apekatt(
                     }
             }
 
-            prometheus.gauge("is_apekatt_flowing", 0)
             delay(60_000)
         }
     }
@@ -60,14 +59,11 @@ class Apekatt(
                     prometheus.counter("innsending", listOf(Tag.of("resultat", "ok"))).increment()
                     mutex.withLock {
                         isRunning = true
-                        prometheus.gauge("is_apekatt_active", 1)
+                        prometheus.counter("is_apekatt_active").increment()
                     }
                 }
             } catch (e: Exception) {
-                mutex.withLock {
-                    isRunning = false
-                    prometheus.gauge("is_apekatt_active", 0)
-                }
+                mutex.withLock { isRunning = false }
                 if (e is CancellationException) throw e
                 SECURE_LOGGER.error("Klarte ikke å arkivere", e)
                 prometheus.counter("innsending", listOf(Tag.of("resultat", "feilet"))).increment()
