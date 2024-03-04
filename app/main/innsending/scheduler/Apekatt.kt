@@ -33,7 +33,7 @@ class Apekatt(
             if (leaderElector.isLeader()) {
                 prometheus.counter("is_apekatt_flowing").increment()
                 repo.hentAlleInnsendinger()
-                    .also { prometheus.gauge("innsendinger", it.size) }
+                    .also { prometheus.counter("innsendinger").increment(it.size.toDouble()) }
                     .mapNotNull { repo.hentInnsending(it) }
                     .forEach {
                         emit(it)

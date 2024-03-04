@@ -15,19 +15,21 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.micrometer.core.instrument.MeterRegistry
-import io.micrometer.core.instrument.Tag
 import org.apache.pdfbox.Loader
 import org.apache.tika.Tika
+import org.slf4j.LoggerFactory
 import java.net.URI
 import java.net.URL
 import java.time.Instant
 import java.time.LocalDateTime
 import java.util.*
 
+private val log = LoggerFactory.getLogger("App")
 
 private val acceptedContentType =
     listOf(ContentType.Image.JPEG, ContentType.Image.PNG, ContentType.Application.Pdf)
+
+const val CONTENT_LENGHT_LIMIT = 100 * 1024 * 1024 // 100 MB
 
 fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: PdfGen) {
     route("/mellomlagring/søknad") {
@@ -35,7 +37,7 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
         post {
             val key = Key(call.personident())
             redis.set(key, call.receive(), EnDagSekunder)
-            redis.getKeysByPrefix(call.personident()).forEach { filKey->
+            redis.getKeysByPrefix(call.personident()).forEach { filKey ->
                 redis.setExpire(filKey, EnDagSekunder)
             }
             call.respond(HttpStatusCode.OK)
@@ -55,11 +57,15 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
 
             if (søknad != null) {
                 val age = redis.lastUpdated(personIdent)
-                val createdAt =  LocalDateTime.ofInstant(Instant.ofEpochMilli(age), TimeZone.getDefault().toZoneId())
-                call.respond(HttpStatusCode.OK, SøknadFinnesRespons("aap-søknad", URI("https://www.nav.no/aap/soknad").toURL(), createdAt))
+                val createdAt = LocalDateTime.ofInstant(Instant.ofEpochMilli(age), TimeZone.getDefault().toZoneId())
+                call.respond(
+                    HttpStatusCode.OK,
+                    SøknadFinnesRespons("aap-søknad", URI("https://www.nav.no/aap/soknad").toURL(), createdAt)
+                )
             } else {
                 call.respond(HttpStatusCode.NotFound, SøknadFinnesRespons())
-            }}
+            }
+        }
 
         delete {
             val key = Key(call.personident())
@@ -77,7 +83,27 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
 
             when (val mottattFil = call.receiveMultipart().readAllParts().single()) {
                 is PartData.FileItem -> {
-                    val fil = mottattFil.streamProvider().readBytes()
+                    val stream = mottattFil.streamProvider()
+
+                    val contentLength = mottattFil.headers[HttpHeaders.ContentLength]?.toInt()
+                        ?: stream.available().also { estimate ->
+                            log.info(
+                                """
+                                Missing Content-Length header in multipart.
+                                Will use estimated bytes ($estimate).
+                            """.trimIndent()
+                            )
+                        }
+
+                    if (contentLength > CONTENT_LENGHT_LIMIT) {
+                        log.warn("Filen er for stor. Maks størrelse er 100 MB")
+//                        return@post call.respond(
+//                            HttpStatusCode.UnprocessableEntity,
+//                            ErrorRespons("Filen er for stor. Maks størrelse er 100 MB")
+//                        )
+                    }
+
+                    val fil = stream.readBytes()
                     val contentType = requireNotNull(mottattFil.contentType) { "contentType i multipartForm mangler" }
 
                     if (fil.isEmpty() || sjekkFeilContentType(fil, contentType)) {
@@ -110,6 +136,7 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                                 }
                             }
                         }
+
                         else -> {
                             SECURE_LOGGER.warn("Feil filtype ${contentType.contentType}")
                             return@post call.respond(
@@ -169,6 +196,7 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
         }
     }
 }
+
 fun createdAt(ageInSeconds: Long): Date {
     return Date(System.currentTimeMillis() - ageInSeconds * 1000)
 }
@@ -177,7 +205,7 @@ fun kryptertEllerUgyldigPdf(fil: ByteArray): Boolean {
     try {
         val pdf = Loader.loadPDF(fil)
         return pdf.isEncrypted
-    } catch (e: Exception){
+    } catch (e: Exception) {
         return true
     }
 }
@@ -187,11 +215,11 @@ fun sjekkFeilContentType(fil: ByteArray, contentType: ContentType): Boolean {
     SECURE_LOGGER.debug("sjekker filtype {} == {}", filtype, contentType)
 
 
-    return filtype!=contentType.toString()
+    return filtype != contentType.toString()
 }
 
 data class SøknadFinnesRespons(
-    val tittel:String?=null,
-    val link:URL?=null,
-    val sistEndret:LocalDateTime?=null
+    val tittel: String? = null,
+    val link: URL? = null,
+    val sistEndret: LocalDateTime? = null
 )
