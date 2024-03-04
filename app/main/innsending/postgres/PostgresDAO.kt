@@ -126,7 +126,6 @@ object PostgresDAO {
         val stmt = con.prepareStatement(DELETE_INNSENDING)
         stmt.setObject(1, id)
         stmt.execute()
-        println("slettet")
     }
 
     fun insertFil(innsendingId: UUID, filId: UUID, fil: ByteArray, tittel: String, con: Connection) {

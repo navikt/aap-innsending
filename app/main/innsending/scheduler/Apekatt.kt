@@ -30,10 +30,14 @@ class Apekatt(
 
     private fun innsendinger(): Flow<InnsendingMedFiler> = flow {
         if (leaderElector.isLeader()) {
+            prometheus.gauge("is_apekatt_flowing", 0)
             repo.hentAlleInnsendinger()
                 .also { prometheus.gauge("innsendinger", it.size) }
                 .mapNotNull { repo.hentInnsending(it) }
-                .forEach { emit(it) }
+                .forEach {
+                    prometheus.gauge("is_apekatt_flowing", 1)
+                    emit(it)
+                }
         }
 
         delay(60_000)
@@ -60,7 +64,7 @@ class Apekatt(
             } catch (e: Exception) {
                 mutex.withLock {
                     isRunning = false
-                    prometheus.gauge("is_apekatt_active", 1)
+                    prometheus.gauge("is_apekatt_active", 0)
                 }
                 if (e is CancellationException) throw e
                 SECURE_LOGGER.error("Klarte ikke å arkivere", e)

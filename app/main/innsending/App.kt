@@ -83,7 +83,7 @@ fun Application.server(
     authentication(config.tokenx)
 
     install(CallLogging) {
-        level = Level.INFO
+        level = Level.TRACE
         format { call ->
             """
                 URL:            ${call.request.local.uri}

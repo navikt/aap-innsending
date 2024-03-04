@@ -21,7 +21,7 @@
         <appender-ref ref="secureLog"/>
     </logger>
 
-    <root level="INFO">
+    <root level="trace">
         <appender-ref ref="json"/>
     </root>
 

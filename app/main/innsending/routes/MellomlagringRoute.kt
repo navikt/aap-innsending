@@ -184,7 +184,7 @@ fun kryptertEllerUgyldigPdf(fil: ByteArray): Boolean {
 
 fun sjekkFeilContentType(fil: ByteArray, contentType: ContentType): Boolean {
     val filtype = Tika().detect(fil)
-    SECURE_LOGGER.info("sjekker filtype $filtype == $contentType")
+    SECURE_LOGGER.debug("sjekker filtype {} == {}", filtype, contentType)
 
 
     return filtype!=contentType.toString()
