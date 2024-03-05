@@ -23,7 +23,6 @@ import innsending.routes.actuator
 import innsending.routes.innsendingRoute
 import innsending.routes.mellomlagerRoute
 import innsending.scheduler.Apekatt
-import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -32,7 +31,6 @@ import io.ktor.server.metrics.micrometer.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.callloging.*
 import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.plugins.swagger.*
 import io.ktor.server.request.*
@@ -82,7 +80,7 @@ fun Application.server(
 
     environment.monitor.subscribe(ApplicationStopping) {
         runBlocking {
-            delay(1000)
+            delay(100)
         }
         arkivScheduler.close()
         minsideProducer.close()
