@@ -2,16 +2,19 @@ package innsending.arkiv
 
 import innsending.Config
 import innsending.http.ApiResult
-import innsending.http.HttpClientWrapper
 import innsending.http.Path
+import innsending.http.RestClient
 import io.ktor.client.request.*
+import io.ktor.http.*
 import io.micrometer.prometheus.PrometheusMeterRegistry
+import kotlinx.coroutines.runBlocking
 import no.nav.aap.ktor.client.auth.azure.AzureAdTokenProvider
 
 class JoarkClient(
     config: Config,
     registry: PrometheusMeterRegistry,
-) : HttpClientWrapper(config.joark, registry) {
+) {
+    private val client: RestClient = RestClient(config.joark, registry)
     private val scope = config.joark.scope
     private val tokenProvider = AzureAdTokenProvider(config.azure)
 
@@ -19,11 +22,12 @@ class JoarkClient(
         journalpost: Journalpost,
         callId: String
     ): ArkivResponse {
-        val result = http.post(
-            Path.from("/rest/journalpostapi/v1/journalpost"),
-            journalpost,
-        ) {
+        val result = client.post(Path.from("/rest/journalpostapi/v1/journalpost")) {
+            bearerAuth(clientCredentials)
+            accept(ContentType.Application.Json)
+            contentType(ContentType.Application.Json)
             header("Nav-Callid", callId)
+            setBody(journalpost)
         }
 
         return when (result) {
@@ -34,7 +38,8 @@ class JoarkClient(
         }
     }
 
-    override suspend fun getToken(): String {
-        return tokenProvider.getClientCredentialToken(scope)
-    }
+    private val clientCredentials: String
+        get() = runBlocking {
+            tokenProvider.getClientCredentialToken(scope)
+        }
 }

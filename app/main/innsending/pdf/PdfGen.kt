@@ -4,11 +4,12 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import innsending.Config
 import innsending.http.ApiResult
-import innsending.http.HttpClientWrapper
 import innsending.http.Path
+import innsending.http.RestClient
 import innsending.oppslag.Navn
 import innsending.oppslag.OppslagClient
 import innsending.postgres.InnsendingMedFiler
+import io.ktor.client.request.*
 import io.ktor.http.*
 import io.micrometer.core.instrument.MeterRegistry
 
@@ -17,19 +18,16 @@ typealias Pdf = ByteArray
 
 class PdfGen(
     config: Config,
-    registry: MeterRegistry,
-) : HttpClientWrapper(
-    config.pdfGen,
-    registry,
+    registry: MeterRegistry
 ) {
+    private val client = RestClient(config.pdfGen, registry)
     private val oppslagClient = OppslagClient(config, registry)
 
     suspend fun bildeTilPfd(img: Image, contentType: ContentType): ApiResult {
-        return http.post<Image>(
-            path = Path.from("/api/v1/genpdf/image/aap-pdfgen"),
-            body = img
-        ) {
+        return client.post(Path.from("/api/v1/genpdf/image/aap-pdfgen")) {
+            accept(ContentType.Application.Json)
             contentType(contentType)
+            setBody(img)
         }
     }
 
@@ -46,10 +44,11 @@ class PdfGen(
         val kvittering = json.toMap() + mapOf("mottattDato" to innsending.opprettet.toString())
         val søker = SøkerPdfGen(navn)
 
-        val response = http.post<SøknadPdfGen>(
-            path = Path.from("/api/v1/genpdf/aap-pdfgen/soknad"),
-            body = SøknadPdfGen(søker, kvittering),
-        )
+        val response = client.post(Path.from("/api/v1/genpdf/aap-pdfgen/soknad")) {
+            accept(ContentType.Application.Json)
+            contentType(ContentType.Application.Json)
+            setBody(SøknadPdfGen(søker, kvittering))
+        }
 
         val pdf = when (response) {
             is ApiResult.Ok -> response.getOrNull<Pdf>() ?: error("Failed to get pdf from pdf-gen response")
@@ -59,10 +58,6 @@ class PdfGen(
         }
 
         return pdf
-    }
-
-    override suspend fun getToken(): String {
-        return "no auth"
     }
 }
 

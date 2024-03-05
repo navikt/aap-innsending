@@ -3,21 +3,23 @@ package innsending.antivirus
 import com.fasterxml.jackson.annotation.JsonProperty
 import innsending.Config
 import innsending.http.ApiResult
-import innsending.http.HttpClientWrapper
 import innsending.http.Path
+import innsending.http.RestClient
+import io.ktor.client.request.*
 import io.ktor.http.*
 import io.micrometer.core.instrument.MeterRegistry
 
 class ClamAVClient(
     config: Config,
     registry: MeterRegistry,
-) : HttpClientWrapper(
-    config.clamAV,
-    registry,
 ) {
+    private val client: RestClient = RestClient(config.clamAV, registry)
+
     suspend fun hasVirus(fil: ByteArray, contentType: ContentType): Boolean {
-        val result = http.put(Path.from("/scan"), fil) {
+        val result = client.put(Path.from("/scan")) {
             contentType(contentType)
+            accept(ContentType.Application.Json)
+            setBody(fil)
         }
 
         val scanResult: List<ScanResult> = when (result) {
@@ -30,10 +32,6 @@ class ClamAVClient(
         return scanResult.any {
             it.result == ScanResult.Result.FOUND
         }
-    }
-
-    override suspend fun getToken(): String {
-        return "no auth"
     }
 }
 
