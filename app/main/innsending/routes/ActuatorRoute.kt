@@ -17,7 +17,7 @@ fun Routing.actuator(
         }
 
         get("/live") {
-            call.respond(HttpStatusCode(503, "Service Unavailable"))
+            call.respond(HttpStatusCode.OK, "live")
         }
 
         get("/ready") {
