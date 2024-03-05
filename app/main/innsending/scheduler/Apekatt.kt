@@ -6,6 +6,7 @@ import innsending.kafka.KafkaProducer
 import innsending.pdf.PdfGen
 import innsending.postgres.InnsendingMedFiler
 import innsending.postgres.PostgresRepo
+import innsending.redis.LeaderElector
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tag
 import kotlinx.coroutines.*
@@ -18,21 +19,24 @@ class Apekatt(
     private val repo: PostgresRepo,
     private val prometheus: MeterRegistry,
     private val journalpostSender: JournalpostSender,
-    private val minsideProducer: KafkaProducer
+    private val minsideProducer: KafkaProducer,
+    private val leaderElector: LeaderElector,
 ) : AutoCloseable {
 
     private fun innsendinger(): Flow<InnsendingMedFiler> = flow {
         while (true) {
-            prometheus.counter("is_apekatt_flowing").increment()
+            if (leaderElector.elected()) {
+                prometheus.counter("is_apekatt_flowing").increment()
 
-            if (job.isActive) {
-                prometheus.counter("is_apekatt_active").increment()
+                if (job.isActive) {
+                    prometheus.counter("is_apekatt_active").increment()
+                }
+
+                repo.hentAlleInnsendinger()
+                    .also { prometheus.counter("innsendinger").increment(it.size.toDouble()) }
+                    .mapNotNull { repo.hentInnsending(it) }
+                    .forEach { emit(it) }
             }
-
-            repo.hentAlleInnsendinger()
-                .also { prometheus.counter("innsendinger").increment(it.size.toDouble()) }
-                .mapNotNull { repo.hentInnsending(it) }
-                .forEach { emit(it) }
 
             delay(60_000)
         }

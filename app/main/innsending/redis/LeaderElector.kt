@@ -1,0 +1,35 @@
+package innsending.redis
+
+import org.slf4j.LoggerFactory
+import java.net.InetAddress
+
+/**
+ *  Time to live should be set to a value higher than the scheduler interval
+ */
+private const val TTL_MS = 61_000L
+
+class LeaderElector(private val redis: Redis) {
+    private val pod = InetAddress.getLocalHost().hostName
+    private val log = LoggerFactory.getLogger(this::class.java)
+
+    /**
+     * Check if this pod is the leader
+     */
+    fun elected(): Boolean {
+        val key = Key("LEADER-POD")
+
+        return when (val leader = redis[key]) {
+            null -> electSelf(key)
+            else -> String(leader) == pod
+        }
+    }
+
+    /**
+     * First to claim leadership wins
+     */
+    private fun electSelf(key: Key): Boolean {
+        log.info("Electing $pod as leader for $TTL_MS ms")
+        redis.set(key, pod.toByteArray(), TTL_MS)
+        return true
+    }
+}

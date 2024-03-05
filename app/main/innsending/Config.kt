@@ -28,7 +28,7 @@ data class Config(
 )
 
 data class RedisConfig(
-    val uri: URI = URI(getEnvVar("REDIS_URI_MELLOMLAGER").also { SECURE_LOGGER.info("redis uri $it") }),
+    val uri: URI = URI(getEnvVar("REDIS_URI_MELLOMLAGER")),
     val username: String = getEnvVar("REDIS_USERNAME_MELLOMLAGER"),
     val password: String = getEnvVar("REDIS_PASSWORD_MELLOMLAGER"),
 )

@@ -13,6 +13,7 @@ import innsending.pdf.PdfGen
 import innsending.postgres.Hikari
 import innsending.postgres.PostgresRepo
 import innsending.redis.JedisRedis
+import innsending.redis.LeaderElector
 import innsending.redis.Redis
 import innsending.routes.actuator
 import innsending.routes.innsendingRoute
@@ -57,7 +58,7 @@ fun Application.server(
     val antivirus = ClamAVClient(config.virusScanHost)
     val pdfGen = PdfGen(config)
     val postgres = PostgresRepo(datasource)
-
+    val leaderElector = LeaderElector(redis)
     val joarkClient = JoarkClient(config.azure, config.joark)
     val journalpostSender = JournalpostSender(joarkClient, postgres)
     val arkivScheduler = Apekatt(
@@ -66,6 +67,7 @@ fun Application.server(
         prometheus,
         journalpostSender,
         minsideProducer,
+        leaderElector,
     )
 
     environment.monitor.subscribe(ApplicationStopping) {

@@ -17,11 +17,11 @@
         <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
     </appender>
 
-    <logger name="secureLog" level="TRACE" additivity="false">
+    <logger name="secureLog" level="INFO" additivity="false">
         <appender-ref ref="secureLog"/>
     </logger>
 
-    <root level="trace">
+    <root level="INFO">
         <appender-ref ref="json"/>
     </root>
 
