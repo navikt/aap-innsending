@@ -48,7 +48,7 @@ dependencies {
 
     implementation("io.ktor:ktor-server-cors:$ktorVersion")
     implementation("io.ktor:ktor-server-swagger:$ktorVersion") // swaggerUI()
-    implementation("io.ktor:ktor-server-webjars:$ktorVersion") // staticFiles()
+//    implementation("io.ktor:ktor-server-webjars:$ktorVersion") // staticFiles()
 
     runtimeOnly("net.logstash.logback:logstash-logback-encoder:7.4")
     runtimeOnly("org.postgresql:postgresql:42.7.2")
@@ -57,7 +57,7 @@ dependencies {
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     testImplementation("com.h2database:h2:2.2.224")
     testImplementation("com.nimbusds:nimbus-jose-jwt:9.37.3")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+//    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
 }
 
 repositories {

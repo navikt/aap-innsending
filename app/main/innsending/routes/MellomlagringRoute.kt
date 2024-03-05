@@ -30,9 +30,6 @@ import java.util.*
 val SUPPORTED_TYPES = listOf(ContentType.Image.JPEG, ContentType.Image.PNG, ContentType.Application.Pdf)
 private val log = LoggerFactory.getLogger("App")
 
-private val acceptedContentType =
-    listOf(ContentType.Image.JPEG, ContentType.Image.PNG, ContentType.Application.Pdf)
-
 const val CONTENT_LENGHT_LIMIT = 50 * 1024 * 1024 // 100 MB
 
 fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: PdfGen) {
