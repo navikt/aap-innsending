@@ -36,7 +36,7 @@ class JournalpostSender(
         )
 
         val arkivResponse = client.opprettJournalpost(journalpost, innsending.id.toString())
-        SECURE_LOG.info("Opprettet journalpost {} for {}", arkivResponse.journalpostId, innsending.personident)
+        SECURE_LOG.debug("Opprettet journalpost {} for {}", arkivResponse.journalpostId, innsending.personident)
 
         repo.loggførJournalføring(
             personIdent = innsending.personident,
