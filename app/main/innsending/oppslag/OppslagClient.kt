@@ -15,7 +15,7 @@ class OppslagClient(
     config: Config,
     registry: MeterRegistry,
 ) {
-    private val client: RestClient = RestClient(config.clamAV, registry)
+    private val client: RestClient = RestClient(config.oppslag, registry)
     private val scope = config.oppslag.scope
     private val tokenProvider = AzureAdTokenProvider(config.azure)
 
