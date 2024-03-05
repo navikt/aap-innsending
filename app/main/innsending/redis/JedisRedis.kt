@@ -17,10 +17,12 @@ data class Key(
 
 interface Redis : AutoCloseable {
     fun set(key: Key, value: ByteArray, expireSec: Long)
+    fun setExpire(key: Key, expireSec: Long)
     operator fun get(key: Key): ByteArray?
     fun del(key: Key)
     fun ready(): Boolean
-    fun createdAt(key: Key): Long
+    fun getKeysByPrefix(prefix: String): List<Key>
+    fun lastUpdated(key: Key): Long
     fun expiresIn(key: Key): Long
     fun exists(key: Key): Boolean
 }
@@ -33,11 +35,27 @@ class JedisRedis(config: RedisConfig) : Redis {
     )
 
 
+    override fun getKeysByPrefix(prefix: String): List<Key> {
+        pool.resource.use {
+            return it.keys("$prefix:*").map {
+                val split = it.split(":")
+                Key(split[1], split[0])
+            }
+        }
+    }
+
     override fun set(key: Key, value: ByteArray, expireSec: Long) {
         pool.resource.use {
             it.set(key.get(), value)
             it.expire(key.get(), expireSec)
         }
+    }
+
+    override fun setExpire(key: Key, expireSec: Long){
+        pool.resource.use {
+            it.expire(key.get(), expireSec)
+        }
+
     }
 
     override operator fun get(key: Key): ByteArray? {
@@ -58,7 +76,7 @@ class JedisRedis(config: RedisConfig) : Redis {
         }
     }
 
-    override fun createdAt(key: Key): Long {
+    override fun lastUpdated(key: Key): Long {
         pool.resource.use {
             return it.objectIdletime(key.get())
         }

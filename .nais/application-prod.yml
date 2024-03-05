@@ -8,12 +8,11 @@ metadata:
     sub: innsending
 spec:
   image: {{image}}
-  leaderElection: true
   replicas:
     cpuThresholdPercentage: 90
     disableAutoScaling: true
-    max: 2
-    min: 2
+    max: 1
+    min: 1
   azure:
     application:
       enabled: true
@@ -64,6 +63,10 @@ spec:
   prometheus:
     enabled: true
     path: /actuator/metrics
+#  observability:
+#    autoInstrumentation:
+#      enabled: true
+#      runtime: "java"
   secureLogs:
     enabled: true
   env:

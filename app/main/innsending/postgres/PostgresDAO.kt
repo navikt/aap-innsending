@@ -15,7 +15,8 @@ object PostgresDAO {
     private const val INSERT_FIL = """INSERT INTO fil (id, innsending_id, tittel, data) VALUES (?, ?, ?, ?)"""
     private const val SELECT_INNSENDING_IDS = """SELECT id FROM innsending"""
     private const val SELECT_INNSENDING = """SELECT * FROM innsending WHERE id = ?"""
-    private const val SELECT_INNSENDINGER_BY_PERSONIDENT = """SELECT * FROM innsending WHERE personident = ? AND soknad IS NOT NULL"""
+    private const val SELECT_INNSENDINGER_BY_PERSONIDENT =
+        """SELECT * FROM innsending WHERE personident = ? AND soknad IS NOT NULL"""
     private const val SELECT_FILER = """SELECT * FROM fil WHERE innsending_id = ?"""
     private const val INSERT_INNSENDING = """
         INSERT INTO innsending (id, opprettet, personident, soknad, data) VALUES (?, ?, ?, ?, ?)
@@ -152,7 +153,7 @@ object PostgresDAO {
                 mottattDato = row.getTimestamp("opprettet").toLocalDateTime(),
                 journalpostId = null,
                 innsendingsId = row.getUUID("id")
-                )
+            )
         }.toList()
     }
 

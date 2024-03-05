@@ -67,21 +67,18 @@ fun Application.server(
     val joarkClient = JoarkClient(config, prometheus)
     val journalpostSender = JournalpostSender(joarkClient, postgres)
     val arkivScheduler = Apekatt(
-        config,
         pdfGen,
         postgres,
         prometheus,
         journalpostSender,
         minsideProducer,
-    ).apply {
-        start()
-    }
+    )
 
     environment.monitor.subscribe(ApplicationStopping) {
         runBlocking {
             delay(1000)
         }
-        arkivScheduler.stop()
+        arkivScheduler.close()
         minsideProducer.close()
         redis.close()
     }
@@ -99,7 +96,7 @@ fun Application.server(
     authentication(config.tokenx)
 
     install(CallLogging) {
-        level = Level.INFO
+        level = Level.TRACE
         format { call ->
             """
                 URL:            ${call.request.local.uri}
@@ -139,7 +136,7 @@ fun Application.server(
             mellomlagerRoute(redis, antivirus, pdfGen)
         }
 
-        actuator(prometheus, redis, arkivScheduler)
+        actuator(prometheus, redis)
 
         swaggerUI(path = "swagger", swaggerFile = "openapi.yaml")
     }

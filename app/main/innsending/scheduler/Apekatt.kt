@@ -1,7 +1,5 @@
 package innsending.scheduler
 
-import innsending.Config
-import innsending.LeaderElection
 import innsending.SECURE_LOG
 import innsending.arkiv.JournalpostSender
 import innsending.kafka.KafkaProducer
@@ -12,34 +10,29 @@ import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tag
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 
 class Apekatt(
-    config: Config,
     private val pdfGen: PdfGen,
     private val repo: PostgresRepo,
     private val prometheus: MeterRegistry,
     private val journalpostSender: JournalpostSender,
     private val minsideProducer: KafkaProducer
-) {
-    private val leaderElector = LeaderElection(config)
-    private val mutex = Mutex()
-    private var isRunning: Boolean = false
+) : AutoCloseable {
 
     private fun innsendinger(): Flow<InnsendingMedFiler> = flow {
-        while (mutex.withLock { isRunning }) {
-            if (leaderElector.isLeader()) {
-                if (job.isActive) {
-                    prometheus.counter("apekatt.isactive").increment()
-                }
+        while (true) {
+            prometheus.counter("is_apekatt_flowing").increment()
 
-                repo.hentAlleInnsendinger()
-                    .also { prometheus.gauge("innsendinger", it.size) }
-                    .mapNotNull { repo.hentInnsending(it) }
-                    .forEach { emit(it) }
+            if (job.isActive) {
+                prometheus.counter("is_apekatt_active").increment()
             }
+
+            repo.hentAlleInnsendinger()
+                .also { prometheus.counter("innsendinger").increment(it.size.toDouble()) }
+                .mapNotNull { repo.hentInnsending(it) }
+                .forEach { emit(it) }
 
             delay(60_000)
         }
@@ -47,37 +40,28 @@ class Apekatt(
 
     private val job: Job = CoroutineScope(Dispatchers.IO).launch {
         while (this.isActive) {
-            innsendinger().collect { innsending ->
-                try {
-                    when (innsending.data != null) {
-                        true -> arkiverSøknad(innsending)
-                        false -> arkiverEttersending(innsending)
+            try {
+                innsendinger()
+                    .distinctUntilChanged()
+                    .collect { innsending ->
+
+                        when (innsending.data != null) {
+                            true -> arkiverSøknad(innsending)
+                            false -> arkiverEttersending(innsending)
+                        }
+
+                        prometheus.counter("innsending", listOf(Tag.of("resultat", "ok"))).increment()
                     }
-
-                    prometheus.counter("innsending", listOf(Tag.of("resultat", "ok"))).increment()
-                } catch (cancel: CancellationException) {
-                    SECURE_LOG.info("Cancellation exception fanget", cancel)
-                    throw cancel
-                } catch (e: Exception) {
-                    SECURE_LOG.error("Klarte ikke å arkivere", e)
-                    prometheus.counter("innsending", listOf(Tag.of("resultat", "feilet"))).increment()
-                    delay(10_000)
-                }
+            } catch (e: Exception) {
+                if (e is CancellationException) throw e
+                SECURE_LOG.error("Klarte ikke å arkivere", e)
+                prometheus.counter("innsending", listOf(Tag.of("resultat", "feilet"))).increment()
+                delay(10_000)
             }
-
-            delay(1_000)
         }
     }
 
-    fun isLive(): Boolean = job.isActive
-
-    fun start() {
-        isRunning = true
-    }
-
-    fun stop() {
-        isRunning = false
-
+    override fun close() {
         if (!job.isCompleted) {
             runBlocking {
                 job.cancelAndJoin()

@@ -11,7 +11,6 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-read-timeout: "90"
 spec:
   image: {{image}}
-  leaderElection: true
   ingresses:
     - https://aap-innsending.intern.dev.nav.no
   replicas:
@@ -82,14 +81,3 @@ spec:
       value: api://dev-fss.teamdokumenthandtering.dokarkiv/.default
     - name: OPPSLAG_SCOPE
       value: api://dev-gcp.aap.oppslag/.default
-
-    - name: OTEL_METRICS_EXPORTER
-      value: prometheus
-    - name: OTEL_LOGS_EXPORTER
-      value: none
-    - name: OTEL_TRACES_EXPORTER
-      value: otlp
-    - name: OTEL_EXPORTER_METRICS_ENABLED
-      value: "false"
-    - name: OTEL_METRICS_EXEMPLAR_FILTER
-      value: ALWAYS_ON

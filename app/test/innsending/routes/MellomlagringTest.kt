@@ -3,6 +3,7 @@ package innsending.routes
 import innsending.*
 import innsending.dto.MellomlagringRespons
 import innsending.postgres.H2TestBase
+import innsending.redis.JedisRedisFake
 import innsending.redis.Key
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -229,6 +230,38 @@ class MellomlagringTest : H2TestBase() {
                     expected = String(Resource.read("/resources/pdf/minimal.pdf")),
                     actual = String(resHent.readBytes())
                 )
+            }
+        }
+    }
+
+    @Test
+    fun `expire på vedlegg blir utvidet ved oppdatering av søknad`(){
+        Fakes().use { fakes ->
+            val jedis = JedisRedisFake()
+            val config = TestConfig.default(fakes)
+            val jwkGen = TokenXGen(config.tokenx)
+            val filId = UUID.randomUUID()
+            val filId2 = UUID.randomUUID()
+
+            testApplication {
+                application { server(config, jedis, h2, fakes.kafka) }
+                jedis.set(Key("12345678910"), """{"søknadId":"1234"}""".toByteArray(), 50)
+
+                val key = Key(value = filId.toString(), prefix = "12345678910")
+                jedis.set(key, String(Resource.read("/resources/pdf/minimal.pdf")).toByteArray(), 50)
+                val key2 = Key(value = filId2.toString(), prefix = "12345678911")
+                jedis.set(key2, String(Resource.read("/resources/pdf/minimal.pdf")).toByteArray(), 50)
+
+
+                client.post("/mellomlagring/søknad") {
+                    contentType(ContentType.Application.Json)
+                    bearerAuth(jwkGen.generate("12345678910"))
+                    setBody("""{"soknadId":"1234"}""")
+                }
+
+                assert(jedis.expiresIn(key) > 50)
+                assert(jedis.expiresIn(key2) < 50)
+
             }
         }
     }

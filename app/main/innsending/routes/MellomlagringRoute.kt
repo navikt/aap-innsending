@@ -21,12 +21,19 @@ import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
 import org.apache.pdfbox.Loader
 import org.apache.tika.Tika
+import org.slf4j.LoggerFactory
 import java.net.URI
 import java.time.Instant
 import java.time.LocalDateTime
 import java.util.*
 
 val SUPPORTED_TYPES = listOf(ContentType.Image.JPEG, ContentType.Image.PNG, ContentType.Application.Pdf)
+private val log = LoggerFactory.getLogger("App")
+
+private val acceptedContentType =
+    listOf(ContentType.Image.JPEG, ContentType.Image.PNG, ContentType.Application.Pdf)
+
+const val CONTENT_LENGHT_LIMIT = 50 * 1024 * 1024 // 100 MB
 
 fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: PdfGen) {
 
@@ -41,6 +48,9 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
         post {
             val key = Key(call.personident())
             redis.set(key, call.receive(), EnDagSekunder)
+            redis.getKeysByPrefix(call.personident()).forEach { filKey ->
+                redis.setExpire(filKey, EnDagSekunder)
+            }
             call.respond(HttpStatusCode.Created)
         }
 
@@ -63,7 +73,7 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
             val søknad = redis[personIdent]
 
             fun finnes(): SøknadFinnesRespons {
-                val age = redis.createdAt(personIdent)
+                val age = redis.lastUpdated(personIdent)
                 return SøknadFinnesRespons(
                     tittel = "aap-søknad",
                     link = URI("https://www.nav.no/aap/soknad").toURL(),
@@ -108,7 +118,17 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
             val multipartFile = multipartFileOrNull()
                 ?: return@post call.error(ErrorCode.REQ_MISSING_MULTIPART_FILE)
 
-            val fil = multipartFile.streamProvider().readBytes()
+            val stream = multipartFile.streamProvider()
+
+                    val fil = stream.readBytes()
+                    if (fil.size > CONTENT_LENGHT_LIMIT) {
+//                        return@post call.respond(
+//                            HttpStatusCode.UnprocessableEntity,
+//                            ErrorRespons("Filen er for stor. Maks tillat filstørresle er 50MB.")
+//                        )
+                        log.info("Filen er for stor (${fil.size}). Maks tillat filstørresle er 50MB.")
+                    }
+
 
             if (fil.isEmpty()) {
                 return@post call.error(ErrorCode.UNPROC_EMPTY_FILE)

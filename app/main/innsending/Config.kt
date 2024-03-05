@@ -22,7 +22,6 @@ data class Config(
     ),
     val oppslag: OppslagConfig = OppslagConfig(),
     val clamAV: ClamAVConfig = ClamAVConfig(),
-    val leaderElectorPath: String = getEnvVar("ELECTOR_PATH"),
 )
 
 data class PdfGenConfig(
