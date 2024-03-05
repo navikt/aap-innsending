@@ -46,7 +46,7 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
 
-    implementation("io.ktor:ktor-server-cors:$ktorVersion")
+//    implementation("io.ktor:ktor-server-cors:$ktorVersion")
     implementation("io.ktor:ktor-server-swagger:$ktorVersion") // swaggerUI()
 //    implementation("io.ktor:ktor-server-webjars:$ktorVersion") // staticFiles()
 
