@@ -97,12 +97,6 @@ fun Application.server(
         )
     }
 
-    // Brukes av swagger
-//    install(CORS) {
-//        anyHost()
-//        allowHeader(HttpHeaders.ContentType)
-//    }
-
     authentication(config.tokenx)
 
     install(CallLogging) {
