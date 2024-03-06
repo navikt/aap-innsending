@@ -32,6 +32,10 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics
+import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics
+import io.micrometer.core.instrument.binder.logging.LogbackMetrics
+import io.micrometer.core.instrument.binder.system.ProcessorMetrics
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
 import kotlinx.coroutines.delay
@@ -79,7 +83,15 @@ fun Application.server(
         redis.close()
     }
 
-    install(MicrometerMetrics) { registry = prometheus }
+    install(MicrometerMetrics) {
+        registry = prometheus
+        meterBinders = listOf(
+            JvmMemoryMetrics(),
+            JvmGcMetrics(),
+            ProcessorMetrics(),
+            LogbackMetrics(),
+        )
+    }
 
     authentication(config.tokenx)
 
