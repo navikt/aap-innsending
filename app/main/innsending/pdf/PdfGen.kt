@@ -53,7 +53,7 @@ class PdfGen(config: Config) {
             )
         }
 
-        val kvittering = json.toMap() + mapOf("mottattDato" to innsending.opprettet.toString())
+        val kvittering = json.toMap() + mapOf("mottattdato" to innsending.opprettet.toString())
         val data = SøknadPdfGen(SøkerPdfGen(navn), kvittering)
 
         return clientLatencyStats.startTimer().use {
