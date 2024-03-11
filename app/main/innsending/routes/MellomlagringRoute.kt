@@ -102,6 +102,9 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                     if (numBytes > CONTENT_LENGHT_LIMIT) {
                         log.warn("File exceeds content length limit $CONTENT_LENGHT_LIMIT")
                     }
+                    if (numBytes == 0) {
+                        log.error("Number of bytes for file is 0. This msg is just for test")
+                    }
 
                     val fil = channel.readNBytes(numBytes)
 
