@@ -15,6 +15,9 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.jvm.javaio.*
+import kotlinx.coroutines.Dispatchers
 import org.apache.pdfbox.Loader
 import org.apache.tika.Tika
 import org.slf4j.LoggerFactory
@@ -29,7 +32,13 @@ private val log = LoggerFactory.getLogger("App")
 private val acceptedContentType =
     listOf(ContentType.Image.JPEG, ContentType.Image.PNG, ContentType.Application.Pdf)
 
-const val CONTENT_LENGHT_LIMIT = 50 * 1024 * 1024 // 100 MB
+const val CONTENT_LENGHT_LIMIT = 50 * 1024 * 1024 // 50 MB
+
+internal suspend fun ByteReadChannel.readNBytes(nBytes: Int): ByteArray {
+    val bytes = ByteArray(nBytes)
+    this.readFully(bytes, 0, nBytes)
+    return bytes
+}
 
 fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: PdfGen) {
     route("/mellomlagring/søknad") {
@@ -83,16 +92,18 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
 
             when (val mottattFil = call.receiveMultipart().readAllParts().single()) {
                 is PartData.FileItem -> {
-                    val stream = mottattFil.streamProvider()
+                    val channel = mottattFil
+                        .streamProvider()
+                        .toByteReadChannel(Dispatchers.IO)
+                        .apply { awaitContent() }
 
-                    val fil = stream.readBytes()
-                    if (fil.size > CONTENT_LENGHT_LIMIT) {
-//                        return@post call.respond(
-//                            HttpStatusCode.UnprocessableEntity,
-//                            ErrorRespons("Filen er for stor. Maks tillat filstørresle er 50MB.")
-//                        )
-                        log.info("Filen er for stor (${fil.size}). Maks tillat filstørresle er 50MB.")
+                    val numBytes = channel.availableForRead
+                    log.info("Available bytes for read: $numBytes")
+                    if (numBytes > CONTENT_LENGHT_LIMIT) {
+                        log.warn("File exceeds content length limit $CONTENT_LENGHT_LIMIT")
                     }
+
+                    val fil = channel.readNBytes(numBytes)
 
                     val contentType = requireNotNull(mottattFil.contentType) { "contentType i multipartForm mangler" }
 
