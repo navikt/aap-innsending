@@ -92,22 +92,19 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
 
             when (val mottattFil = call.receiveMultipart().readAllParts().single()) {
                 is PartData.FileItem -> {
-                    val channel = mottattFil
-                        .streamProvider()
-                        .toByteReadChannel(Dispatchers.IO)
-                        .apply { awaitContent() }
+                    val stream = mottattFil.streamProvider()
+//                    val channel = stream.toByteReadChannel(Dispatchers.IO).apply { awaitContent() }
+//                    val numBytes = channel.availableForRead
+//                    log.info("Available bytes for read: $numBytes")
+//                    if (numBytes > CONTENT_LENGHT_LIMIT) {
+//                        log.warn("File exceeds content length limit $CONTENT_LENGHT_LIMIT")
+//                    }
+//                    if (numBytes == 0) {
+//                        log.error("Number of bytes for file is 0. This msg is just for test")
+//                    }
+//                    val fil = channel.readNBytes(numBytes)
 
-                    val numBytes = channel.availableForRead
-                    log.info("Available bytes for read: $numBytes")
-                    if (numBytes > CONTENT_LENGHT_LIMIT) {
-                        log.warn("File exceeds content length limit $CONTENT_LENGHT_LIMIT")
-                    }
-                    if (numBytes == 0) {
-                        log.error("Number of bytes for file is 0. This msg is just for test")
-                    }
-
-                    val fil = channel.readNBytes(numBytes)
-
+                    val fil = stream.readAllBytes()
                     val contentType = requireNotNull(mottattFil.contentType) { "contentType i multipartForm mangler" }
 
                     if (fil.isEmpty() || sjekkFeilContentType(fil, contentType)) {
