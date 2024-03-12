@@ -4,7 +4,7 @@ plugins {
     application
 }
 
-val aapLibVersion = "3.7.162"
+val aapLibVersion = "4.0.22"
 val ktorVersion = "2.3.9"
 
 application {
@@ -12,7 +12,7 @@ application {
 }
 
 dependencies {
-    implementation("com.github.navikt.aap-libs:ktor-auth-azuread:$aapLibVersion")
+    implementation("com.github.navikt.aap-libs:ktor-auth:$aapLibVersion")
     implementation("com.github.navikt.aap-libs:kafka:$aapLibVersion")
     implementation("org.apache.kafka:kafka-clients:3.7.0")
 
@@ -43,6 +43,7 @@ dependencies {
     implementation("com.zaxxer:HikariCP:5.1.0")
     implementation("org.flywaydb:flyway-core:10.9.0")
     implementation("org.flywaydb:flyway-database-postgresql:10.8.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
     runtimeOnly("net.logstash.logback:logstash-logback-encoder:7.4")
     runtimeOnly("org.postgresql:postgresql:42.7.2")
 
@@ -50,7 +51,7 @@ dependencies {
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     testImplementation("com.h2database:h2:2.2.224")
     testImplementation("com.nimbusds:nimbus-jose-jwt:9.37.3")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+
 }
 
 repositories {

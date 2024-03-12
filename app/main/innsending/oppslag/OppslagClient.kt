@@ -5,18 +5,18 @@ import innsending.http.HttpClientFactory
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import no.nav.aap.ktor.client.AzureAdTokenProvider
+import no.nav.aap.ktor.client.auth.azure.AzureAdTokenProvider
 import java.util.*
 
 class OppslagClient(config: Config) {
     private val client = HttpClientFactory.create()
     private val oppslagConfig = config.oppslag
-    private val tokenProvider = AzureAdTokenProvider(config.azure, oppslagConfig.scope)
+    private val tokenProvider = AzureAdTokenProvider(config.azure)
 
     suspend fun hentNavn(personident: String): Navn {
         val res = client.get(oppslagConfig.host + "/person/navn") {
             accept(ContentType.Application.Json)
-            bearerAuth(tokenProvider.getClientCredentialToken())
+            bearerAuth(tokenProvider.getClientCredentialToken(oppslagConfig.scope))
             header("personident", personident)
             header("Nav-CallId", UUID.randomUUID().toString())
         }

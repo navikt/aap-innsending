@@ -1,7 +1,7 @@
 package innsending
 
 import no.nav.aap.kafka.KafkaConfig
-import no.nav.aap.ktor.client.AzureConfig
+import no.nav.aap.ktor.client.auth.azure.AzureConfig
 import java.net.URI
 
 private fun getEnvVar(envar: String) = System.getenv(envar) ?: error("missing envvar $envar")
@@ -9,11 +9,7 @@ private fun getEnvVar(envar: String) = System.getenv(envar) ?: error("missing en
 data class Config(
     val postgres: PostgresConfig = PostgresConfig(),
     val redis: RedisConfig = RedisConfig(),
-    val azure: AzureConfig = AzureConfig(
-        tokenEndpoint = URI.create(getEnvVar("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT")).toURL(),
-        clientId = getEnvVar("AZURE_APP_CLIENT_ID"),
-        clientSecret = getEnvVar("AZURE_APP_CLIENT_SECRET")
-    ),
+    val azure: AzureConfig = AzureConfig(),
     val joark: JoarkConfig = JoarkConfig(),
     val tokenx: TokenXConfig = TokenXConfig(),
     val pdfGenHost: String = "http://pdfgen",
