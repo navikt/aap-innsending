@@ -12,7 +12,7 @@ import io.ktor.client.plugins.logging.*
 import io.ktor.serialization.jackson.*
 
 internal object HttpClientFactory {
-    fun create(): HttpClient = HttpClient(CIO) {
+    fun create(logLevel: LogLevel = LogLevel.INFO): HttpClient = HttpClient(CIO) {
         install(HttpTimeout) {
             requestTimeoutMillis = 60_000
             connectTimeoutMillis = 5_000
@@ -22,7 +22,7 @@ internal object HttpClientFactory {
 
         install(Logging) {
             logger = ClientLogger
-            level = LogLevel.ALL
+            level = logLevel
         }
 
         install(ContentNegotiation) {

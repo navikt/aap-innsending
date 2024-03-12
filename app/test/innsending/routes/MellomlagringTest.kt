@@ -284,7 +284,7 @@ class MellomlagringTest: H2TestBase() {
                 jedis.set(key2, String(Resource.read("/resources/pdf/minimal.pdf")).toByteArray(), 50)
 
 
-                val res2 = client.post("/mellomlagring/søknad") {
+                client.post("/mellomlagring/søknad") {
                     contentType(ContentType.Application.Json)
                     bearerAuth(jwkGen.generate("12345678910"))
                     setBody("""{"soknadId":"1234"}""")
