@@ -86,17 +86,24 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                     val fil = fileItem
                         .readFile(CONTENT_LENGHT_LIMIT)
                         .getOrElse {
-                            return@post call.respond(
-                                HttpStatusCode.UnprocessableEntity,
-                                ErrorRespons("Filen ${fileItem.originalFileName} er større enn maksgrense på 50MB")
-                            )
+                            when (it) {
+                                is EmptyStreamException -> return@post call.respond(
+                                    HttpStatusCode.UnprocessableEntity,
+                                    ErrorRespons("Filen er tom")
+                                )
+
+                                else -> return@post call.respond(
+                                    HttpStatusCode.UnprocessableEntity,
+                                    ErrorRespons("Filen ${fileItem.originalFileName} er større enn maksgrense på 50MB")
+                                )
+                            }
                         }
 
                     val contentType = requireNotNull(fileItem.contentType) {
                         "contentType i multipartForm mangler"
                     }
 
-                    if (fil.isEmpty() || sjekkFeilContentType(fil, contentType)) {
+                    if (sjekkFeilContentType(fil, contentType)) {
                         return@post call.respond(
                             HttpStatusCode.UnprocessableEntity,
                             ErrorRespons("Filtype ikke støttet")
@@ -187,10 +194,15 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
     }
 }
 
+class EmptyStreamException(msg: String) : RuntimeException(msg)
+
 private fun PartData.FileItem.readFile(fileSizeLimit: Int): Result<ByteArray> =
     runCatching {
         provider().use { stream ->
-            stream.tryPeek()
+            if (stream.tryPeek() == -1) {
+                throw EmptyStreamException("No bytes found in stream")
+            }
+
             var buffer = ByteArray(1024)
             var idx = 0
 
