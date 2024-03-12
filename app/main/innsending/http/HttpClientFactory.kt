@@ -10,6 +10,10 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.serialization.jackson.*
+import org.slf4j.LoggerFactory
+
+private val APP_LOGGER: org.slf4j.Logger = LoggerFactory.getLogger(HttpClientFactory::class.java)
+
 
 internal object HttpClientFactory {
     fun create(logLevel: LogLevel = LogLevel.INFO): HttpClient = HttpClient(CIO) {
@@ -21,7 +25,7 @@ internal object HttpClientFactory {
         install(HttpRequestRetry)
 
         install(Logging) {
-            logger = ClientLogger
+            logger = ClientLogger(logLevel)
             level = logLevel
         }
 
@@ -35,8 +39,20 @@ internal object HttpClientFactory {
     }
 }
 
-internal object ClientLogger : Logger {
+internal class ClientLogger(level: LogLevel) : Logger {
     override fun log(message: String) {
-        SECURE_LOGGER.info(message)
+        log.info(message)
+    }
+
+    private val log = when (level) {
+        /**
+         * HTTP code, method and url is logged
+         */
+        LogLevel.INFO, LogLevel.NONE -> APP_LOGGER
+
+        /**
+         *  HTTP code, method, url, headers request body and response body is logged
+         */
+        else -> SECURE_LOGGER
     }
 }
