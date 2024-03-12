@@ -15,9 +15,6 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.utils.io.*
-import io.ktor.utils.io.jvm.javaio.*
-import kotlinx.coroutines.Dispatchers
 import org.apache.pdfbox.Loader
 import org.apache.tika.Tika
 import org.slf4j.LoggerFactory
@@ -33,12 +30,6 @@ private val acceptedContentType =
     listOf(ContentType.Image.JPEG, ContentType.Image.PNG, ContentType.Application.Pdf)
 
 const val CONTENT_LENGHT_LIMIT = 50 * 1024 * 1024 // 50 MB
-
-internal suspend fun ByteReadChannel.readNBytes(nBytes: Int): ByteArray {
-    val bytes = ByteArray(nBytes)
-    this.readFully(bytes, 0, nBytes)
-    return bytes
-}
 
 fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: PdfGen) {
     route("/mellomlagring/søknad") {
@@ -90,22 +81,20 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                 prefix = call.personident()
             )
 
-            when (val mottattFil = call.receiveMultipart().readAllParts().single()) {
+            when (val fileItem = call.receiveMultipart().readAllParts().single()) {
                 is PartData.FileItem -> {
-                    val stream = mottattFil.streamProvider()
-//                    val channel = stream.toByteReadChannel(Dispatchers.IO).apply { awaitContent() }
-//                    val numBytes = channel.availableForRead
-//                    log.info("Available bytes for read: $numBytes")
-//                    if (numBytes > CONTENT_LENGHT_LIMIT) {
-//                        log.warn("File exceeds content length limit $CONTENT_LENGHT_LIMIT")
-//                    }
-//                    if (numBytes == 0) {
-//                        log.error("Number of bytes for file is 0. This msg is just for test")
-//                    }
-//                    val fil = channel.readNBytes(numBytes)
+                    val fil = fileItem
+                        .readFile(CONTENT_LENGHT_LIMIT)
+                        .getOrElse {
+                            return@post call.respond(
+                                HttpStatusCode.UnprocessableEntity,
+                                ErrorRespons("Filen ${fileItem.originalFileName} er større enn maksgrense på 50MB")
+                            )
+                        }
 
-                    val fil = stream.readAllBytes()
-                    val contentType = requireNotNull(mottattFil.contentType) { "contentType i multipartForm mangler" }
+                    val contentType = requireNotNull(fileItem.contentType) {
+                        "contentType i multipartForm mangler"
+                    }
 
                     if (fil.isEmpty() || sjekkFeilContentType(fil, contentType)) {
                         return@post call.respond(
@@ -198,9 +187,26 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
     }
 }
 
-fun createdAt(ageInSeconds: Long): Date {
-    return Date(System.currentTimeMillis() - ageInSeconds * 1000)
-}
+private fun PartData.FileItem.readFile(fileSizeLimit: Int): Result<ByteArray> =
+    runCatching {
+        provider().use { stream ->
+            stream.tryPeek()
+            var buffer = ByteArray(1024)
+            var idx = 0
+
+            fun expandBuffer() {
+                buffer = buffer.copyOf(buffer.size * 2)
+                require(buffer.size <= fileSizeLimit) { "Filen er større enn tillat størrelse på $fileSizeLimit" }
+            }
+
+            while (stream.canRead()) {
+                if (idx == buffer.size) expandBuffer()
+                buffer[idx++] = stream.readByte()
+            }
+
+            buffer.copyOfRange(0, idx)
+        }
+    }
 
 fun kryptertEllerUgyldigPdf(fil: ByteArray): Boolean {
     try {

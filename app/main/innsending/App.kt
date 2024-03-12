@@ -76,7 +76,7 @@ fun Application.server(
 
     environment.monitor.subscribe(ApplicationStopping) {
         runBlocking {
-            delay(1000)
+            delay(50)
         }
         arkivScheduler.close()
         minsideProducer.close()

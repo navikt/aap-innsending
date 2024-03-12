@@ -1,10 +1,9 @@
 package innsending.routes
 
 import innsending.*
+import innsending.dto.ErrorRespons
 import innsending.dto.MellomlagringRespons
-import innsending.kafka.KafkaFake
 import innsending.postgres.H2TestBase
-import innsending.redis.EnDagSekunder
 import innsending.redis.JedisRedisFake
 import innsending.redis.Key
 import io.ktor.client.call.*
@@ -19,7 +18,6 @@ import org.junit.jupiter.api.Test
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 class MellomlagringTest: H2TestBase() {
 
@@ -127,6 +125,33 @@ class MellomlagringTest: H2TestBase() {
                 val respons = res.body<MellomlagringRespons>()
                 val key = Key(respons.filId, prefix = "12345678910")
                 assertEquals(String(Resource.read("/resources/pdf/minimal.pdf")), fakes.redis[key]?.let(::String))
+            }
+        }
+    }
+
+    @Test
+    fun `kan ikke mellomlagre stor fil`() {
+        Fakes().use { fakes ->
+            val config = TestConfig.default(fakes)
+            val jwkGen = TokenXGen(config.tokenx)
+            testApplication {
+                val client = createClient {
+                    install(ContentNegotiation) { jackson() }
+                }
+                application { server(config, fakes.redis, h2, fakes.kafka) }
+                val res = client.submitFormWithBinaryData(url = "/mellomlagring/fil",
+                    formData = formData {
+                        append("document", Resource.read("/resources/pdf/53mb.pdf"), Headers.build {
+                            append(HttpHeaders.ContentDisposition, "filename=53mb.pdf")
+                            append(HttpHeaders.ContentType, "application/pdf")
+                        })
+                    },
+                    block = {
+                        bearerAuth(jwkGen.generate("12345678910"))
+                    }
+                )
+                assertEquals(HttpStatusCode.UnprocessableEntity, res.status)
+                assertEquals(ErrorRespons("Filen 53mb.pdf er større enn maksgrense på 50MB"), res.body())
             }
         }
     }
