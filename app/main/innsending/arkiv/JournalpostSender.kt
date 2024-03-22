@@ -36,7 +36,7 @@ class JournalpostSender(
         )
 
         val arkivResponse = client.opprettJournalpost(journalpost, innsending.id.toString())
-        SECURE_LOGGER.debug("Opprettet journalpost {} for {}", arkivResponse.journalpostId, innsending.personident)
+        SECURE_LOGGER.info("Opprettet journalpost {} for eksternreferanseID {}", arkivResponse.journalpostId, journalpost.eksternReferanseId)
 
         repo.loggførJournalføring(
             personIdent = innsending.personident,
@@ -66,7 +66,7 @@ class JournalpostSender(
         )
 
         val arkivResponse = client.opprettJournalpost(journalpost, innsending.id.toString())
-        SECURE_LOGGER.info("Opprettet ettersending-journalpost {} for {}", arkivResponse.journalpostId, innsending.personident)
+        SECURE_LOGGER.info("Opprettet ettersending-journalpost {} for eksternreferanseID {}", arkivResponse.journalpostId, journalpost.eksternReferanseId)
 
         repo.loggførJournalføring(
             personIdent = innsending.personident,
