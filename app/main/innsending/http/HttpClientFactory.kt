@@ -3,17 +3,12 @@ package innsending.http
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import innsending.SECURE_LOGGER
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.serialization.jackson.*
-import org.slf4j.LoggerFactory
-
-private val APP_LOGGER: org.slf4j.Logger = LoggerFactory.getLogger(HttpClientFactory::class.java)
-
 
 internal object HttpClientFactory {
     fun create(logLevel: LogLevel = LogLevel.INFO): HttpClient = HttpClient(CIO) {
