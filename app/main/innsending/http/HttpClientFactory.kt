@@ -24,11 +24,6 @@ internal object HttpClientFactory {
 
         install(HttpRequestRetry)
 
-        install(Logging) {
-            logger = ClientLogger(logLevel)
-            level = logLevel
-        }
-
         install(ContentNegotiation) {
             jackson {
                 disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
@@ -36,23 +31,5 @@ internal object HttpClientFactory {
                 registerModule(JavaTimeModule())
             }
         }
-    }
-}
-
-internal class ClientLogger(level: LogLevel) : Logger {
-    override fun log(message: String) {
-        log.info(message)
-    }
-
-    private val log = when (level) {
-        /**
-         * HTTP code, method and url is logged
-         */
-        LogLevel.INFO, LogLevel.NONE -> APP_LOGGER
-
-        /**
-         *  HTTP code, method, url, headers request body and response body is logged
-         */
-        else -> SECURE_LOGGER
     }
 }
