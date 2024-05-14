@@ -1,5 +1,6 @@
 package innsending.scheduler
 
+import innsending.LOGGER
 import innsending.SECURE_LOGGER
 import innsending.arkiv.JournalpostSender
 import innsending.kafka.KafkaProducer
@@ -63,6 +64,7 @@ class Apekatt(
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
                 SECURE_LOGGER.error("Klarte ikke å arkivere", e)
+                LOGGER.error("Klarte ikke å arkivere, prøver igjen etter 10 sekunder", )
                 prometheus.counter("innsending", listOf(Tag.of("resultat", "feilet"))).increment()
                 delay(10_000)
             }
