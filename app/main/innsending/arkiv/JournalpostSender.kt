@@ -1,5 +1,6 @@
 package innsending.arkiv
 
+import innsending.LOGGER
 import innsending.SECURE_LOGGER
 import innsending.postgres.InnsendingMedFiler
 import innsending.postgres.InnsendingType
@@ -37,6 +38,7 @@ class JournalpostSender(
 
         val arkivResponse = client.opprettJournalpost(journalpost, innsending.id.toString())
         SECURE_LOGGER.info("Opprettet journalpost {} for eksternreferanseID {}", arkivResponse.journalpostId, journalpost.eksternReferanseId)
+        LOGGER.info("Opprettet journalpost {} for søknad med eksternreferanseID {}", arkivResponse.journalpostId, journalpost.eksternReferanseId)
 
         repo.loggførJournalføring(
             personIdent = innsending.personident,
@@ -67,6 +69,7 @@ class JournalpostSender(
 
         val arkivResponse = client.opprettJournalpost(journalpost, innsending.id.toString())
         SECURE_LOGGER.info("Opprettet ettersending-journalpost {} for eksternreferanseID {}", arkivResponse.journalpostId, journalpost.eksternReferanseId)
+        LOGGER.info("Opprettet journalpost {} for ettersending med eksternreferanseID {}", arkivResponse.journalpostId, journalpost.eksternReferanseId)
 
         repo.loggførJournalføring(
             personIdent = innsending.personident,

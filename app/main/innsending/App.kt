@@ -43,6 +43,7 @@ import org.slf4j.event.Level
 import javax.sql.DataSource
 
 val SECURE_LOGGER: Logger = LoggerFactory.getLogger("secureLog")
+val LOGGER: Logger = LoggerFactory.getLogger("Applikasjonslogger")
 
 fun main() {
     Thread.currentThread().setUncaughtExceptionHandler { _, e -> SECURE_LOGGER.error("Uhåndtert feil", e) }
@@ -104,6 +105,7 @@ fun Application.server(
     install(StatusPages) {
         exception<Throwable> { call, cause ->
             SECURE_LOGGER.error("Uhåndtert feil ved kall til '{}'", call.request.local.uri, cause)
+            LOGGER.error("Uhåndtert feil ved kall til '{}'", call.request.local.uri, cause)
             call.respondText(text = "Feil i tjeneste: ${cause.message}", status = HttpStatusCode.InternalServerError)
         }
     }
