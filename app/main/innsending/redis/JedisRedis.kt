@@ -5,6 +5,8 @@ import redis.clients.jedis.DefaultJedisClientConfig
 import redis.clients.jedis.HostAndPort
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.JedisPoolConfig
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 const val EnDagSekunder: Long = 60 * 60 * 24
 
@@ -22,7 +24,7 @@ interface Redis : AutoCloseable {
     fun del(key: Key)
     fun ready(): Boolean
     fun getKeysByPrefix(prefix: String): List<Key>
-    fun lastUpdated(key: Key): Long
+    fun lastUpdated(key: Key): LocalDateTime
     fun expiresIn(key: Key): Long
     fun exists(key: Key): Boolean
 }
@@ -76,9 +78,10 @@ class JedisRedis(config: RedisConfig) : Redis {
         }
     }
 
-    override fun lastUpdated(key: Key): Long {
+    override fun lastUpdated(key: Key): LocalDateTime {
+        val oneDayInSeconds = 60 * 60 * 24L
         pool.resource.use {
-            return it.objectIdletime(key.get())
+            return LocalDateTime.now().minusSeconds(oneDayInSeconds-it.ttl(key.get()))
         }
     }
 
