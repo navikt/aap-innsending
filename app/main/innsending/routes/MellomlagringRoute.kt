@@ -54,10 +54,10 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
         get("/finnes") {
             val personIdent = Key(call.personident())
             val søknad = redis[personIdent]
-
             if (søknad != null) {
                 val age = redis.lastUpdated(personIdent)
-                val createdAt = LocalDateTime.ofInstant(Instant.ofEpochMilli(age), TimeZone.getDefault().toZoneId())
+                SECURE_LOGGER.debug("alder på søknad i long: {}", age)
+                val createdAt = LocalDateTime.ofInstant(Instant.ofEpochSecond(age), TimeZone.getDefault().toZoneId())
                 call.respond(
                     HttpStatusCode.OK,
                     SøknadFinnesRespons("Søknad om AAP", URI("https://www.nav.no/aap/soknad").toURL(), createdAt)
