@@ -56,7 +56,7 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
             val søknad = redis[personIdent]
             if (søknad != null) {
                 val age = redis.lastUpdated(personIdent)
-                SECURE_LOGGER.debug("alder på søknad i long: {}", age)
+                log.info("alder på søknad i long: {}", age)
                 val createdAt = LocalDateTime.ofInstant(Instant.ofEpochSecond(age), TimeZone.getDefault().toZoneId())
                 call.respond(
                     HttpStatusCode.OK,
