@@ -23,7 +23,7 @@ class JournalpostSender(
             return listOf(søknadDokument) + vedleggDokumenter
         }
 
-        val journalpost = Journalpost(
+        val journalpost = Journalpost( // TODO Finn ut hvorfor en ikke kan ha Søknad om Arbeidsavklaringspenger som tittel
             tittel = "Søknad AAP",
             avsenderMottaker = Journalpost.AvsenderMottaker(
                 id = Journalpost.Fødselsnummer(innsending.personident)

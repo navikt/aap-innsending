@@ -1,6 +1,7 @@
 package innsending.routes
 
 import innsending.SECURE_LOGGER
+import innsending.LOGGER
 import innsending.auth.personident
 import innsending.dto.Innsending
 import innsending.postgres.PostgresRepo
@@ -36,6 +37,7 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
 
             if(søknadMedEttersendinger == null) {
                 call.respond(HttpStatusCode.NotFound, "Fant ikke søknad for angitt referanse")
+
             } else {
                 call.respond(søknadMedEttersendinger)
             }
@@ -68,6 +70,7 @@ private suspend fun postInnsending(postgres: PostgresRepo, redis: Redis, call: A
 
     if (innsendingsRef != null && postgres.erRefTilknyttetPersonIdent(personIdent, innsendingsRef).not()) {
         SECURE_LOGGER.error("$personIdent prøver å poste en innsending på $innsendingsRef, men disse hører ikke sammen")
+        LOGGER.error("Innbygger prøver å poste en innsending på $innsendingsRef, som ikke tilhører denne brukeren. Sjekk secure log for mer info")
         return call.respond(
             HttpStatusCode.NotFound,
             "Denne innsendingenId'en finnes ikke for denne personen"
@@ -75,7 +78,7 @@ private suspend fun postInnsending(postgres: PostgresRepo, redis: Redis, call: A
     }
 
     val innsendingId = UUID.randomUUID()
-    logger.trace("Mottok innsending med id {}", innsendingId)
+    logger.trace("Mottok innsending med id $innsendingId")
 
     val filerMedInnhold = innsending.filer.associateWith {fil ->
         redis[Key(value = fil.id, prefix = personIdent)]
@@ -102,4 +105,5 @@ private suspend fun postInnsending(postgres: PostgresRepo, redis: Redis, call: A
     redis.set(innsendingHash, byteArrayOf(), 60)
 
     call.respond(HttpStatusCode.OK, "Vi har mottatt innsendingen din")
+    LOGGER.info("Innsending mottatt og lagret for $innsendingId")
 }
