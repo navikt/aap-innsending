@@ -1,5 +1,6 @@
 package innsending.routes
 
+import innsending.LOGGER
 import innsending.SECURE_LOGGER
 import innsending.antivirus.ClamAVClient
 import innsending.auth.personident
@@ -114,6 +115,7 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                         in acceptedContentType -> {
                             if (virusScanClient.hasVirus(fil, contentType)) {
                                 SECURE_LOGGER.warn("Bruker prøvde å laste opp virus")
+                                LOGGER.warn("Bruker prøvde å laste opp virus $contentType" )
                                 return@post call.respond(
                                     HttpStatusCode.UnprocessableEntity,
                                     ErrorRespons("Fant virus i fil")
@@ -124,8 +126,9 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                             } else {
                                 try {
                                     pdfGen.bildeTilPfd(fil, contentType)
+
                                 } catch (e: Exception) {
-                                    SECURE_LOGGER.error("Feil fra PDFgen", e)
+                                    LOGGER.error("Feil fra PDFgen", e)
                                     return@post call.respond(
                                         HttpStatusCode.UnprocessableEntity,
                                         ErrorRespons("Feil ved omgjøring til pdf")
@@ -135,7 +138,7 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                         }
 
                         else -> {
-                            SECURE_LOGGER.warn("Feil filtype ${contentType.contentType}")
+                            LOGGER.warn("Feil filtype ${contentType.contentType}")
                             return@post call.respond(
                                 HttpStatusCode.UnprocessableEntity,
                                 ErrorRespons("Filtype ikke støttet")
@@ -188,6 +191,7 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                 prefix = call.personident(),
             )
 
+            LOGGER.trace("Sletter fil med key $key")
             redis.del(key)
             call.respond(HttpStatusCode.OK)
         }
@@ -209,11 +213,13 @@ private fun PartData.FileItem.readFile(fileSizeLimit: Int): Result<ByteArray> =
             fun expandBuffer() {
                 buffer = buffer.copyOf(buffer.size * 2)
                 require(buffer.size <= fileSizeLimit) { "Filen er større enn tillat størrelse på $fileSizeLimit" }
+                LOGGER.warn("Filen er for større enn ${fileSizeLimit}, kaster derfor feilmelding til bruker")
             }
 
             while (stream.canRead()) {
                 if (idx == buffer.size) expandBuffer()
                 buffer[idx++] = stream.readByte()
+                LOGGER.trace("Leser byte")
             }
 
             buffer.copyOfRange(0, idx)
@@ -224,6 +230,7 @@ fun kryptertEllerUgyldigPdf(fil: ByteArray): Boolean {
     try {
         val pdf = Loader.loadPDF(fil)
         return pdf.isEncrypted
+        LOGGER.warn("PDF er kryptert, kan ikke laste opp ${pdf.documentId}")
     } catch (e: Exception) {
         return true
     }
@@ -231,7 +238,7 @@ fun kryptertEllerUgyldigPdf(fil: ByteArray): Boolean {
 
 fun sjekkFeilContentType(fil: ByteArray, contentType: ContentType): Boolean {
     val filtype = Tika().detect(fil)
-    SECURE_LOGGER.debug("sjekker filtype {} == {}", filtype, contentType)
+    LOGGER.debug("Sjekker filtype $filtype == $contentType")
 
 
     return filtype != contentType.toString()
