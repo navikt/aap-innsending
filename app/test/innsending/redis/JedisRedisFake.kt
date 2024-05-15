@@ -35,7 +35,7 @@ class JedisRedisFake : Redis {
 
     override fun ready(): Boolean = true
 
-    override fun lastUpdated(key: Key): Long = 0
+    override fun lastUpdated(key: Key): LocalDateTime = LocalDateTime.now()
     override fun expiresIn(key: Key): Long {
         val expire = expires[str(key)]
         if (expire != null) {
