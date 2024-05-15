@@ -115,7 +115,7 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                         in acceptedContentType -> {
                             if (virusScanClient.hasVirus(fil, contentType)) {
                                 SECURE_LOGGER.warn("Bruker prøvde å laste opp virus")
-                                LOGGER.warn("Bruker prøvde å laste opp virus $contentType" )
+                                LOGGER.warn("Bruker prøvde å laste opp fil med virus $contentType" )
                                 return@post call.respond(
                                     HttpStatusCode.UnprocessableEntity,
                                     ErrorRespons("Fant virus i fil")
