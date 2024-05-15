@@ -1,5 +1,6 @@
 package innsending.kafka
 
+import innsending.LOGGER
 import innsending.SECURE_LOGGER
 import no.nav.aap.kafka.KafkaConfig
 import no.nav.aap.kafka.KafkaFactory
@@ -16,7 +17,9 @@ class MinSideKafkaProducer(config: KafkaConfig) : KafkaProducer, AutoCloseable {
         producer.send(record) { metadata, err ->
             if (err != null) {
                 SECURE_LOGGER.error("Klarte ikke enable mikrofrontend for $personident", err)
+                LOGGER.error("Klarte ikke enable mikrofrontend for Innbygger, sjekk secure loggs for detaljer", err)
                 throw KafkaProducerException("Klarte ikke enable mikrofrontend for $personident")
+
             } else {
                 SECURE_LOGGER.debug("Enablet mikrofrontend for $personident: $metadata")
             }
