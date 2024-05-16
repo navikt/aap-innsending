@@ -95,7 +95,7 @@ class MellomlagringTest: H2TestBase() {
                     accept(ContentType.Application.Json)
                     bearerAuth(jwkGen.generate("12345678910"))
                 }
-                assertEquals(res.status, HttpStatusCode.NotFound)
+                assertEquals(res.status, HttpStatusCode.NoContent)
             }
         }
     }
