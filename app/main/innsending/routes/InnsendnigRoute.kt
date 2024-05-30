@@ -6,14 +6,18 @@ import innsending.dto.Innsending
 import innsending.postgres.PostgresRepo
 import innsending.redis.Key
 import innsending.redis.Redis
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.ApplicationCall
+import io.ktor.server.application.call
+import io.ktor.server.request.receive
+import io.ktor.server.response.respond
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
+import io.ktor.server.routing.post
+import io.ktor.server.routing.route
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 private val logger = LoggerFactory.getLogger("App")
 
@@ -34,7 +38,7 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
 
             val søknadMedEttersendinger = postgres.hentSøknadMedEttersendelser(innsendingsRef)
 
-            if(søknadMedEttersendinger == null) {
+            if (søknadMedEttersendinger == null) {
                 call.respond(HttpStatusCode.NotFound, "Fant ikke søknad for angitt referanse")
             } else {
                 call.respond(søknadMedEttersendinger)
@@ -56,7 +60,10 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
     }
 }
 
-private suspend fun postInnsending(postgres: PostgresRepo, redis: Redis, call: ApplicationCall, innsendingsRef: UUID? = null) {
+private suspend fun postInnsending(postgres: PostgresRepo,
+                                   redis: Redis,
+                                   call: ApplicationCall,
+                                   innsendingsRef: UUID? = null) {
     val personIdent = call.personident()
     val innsending = call.receive<Innsending>()
 
@@ -75,12 +82,16 @@ private suspend fun postInnsending(postgres: PostgresRepo, redis: Redis, call: A
     }
 
     val innsendingId = UUID.randomUUID()
-    logger.trace("Mottok innsending med id {}", innsendingId)
+    logger.info("Mottok innsending med id {}", innsendingId)
 
-    val filerMedInnhold = innsending.filer.associateWith {fil ->
+    // Denne vil gi 404 ved innsending hvis det er usync mellom frontend og redis
+    // Dermed blokkere innsending av søknad
+    val filerMedInnhold = innsending.filer.associateWith { fil ->
         redis[Key(value = fil.id, prefix = personIdent)]
             ?: return call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret fil")
     }.toList()
+
+    logger.info("Lagrer innsending med id {}", innsendingId)
 
     postgres.lagreInnsending(
         innsendingId = innsendingId,
