@@ -1,6 +1,7 @@
 package innsending.redis
 
 import innsending.RedisConfig
+import innsending.SECURE_LOGGER
 import org.slf4j.LoggerFactory
 import redis.clients.jedis.DefaultJedisClientConfig
 import redis.clients.jedis.HostAndPort
@@ -70,7 +71,12 @@ class JedisRedis(config: RedisConfig) : Redis {
 
     override fun setExpire(key: Key, expireSec: Long) {
         pool.resource.use {
-            it.expire(key.get(), expireSec)
+            val updatedRows = it.expire(key.get(), expireSec)
+            if (updatedRows == 0L) {
+                logger.warn("Forventet å oppdatere TTL, men nøkkelen ble ikke oppdatert")
+                SECURE_LOGGER.warn("Forventet å oppdatere TTL, men nøkkelen[{}] ble ikke oppdatert", key)
+            }
+            updatedRows
         }
 
     }
