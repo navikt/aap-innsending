@@ -93,7 +93,7 @@ private suspend fun postInnsending(postgres: PostgresRepo,
     val manglendeFiler = filerMedInnhold.filter { it.second == null }.map { it.first }
 
     if (manglendeFiler.isNotEmpty()) {
-        logger.info("Mangler filer fra innsending med id={} :: {}", innsendingId, manglendeFiler.map { it.id })
+        logger.warn("Mangler filer fra innsending med id={} :: {}", innsendingId, manglendeFiler.map { it.id })
         return call.respond(HttpStatusCode.NotFound, manglendeFiler)
     }
 
