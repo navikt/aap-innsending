@@ -5,7 +5,6 @@ import redis.clients.jedis.DefaultJedisClientConfig
 import redis.clients.jedis.HostAndPort
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.JedisPoolConfig
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 const val EnDagSekunder: Long = 60 * 60 * 24
@@ -39,8 +38,8 @@ class JedisRedis(config: RedisConfig) : Redis {
 
     override fun getKeysByPrefix(prefix: String): List<Key> {
         pool.resource.use {
-            return it.keys("$prefix:*").map {
-                val split = it.split(":")
+            return it.keys("$prefix:*").map { keyString ->
+                val split = keyString.split(":")
                 Key(split[1], split[0])
             }
         }
