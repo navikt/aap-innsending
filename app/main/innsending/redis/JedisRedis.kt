@@ -1,6 +1,7 @@
 package innsending.redis
 
 import innsending.RedisConfig
+import org.slf4j.LoggerFactory
 import redis.clients.jedis.DefaultJedisClientConfig
 import redis.clients.jedis.HostAndPort
 import redis.clients.jedis.JedisPool
@@ -15,6 +16,8 @@ data class Key(
 ) {
     fun get(): ByteArray = "$prefix:$value".toByteArray()
 }
+
+private val logger = LoggerFactory.getLogger("Redis")
 
 interface Redis : AutoCloseable {
     fun set(key: Key, value: ByteArray, expireSec: Long)
@@ -38,8 +41,11 @@ class JedisRedis(config: RedisConfig) : Redis {
 
     override fun getKeysByPrefix(prefix: String): List<Key> {
         pool.resource.use {
-            return it.keys("$prefix:*").map { keyString ->
+            val keys = it.keys("$prefix:*")
+            logger.info("Fant {} nøkler", keys.size)
+            return keys.map { keyString ->
                 val split = keyString.split(":")
+                logger.info("Split-size {} -- {}", split.size, split.joinToString { s -> s.length.toString() })
                 Key(split[1], split[0])
             }
         }
@@ -52,7 +58,7 @@ class JedisRedis(config: RedisConfig) : Redis {
         }
     }
 
-    override fun setExpire(key: Key, expireSec: Long){
+    override fun setExpire(key: Key, expireSec: Long) {
         pool.resource.use {
             it.expire(key.get(), expireSec)
         }
@@ -80,7 +86,7 @@ class JedisRedis(config: RedisConfig) : Redis {
     override fun lastUpdated(key: Key): LocalDateTime {
         val oneDayInSeconds = 60 * 60 * 24L
         pool.resource.use {
-            return LocalDateTime.now().minusSeconds(oneDayInSeconds-it.ttl(key.get()))
+            return LocalDateTime.now().minusSeconds(oneDayInSeconds - it.ttl(key.get()))
         }
     }
 
