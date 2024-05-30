@@ -42,13 +42,23 @@ class JedisRedis(config: RedisConfig) : Redis {
     override fun getKeysByPrefix(prefix: String): List<Key> {
         pool.resource.use {
             val keys = it.keys("$prefix:*")
-            logger.info("Fant {} nøkler", keys.size)
-            return keys.map { keyString ->
-                val split = keyString.split(":")
-                logger.info("Split-size {} -- {}", split.size, split.joinToString { s -> s.length.toString() })
-                Key(split[1], split[0])
+            val size = keys.size
+            if (size > 0) {
+                logger.info("Fant {} nøkler", size)
+            }
+
+            return keys.flatMap { keyString ->
+                val split = keyString.split(" ").map { splittedKey ->
+                    splitKey(splittedKey)
+                }
+                split
             }
         }
+    }
+
+    private fun splitKey(splittedKey: String): Key {
+        val split = splittedKey.split(":")
+        return Key(split[1], split[0])
     }
 
     override fun set(key: Key, value: ByteArray, expireSec: Long) {
