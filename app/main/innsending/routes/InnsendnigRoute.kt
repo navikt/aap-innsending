@@ -88,10 +88,14 @@ private suspend fun postInnsending(postgres: PostgresRepo,
     // Dermed blokkere innsending av søknad
     val filerMedInnhold = innsending.filer.associateWith { fil ->
         redis[Key(value = fil.id, prefix = personIdent)]
-            ?: return call.respond(HttpStatusCode.NotFound, "Fant ikke mellomlagret fil")
     }.toList()
 
-    logger.info("Lagrer innsending med id {}", innsendingId)
+    val manglendeFiler = filerMedInnhold.filter { it.second == null }.map { it.first }
+
+    if (manglendeFiler.isNotEmpty()) {
+        logger.info("Mangler filer fra innsending med id={} :: {}", innsendingId, manglendeFiler.map { it.id })
+        return call.respond(HttpStatusCode.NotFound, manglendeFiler)
+    }
 
     postgres.lagreInnsending(
         innsendingId = innsendingId,

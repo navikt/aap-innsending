@@ -6,7 +6,7 @@ import innsending.dto.Innsending
 import innsending.dto.MineAapSoknad
 import innsending.dto.MineAapSoknadMedEttersendinger
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 import javax.sql.DataSource
 
 enum class InnsendingType { SOKNAD, ETTERSENDING }
@@ -81,7 +81,7 @@ class PostgresRepo(private val hikari: DataSource) {
         personIdent: String,
         mottattDato: LocalDateTime,
         innsending: Innsending,
-        fil: List<Pair<FilMetadata, ByteArray>>,
+        fil: List<Pair<FilMetadata, ByteArray?>>,
         referanseId: UUID? = null
     ) {
         hikari.transaction { con ->
@@ -99,7 +99,7 @@ class PostgresRepo(private val hikari: DataSource) {
                     innsendingId = innsendingId,
                     filId = UUID.fromString(fil.id),
                     tittel = fil.tittel,
-                    fil = data,
+                    fil = data!!,
                     con = con,
                 )
             }
