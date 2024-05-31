@@ -49,8 +49,10 @@ dependencies {
 
     testImplementation(kotlin("test"))
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
-    testImplementation("com.h2database:h2:2.2.224")
     testImplementation("com.nimbusds:nimbus-jose-jwt:9.37.3")
+    testImplementation("com.redis:testcontainers-redis:2.2.2")
+    testImplementation("org.testcontainers:postgresql:1.19.8")
+    testImplementation("org.assertj:assertj-core:3.26.0")
 
 }
 

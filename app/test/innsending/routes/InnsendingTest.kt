@@ -5,11 +5,9 @@ import innsending.TestConfig
 import innsending.TokenXGen
 import innsending.dto.FilMetadata
 import innsending.dto.Innsending
-import innsending.kafka.KafkaFake
 import innsending.postgres.H2TestBase
 import innsending.postgres.PostgresDAO
 import innsending.postgres.transaction
-import innsending.redis.JedisRedisFake
 import innsending.redis.Key
 import innsending.server
 import io.ktor.client.*

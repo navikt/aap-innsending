@@ -4,7 +4,6 @@ import innsending.*
 import innsending.dto.ErrorRespons
 import innsending.dto.MellomlagringRespons
 import innsending.postgres.H2TestBase
-import innsending.redis.JedisRedisFake
 import innsending.redis.Key
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -14,12 +13,13 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.testing.*
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
-class MellomlagringTest: H2TestBase() {
+class MellomlagringTest : H2TestBase() {
 
     @Test
     fun `kan mellomlagre søknad`() {
@@ -90,6 +90,7 @@ class MellomlagringTest: H2TestBase() {
 
             testApplication {
                 application { server(config, fakes.redis, h2, fakes.kafka) }
+                fakes.redis.del(Key("12345678910"))
 
                 val res = client.get("/mellomlagring/søknad") {
                     accept(ContentType.Application.Json)
@@ -266,9 +267,9 @@ class MellomlagringTest: H2TestBase() {
     }
 
     @Test
-    fun `expire på vedlegg blir utvidet ved oppdatering av søknad`(){
+    fun `expire på vedlegg blir utvidet ved oppdatering av søknad`() {
         Fakes().use { fakes ->
-            val jedis = JedisRedisFake()
+            val jedis = fakes.redis
             val config = TestConfig.default(fakes)
             val jwkGen = TokenXGen(config.tokenx)
             val filId = UUID.randomUUID()
@@ -290,9 +291,8 @@ class MellomlagringTest: H2TestBase() {
                     setBody("""{"soknadId":"1234"}""")
                 }
 
-                assert(jedis.expiresIn(key) > 50)
-                assert(jedis.expiresIn(key2) < 50)
-
+                assertThat(jedis.expiresIn(key)).isGreaterThan(50)
+                assertThat(jedis.expiresIn(key2)).isLessThanOrEqualTo(50)
             }
         }
     }

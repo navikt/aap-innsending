@@ -7,6 +7,7 @@ import redis.clients.jedis.DefaultJedisClientConfig
 import redis.clients.jedis.HostAndPort
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.JedisPoolConfig
+import java.net.URI
 import java.time.LocalDateTime
 
 const val EnDagSekunder: Long = 60 * 60 * 24
@@ -32,12 +33,18 @@ interface Redis : AutoCloseable {
     fun exists(key: Key): Boolean
 }
 
-class JedisRedis(config: RedisConfig) : Redis {
-    private val pool = JedisPool(
-        JedisPoolConfig(),
-        HostAndPort(config.uri.host, config.uri.port),
-        DefaultJedisClientConfig.builder().ssl(true).user(config.username).password(config.password).build()
+class JedisRedis private constructor(
+    private val pool: JedisPool
+) : Redis {
+    constructor(config: RedisConfig) : this(
+        JedisPool(
+            JedisPoolConfig(),
+            HostAndPort(config.uri.host, config.uri.port),
+            DefaultJedisClientConfig.builder().ssl(true).user(config.username).password(config.password).build()
+        )
     )
+
+    constructor(uri: URI) : this(JedisPool(uri))
 
     @Deprecated("Keys traverserer alle keys i redis og skal dermed ikke brukes.")
     override fun getKeysByPrefix(prefix: String): List<Key> {

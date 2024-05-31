@@ -1,24 +1,21 @@
 package innsending.postgres
 
-import innsending.TestConfig
+import innsending.InitTestDatabase
 import org.junit.jupiter.api.BeforeEach
 import java.util.*
 import javax.sql.DataSource
 
 abstract class H2TestBase {
+    private val postgresContainer = InitTestDatabase
     protected val h2: DataSource = Hikari.createAndMigrate(
-        TestConfig.postgres,
+        postgresContainer.postgresConfig,
         arrayOf("classpath:db/migration")
     )
 
     @BeforeEach
     fun clearTables() {
         h2.transaction { con ->
-            con.prepareStatement("SET REFERENTIAL_INTEGRITY FALSE").execute()
-            con.prepareStatement("TRUNCATE TABLE innsending").execute()
-            con.prepareStatement("TRUNCATE TABLE fil").execute()
-            con.prepareStatement("TRUNCATE TABLE logg").execute()
-            con.prepareStatement("SET REFERENTIAL_INTEGRITY TRUE").execute()
+            con.prepareStatement("TRUNCATE TABLE fil, innsending, logg").execute()
         }
     }
 

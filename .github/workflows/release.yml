@@ -1,17 +1,6 @@
-name: release
+name: Deploy saksbehandling
 
 on:
-  workflow_dispatch:
-    inputs:
-      cluster:
-        description: Cluster
-        required: true
-        default: dev-gcp
-        type: choice
-        options:
-          - dev-gcp
-          - prod-gcp
-
   push:
     branches: [ main ]
     paths-ignore:
@@ -21,39 +10,77 @@ on:
       - 'FUNKSJONELL.md'
 
 jobs:
-  gradle:
-    ## push til main eller etter branch (e.g. dependabot) er merget
-    if: github.event.pull_request.merged || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-    permissions:
-      contents: write
-      actions: read
-      checks: write
-      id-token: write
-    uses: navikt/aap-workflows/.github/workflows/gradle-build.yml@main
-    secrets: inherit
-
-  dev:
-    ## push til main eller etter branch (e.g. dependabot) er merget
-    if: github.event.pull_request.merged || github.event_name == 'push' || github.event.inputs.cluster == 'dev-gcp'
+  build:
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       id-token: write
-    needs: gradle
-    uses: navikt/aap-workflows/.github/workflows/deploy.yml@main
-    secrets: inherit
-    with:
-      cluster: dev-gcp
-      manifest: .nais/application-dev.yml
+      packages: write
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+      redis:
+        image: redis:7
+        options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
+        ports:
+          - 6379:6379
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: 'temurin'
+      - name: Setup Gradle for a non-wrapper project
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 8.7
+      - name: Bygg & test
+        run: gradle test buildFatJar --continue --no-daemon --configuration-cache --stacktrace --info
 
-  prod:
-    if: github.event.pull_request.merged || github.event_name == 'push' || github.event.inputs.cluster == 'prod-gcp'
+      - uses: nais/docker-build-push@v0
+        id: docker-push
+        with:
+          team: aap # required
+          project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }} # required, but is defined as an organization variable
+          identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }} # required, but is defined as an organization secret
+          tag: ${{ github.sha }}
+          build_args: |
+            APP_NAME=${{ github.event.repository.name }}
+    outputs:
+      image: ${{ steps.docker-push.outputs.image }}
+
+  deploy-dev:
+    needs: build
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       id-token: write
-    needs: gradle
-    uses: navikt/aap-workflows/.github/workflows/deploy.yml@main
-    secrets: inherit
-    with:
-      cluster: prod-gcp
-      manifest: .nais/application-prod.yml
+    steps:
+      - uses: actions/checkout@v4
+      - uses: nais/deploy/actions/deploy@v2
+        env:
+          PRINT_PAYLOAD: true
+          CLUSTER: dev-gcp
+          RESOURCE: .nais/app.yml
+          VAR: image=${{ needs.build.outputs.image }}
 
+
+#  deploy-prod:
+#    needs: build
+#    runs-on: ubuntu-latest
+#    permissions:
+#      contents: read
+#      id-token: write
+#    steps:
+#      - uses: actions/checkout@v4
+#      - uses: nais/deploy/actions/deploy@v2
+#        env:
+#          PRINT_PAYLOAD: true
+#          CLUSTER: prod-gcp
+#          RESOURCE: .nais/app.yml
+#          VAR: image=${{ needs.build.outputs.image }}

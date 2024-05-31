@@ -3,7 +3,7 @@ package innsending.redis
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
-class JedisRedisFake : Redis {
+class JedisRedisFake2 : Redis {
     private val cache = mutableMapOf<String, ByteArray>()
     private val expires = mutableMapOf<String,  LocalDateTime>()
 
