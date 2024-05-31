@@ -11,3 +11,16 @@ spec:
   project: nav-dev
   userConfig:
     redis_persistence: "off"
+---
+apiVersion: aiven.io/v1alpha1
+kind: ServiceIntegration
+metadata:
+  labels:
+    team: aap
+  name: redis-aap-mellomlager
+  namespace: aap
+spec:
+  project: nav-dev
+  integrationType: prometheus
+  destinationEndpointId: f20f5b48-18f4-4e2a-8e5f-4ab3edb19733
+  sourceServiceName: redis-aap-mellomlager
