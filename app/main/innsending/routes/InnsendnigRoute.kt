@@ -3,6 +3,7 @@ package innsending.routes
 import innsending.SECURE_LOGGER
 import innsending.auth.personident
 import innsending.dto.Innsending
+import innsending.dto.ValiderFiler
 import innsending.postgres.PostgresRepo
 import innsending.redis.EnDagSekunder
 import innsending.redis.Key
@@ -57,7 +58,7 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
 
         post("/valider-filer") {
             val personIdent = call.personident()
-            val innsending = call.receive<Innsending>()
+            val innsending = call.receive<ValiderFiler>()
 
             innsending.filer.forEach { fil ->
                 redis.setExpire(Key(value = fil.id, prefix = personIdent), EnDagSekunder)

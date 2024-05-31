@@ -8,7 +8,9 @@ data class Logg(
     val mottattDato: LocalDateTime,
     val innsendingsId: UUID
 )
-
+data class ValiderFiler(
+    val filer: List<FilMetadata>,
+)
 data class Innsending(
     /**
      * Kvittering er JSON for å produsere kvitterings pdf til bruker
