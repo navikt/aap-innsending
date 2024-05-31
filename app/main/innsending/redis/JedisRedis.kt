@@ -39,7 +39,7 @@ class JedisRedis(config: RedisConfig) : Redis {
         DefaultJedisClientConfig.builder().ssl(true).user(config.username).password(config.password).build()
     )
 
-
+    @Deprecated("Keys traverserer alle keys i redis og skal dermed ikke brukes.")
     override fun getKeysByPrefix(prefix: String): List<Key> {
         pool.resource.use {
             val keys = it.keys("$prefix:*")
