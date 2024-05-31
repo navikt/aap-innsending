@@ -4,25 +4,35 @@ import innsending.SECURE_LOGGER
 import innsending.antivirus.ClamAVClient
 import innsending.auth.personident
 import innsending.dto.ErrorRespons
+import innsending.dto.MellomlagringDto
 import innsending.dto.MellomlagringRespons
 import innsending.pdf.PdfGen
 import innsending.redis.EnDagSekunder
 import innsending.redis.Key
 import innsending.redis.Redis
-import io.ktor.http.*
-import io.ktor.http.content.*
-import io.ktor.server.application.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import io.ktor.http.ContentDisposition
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.content.PartData
+import io.ktor.http.content.readAllParts
+import io.ktor.server.application.call
+import io.ktor.server.request.receive
+import io.ktor.server.request.receiveMultipart
+import io.ktor.server.response.header
+import io.ktor.server.response.respond
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.delete
+import io.ktor.server.routing.get
+import io.ktor.server.routing.post
+import io.ktor.server.routing.route
 import org.apache.pdfbox.Loader
 import org.apache.tika.Tika
 import org.slf4j.LoggerFactory
 import java.net.URI
 import java.net.URL
-import java.time.Instant
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 private val log = LoggerFactory.getLogger("App")
 
@@ -69,6 +79,18 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
         delete {
             val key = Key(call.personident())
             redis.del(key)
+            call.respond(HttpStatusCode.OK)
+        }
+    }
+    route("/mellomlagring/søknad/v2") {
+        post {
+            val key = Key(call.personident())
+            val mellomlagringDto = call.receive<MellomlagringDto>()
+            redis.set(key, mellomlagringDto.soknad, EnDagSekunder)
+
+            mellomlagringDto.vedlegg.forEach { filKey ->
+                redis.setExpire(Key(prefix = call.personident(), value = filKey.id), EnDagSekunder)
+            }
             call.respond(HttpStatusCode.OK)
         }
     }
