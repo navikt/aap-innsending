@@ -85,11 +85,11 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
     route("/mellomlagring/søknad/v2") {
         post {
             val key = Key(call.personident())
-            val mellomlagringDto = call.receive<MellomlagringDto>()
-            redis.set(key, mellomlagringDto.soknad, EnDagSekunder)
+            val vedleggString = call.request.headers["vedlegg"]
+            redis.set(key, call.receive(), EnDagSekunder)
 
-            mellomlagringDto.vedlegg?.forEach { filKey ->
-                redis.setExpire(Key(prefix = call.personident(), value = filKey.id), EnDagSekunder)
+            vedleggString?.split(",")?.forEach { filId ->
+                redis.setExpire(Key(prefix = call.personident(), value = filId), EnDagSekunder)
             }
             call.respond(HttpStatusCode.OK)
         }
