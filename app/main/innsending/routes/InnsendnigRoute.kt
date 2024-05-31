@@ -54,6 +54,19 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
             postInnsending(postgres, redis, call, innsendingsRef)
         }
 
+        post("/valider-filer") {
+            val personIdent = call.personident()
+            val innsending = call.receive<Innsending>()
+
+            val filerMedInnhold = innsending.filer.associateWith { fil ->
+                redis[Key(value = fil.id, prefix = personIdent)]
+            }.toList()
+
+            val manglendeFiler = filerMedInnhold.filter { it.second == null }.map { it.first }
+
+            call.respond(HttpStatusCode.OK, manglendeFiler)
+        }
+
         post {
             postInnsending(postgres, redis, call)
         }
