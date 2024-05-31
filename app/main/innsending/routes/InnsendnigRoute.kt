@@ -4,6 +4,7 @@ import innsending.SECURE_LOGGER
 import innsending.auth.personident
 import innsending.dto.Innsending
 import innsending.postgres.PostgresRepo
+import innsending.redis.EnDagSekunder
 import innsending.redis.Key
 import innsending.redis.Redis
 import io.ktor.http.HttpStatusCode
@@ -57,6 +58,10 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
         post("/valider-filer") {
             val personIdent = call.personident()
             val innsending = call.receive<Innsending>()
+
+            innsending.filer.forEach { fil ->
+                redis.setExpire(Key(value = fil.id, prefix = personIdent), EnDagSekunder)
+            }
 
             val filerMedInnhold = innsending.filer.associateWith { fil ->
                 redis[Key(value = fil.id, prefix = personIdent)]
