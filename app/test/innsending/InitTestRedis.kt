@@ -1,9 +1,14 @@
 package innsending
 
 import com.redis.testcontainers.RedisContainer
+import innsending.redis.Redis
+import innsending.redis.Key
 import java.net.URI
 
 object InitTestRedis {
+    private const val TI_SEKUNDER_MILLIS: Long = 10_000
+    private const val HALVT_SEKUND_MILLIS: Long = 500
+
     val uri: URI
 
     init {
@@ -13,7 +18,18 @@ object InitTestRedis {
             redis.start()
             uri = URI(redis.redisURI)
         }
-        Thread.sleep(10000L)
         this.uri = uri
+
+        val redis = Redis(uri)
+        val timeout = System.currentTimeMillis() + TI_SEKUNDER_MILLIS
+        while (System.currentTimeMillis() < timeout) {
+            try {
+                redis[Key("test")]
+                break
+            } catch (_: Throwable) {
+                Thread.sleep(HALVT_SEKUND_MILLIS)
+            }
+        }
+        redis.close()
     }
 }

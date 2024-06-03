@@ -5,7 +5,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import innsending.arkiv.ArkivResponse
 import innsending.arkiv.Journalpost
 import innsending.kafka.KafkaFake
-import innsending.redis.JedisRedis
+import innsending.redis.Redis
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
@@ -25,7 +25,7 @@ class Fakes : AutoCloseable {
     val oppslag = embeddedServer(Netty, port = 0, module = Application::oppslag).apply { start() }
     val virusScan = embeddedServer(Netty, port = 0, module = Application::virusScan).apply { start() }
     val joark = JoarkFake()
-    val redis = JedisRedis(InitTestRedis.uri)
+    val redis = Redis(InitTestRedis.uri)
     val kafka = KafkaFake()
 
     override fun close() {

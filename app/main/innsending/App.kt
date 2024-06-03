@@ -12,9 +12,8 @@ import innsending.kafka.MinSideKafkaProducer
 import innsending.pdf.PdfGen
 import innsending.postgres.Hikari
 import innsending.postgres.PostgresRepo
-import innsending.redis.JedisRedis
-import innsending.redis.LeaderElector
 import innsending.redis.Redis
+import innsending.redis.LeaderElector
 import innsending.routes.actuator
 import innsending.routes.innsendingRoute
 import innsending.routes.mellomlagerRoute
@@ -51,7 +50,7 @@ fun main() {
 
 fun Application.server(
     config: Config = Config(),
-    redis: Redis = JedisRedis(config.redis),
+    redis: Redis = Redis(config.redis),
     datasource: DataSource = Hikari.createAndMigrate(config.postgres),
     minsideProducer: KafkaProducer = MinSideKafkaProducer(config.kafka),
 ) {
