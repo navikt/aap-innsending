@@ -5,21 +5,26 @@ import innsending.TestConfig
 import innsending.TokenXGen
 import innsending.dto.FilMetadata
 import innsending.dto.Innsending
-import innsending.postgres.PostgresTestBase
 import innsending.postgres.PostgresDAO
+import innsending.postgres.PostgresTestBase
 import innsending.postgres.transaction
 import innsending.redis.Key
 import innsending.server
-import io.ktor.client.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.request.*
-import io.ktor.http.*
-import io.ktor.serialization.jackson.*
-import io.ktor.server.testing.*
+import io.ktor.client.HttpClient
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
+import io.ktor.serialization.jackson.jackson
+import io.ktor.server.testing.ApplicationTestBuilder
+import io.ktor.server.testing.testApplication
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 import kotlin.test.assertEquals
 
 class InnsendingTest : PostgresTestBase() {
@@ -93,7 +98,7 @@ class InnsendingTest : PostgresTestBase() {
                     )
                 }
 
-                assertEquals(HttpStatusCode.NotFound, res.status)
+                assertEquals(HttpStatusCode.PreconditionFailed, res.status)
                 assertEquals(0, countInnsending())
                 assertEquals(0, countFiler())
             }
