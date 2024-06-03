@@ -71,7 +71,7 @@ jobs:
 
 
 #  deploy-prod:
-#    needs: build
+#    needs: deploy-dev
 #    runs-on: ubuntu-latest
 #    permissions:
 #      contents: read
