@@ -5,7 +5,7 @@ import innsending.TestConfig
 import innsending.TokenXGen
 import innsending.dto.FilMetadata
 import innsending.dto.Innsending
-import innsending.postgres.H2TestBase
+import innsending.postgres.PostgresTestBase
 import innsending.postgres.PostgresDAO
 import innsending.postgres.transaction
 import innsending.redis.Key
@@ -22,7 +22,7 @@ import java.time.LocalDateTime
 import java.util.*
 import kotlin.test.assertEquals
 
-class InnsendingTest : H2TestBase() {
+class InnsendingTest : PostgresTestBase() {
 
     @Test
     fun `kan sende inn søknad med 1 fil`() {
@@ -33,7 +33,7 @@ class InnsendingTest : H2TestBase() {
             val filId2 = Key(value = UUID.randomUUID().toString(), prefix = "12345678910")
 
             testApplication {
-                application { server(config, fakes.redis, h2, fakes.kafka) }
+                application { server(config, fakes.redis, dataSource, fakes.kafka) }
                 fakes.redis.set(filId1, byteArrayOf(), 60)
                 fakes.redis.set(filId2, byteArrayOf(), 60)
 
@@ -74,7 +74,7 @@ class InnsendingTest : H2TestBase() {
             val jwkGen = TokenXGen(config.tokenx)
             println(JSONObject({ "søknad" }))
             testApplication {
-                application { server(config, fakes.redis, h2, fakes.kafka) }
+                application { server(config, fakes.redis, dataSource, fakes.kafka) }
 
                 val res = jsonHttpClient.post("/innsending") {
                     bearerAuth(jwkGen.generate("12345678910"))
@@ -109,7 +109,7 @@ class InnsendingTest : H2TestBase() {
             val filId2 = Key(UUID.randomUUID().toString(), prefix = "12345678910")
 
             testApplication {
-                application { server(config, fakes.redis, h2, fakes.kafka) }
+                application { server(config, fakes.redis, dataSource, fakes.kafka) }
                 fakes.redis.set(filId1, byteArrayOf(), 60)
                 fakes.redis.set(filId2, byteArrayOf(), 60)
 
@@ -151,11 +151,11 @@ class InnsendingTest : H2TestBase() {
             val filId2 = Key(UUID.randomUUID().toString(), prefix = "12345678910")
 
             testApplication {
-                application { server(config, fakes.redis, h2, fakes.kafka) }
+                application { server(config, fakes.redis, dataSource, fakes.kafka) }
                 fakes.redis.set(filId1, byteArrayOf(), 60)
                 fakes.redis.set(filId2, byteArrayOf(), 60)
 
-                h2.transaction { con ->
+                dataSource.transaction { con ->
                     PostgresDAO.insertInnsending(
                         innsendingId = soknadRef,
                         personident = "12345678910",
@@ -204,11 +204,11 @@ class InnsendingTest : H2TestBase() {
             val filId2 = Key(UUID.randomUUID().toString(), prefix = "12345678910")
 
             testApplication {
-                application { server(config, fakes.redis, h2, fakes.kafka) }
+                application { server(config, fakes.redis, dataSource, fakes.kafka) }
                 fakes.redis.set(filId1, byteArrayOf(), 60)
                 fakes.redis.set(filId2, byteArrayOf(), 60)
 
-                h2.transaction { con ->
+                dataSource.transaction { con ->
                     PostgresDAO.insertLogg(
                         innsendingId = soknadRef,
                         personident = "12345678910",

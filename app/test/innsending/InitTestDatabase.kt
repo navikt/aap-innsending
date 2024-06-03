@@ -1,10 +1,10 @@
 package innsending
 
+import com.zaxxer.hikari.HikariConfig
 import org.testcontainers.containers.PostgreSQLContainer
 
 object InitTestDatabase {
-    val postgresConfig: PostgresConfig
-    //val dataSource: DataSource
+    val hikariConfig: HikariConfig
 
     init {
         var password = "postgres"
@@ -17,35 +17,16 @@ object InitTestDatabase {
             username = postgres.username
             password = postgres.password
         }
-        postgresConfig = PostgresConfig(
-            host = "",
-            port = "5432",
-            database = "test_db",
-            username = username,
-            password = password,
-            url = jdbcUrl,
-            cluster = "test"
-        )
-//        dataSource = HikariDataSource(HikariConfig().apply {
-//            this.jdbcUrl = jdbcUrl
-//            this.username = username
-//            this.password = password
-//            minimumIdle = 1
-//            initializationFailTimeout = 30000
-//            idleTimeout = 10000
-//            connectionTimeout = 10000
-//            maxLifetime = 900000
-//            connectionTestQuery = "SELECT 1"
-//        })
-//
-//        Flyway
-//            .configure()
-//            .cleanDisabled(false)
-//            .cleanOnValidationError(true)
-//            .dataSource(dataSource)
-//            .locations("flyway")
-//            .validateMigrationNaming(true)
-//            .load()
-//            .migrate()
+        hikariConfig = HikariConfig().apply {
+            this.jdbcUrl = jdbcUrl
+            this.username = username
+            this.password = password
+            minimumIdle = 1
+            initializationFailTimeout = 30000
+            idleTimeout = 10000
+            connectionTimeout = 10000
+            maxLifetime = 900000
+            connectionTestQuery = "SELECT 1"
+        }
     }
 }

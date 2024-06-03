@@ -7,8 +7,8 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 import java.util.*
 
-internal class PostgresRepoTest : H2TestBase() {
-    private val repo = PostgresRepo(h2)
+internal class PostgresRepoTest : PostgresTestBase() {
+    private val repo = PostgresRepo(dataSource)
 
     @Test
     fun `Insert en innsending med fil`() {

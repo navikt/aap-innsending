@@ -7,7 +7,7 @@ import innsending.Fakes
 import innsending.Resource
 import innsending.TestConfig
 import innsending.arkiv.Journalpost
-import innsending.postgres.H2TestBase
+import innsending.postgres.PostgresTestBase
 import innsending.postgres.PostgresDAO
 import innsending.postgres.toByteArray
 import innsending.postgres.transaction
@@ -24,7 +24,7 @@ import java.time.LocalDateTime
 import java.util.*
 import kotlin.test.assertEquals
 
-class ApekattTest : H2TestBase() {
+class ApekattTest : PostgresTestBase() {
 
     private fun testEmbedded(block: suspend (Fakes, HttpClient) -> Unit) {
         Fakes().use { fakes ->
@@ -32,7 +32,7 @@ class ApekattTest : H2TestBase() {
 
             val app = TestApplication {
                 application {
-                    server(config, fakes.redis, h2, fakes.kafka)
+                    server(config, fakes.redis, dataSource, fakes.kafka)
                 }
             }
 
@@ -56,7 +56,7 @@ class ApekattTest : H2TestBase() {
 
     @Test
     fun `journalfører søknad`() = testEmbedded { fakes, _ ->
-        h2.transaction {
+        dataSource.transaction {
             PostgresDAO.insertInnsending(
                 UUID.fromString("123e4567-e89b-12d3-a456-426614174000"),
                 "12345678910",
@@ -84,7 +84,7 @@ class ApekattTest : H2TestBase() {
     @Test
     fun `journalfører ettersendelse `() = testEmbedded { fakes, _ ->
 
-        h2.transaction {
+        dataSource.transaction {
             PostgresDAO.insertInnsending(
                 UUID.fromString("123e4567-e89b-12d3-a456-426614174000"),
                 "12345678910",

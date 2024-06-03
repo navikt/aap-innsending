@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 import java.util.*
 
-class PostgresDAOTest : H2TestBase() {
+class PostgresDAOTest : PostgresTestBase() {
     @Test
     fun `Inserter en innsending`() {
         PostgresDAO.insertInnsending(
@@ -14,7 +14,7 @@ class PostgresDAOTest : H2TestBase() {
             LocalDateTime.now(),
             "orginalSøknadJson".toByteArray(),
             "søknad".toByteArray(),
-            h2.connection
+            dataSource.connection
         )
 
         assertEquals(1, countInnsending())
@@ -23,7 +23,7 @@ class PostgresDAOTest : H2TestBase() {
     @Test
     fun `Inserter fil`() {
         val søknadId = UUID.randomUUID()
-        h2.transaction {
+        dataSource.transaction {
             PostgresDAO.insertInnsending(
                 søknadId,
                 "12345678910",
@@ -47,7 +47,7 @@ class PostgresDAOTest : H2TestBase() {
     @Test
     fun `Sletting av innsending sletter også fil`() {
         val søknadId = UUID.randomUUID()
-        h2.transaction {
+        dataSource.transaction {
             PostgresDAO.insertInnsending(
                 søknadId,
                 "12345678910",
@@ -67,7 +67,7 @@ class PostgresDAOTest : H2TestBase() {
 
         assertEquals(1, countFiler())
 
-        PostgresDAO.deleteInnsending(søknadId, h2.connection)
+        PostgresDAO.deleteInnsending(søknadId, dataSource.connection)
 
         assertEquals(0, countInnsending())
         assertEquals(0, countFiler())
@@ -76,7 +76,7 @@ class PostgresDAOTest : H2TestBase() {
     @Test
     fun `Henter en komplett innsending med filer`() {
         val søknadId = UUID.randomUUID()
-        h2.transaction {
+        dataSource.transaction {
             PostgresDAO.insertInnsending(
                 søknadId,
                 "12345678910",
@@ -92,7 +92,7 @@ class PostgresDAOTest : H2TestBase() {
             PostgresDAO.insertFil(søknadId, UUID.randomUUID(), "fil5".toByteArray(), "tittel5", it)
         }
 
-        val innsending = PostgresDAO.selectInnsendingMedFiler(søknadId, h2.connection)
+        val innsending = PostgresDAO.selectInnsendingMedFiler(søknadId, dataSource.connection)
 
         assertEquals(søknadId, innsending?.id)
         assertEquals(5, innsending?.fil?.size)
@@ -101,13 +101,13 @@ class PostgresDAOTest : H2TestBase() {
     @Test
     fun `insert logg ignorerer andre forsøk`() {
         val id = UUID.randomUUID()
-        h2.transaction {
+        dataSource.transaction {
             PostgresDAO.insertLogg("12345678910", LocalDateTime.now(), "1234",id, "SOKNAD", it)
         }
 
         assertEquals(1, countLogg())
 
-        h2.transaction {
+        dataSource.transaction {
             PostgresDAO.insertLogg("12345678910", LocalDateTime.now(), "1234", id, "SOKNAD", it)
         }
 
@@ -116,15 +116,15 @@ class PostgresDAOTest : H2TestBase() {
 
     @Test
     fun `hent fra logg sorterer riktig`() {
-        h2.transaction {
+        dataSource.transaction {
             PostgresDAO.insertLogg("12345678910", LocalDateTime.now().minusDays(1), "1234", UUID.randomUUID(),"SOKNAD", it)
         }
 
-        h2.transaction {
+        dataSource.transaction {
             PostgresDAO.insertLogg("12345678910", LocalDateTime.now(), "4321", UUID.randomUUID(),"SOKNAD", it)
         }
 
-        val liste = h2.transaction {
+        val liste = dataSource.transaction {
             PostgresDAO.selectLogg("12345678910", InnsendingType.SOKNAD.name, it)
         }
 
@@ -134,15 +134,15 @@ class PostgresDAOTest : H2TestBase() {
 
     @Test
     fun `hent fra logg filtrerer på SOKNAD`() {
-        h2.transaction {
+        dataSource.transaction {
             PostgresDAO.insertLogg("12345678910", LocalDateTime.now().minusDays(1), "1234",UUID.randomUUID(), "SOKNAD", it)
         }
 
-        h2.transaction {
+        dataSource.transaction {
             PostgresDAO.insertLogg("12345678910", LocalDateTime.now(), "4321", UUID.randomUUID(),"ETTERSENDING", it)
         }
 
-        val liste = h2.transaction {
+        val liste = dataSource.transaction {
             PostgresDAO.selectLogg("12345678910", InnsendingType.SOKNAD.name, it)
         }
 
@@ -154,19 +154,19 @@ class PostgresDAOTest : H2TestBase() {
         val innsendingId = UUID.randomUUID()
         val ettersendingId = UUID.randomUUID()
 
-        h2.transaction {
+        dataSource.transaction {
             PostgresDAO.insertLogg("12345678910", LocalDateTime.now().minusDays(1), "1234", innsendingId, "SOKNAD", it)
         }
 
-        h2.transaction {
+        dataSource.transaction {
             PostgresDAO.insertLogg("12345678910", LocalDateTime.now(), "4321", ettersendingId,"ETTERSENDING", it)
         }
 
-        h2.transaction {
+        dataSource.transaction {
             PostgresDAO.insertSoknadEttersending(innsendingId, ettersendingId, it)
         }
 
-        val res = h2.transaction {
+        val res = dataSource.transaction {
             PostgresDAO.selectSoknadMedEttersendelser(innsendingId, it)
         }
 

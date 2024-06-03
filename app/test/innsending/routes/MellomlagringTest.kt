@@ -3,7 +3,7 @@ package innsending.routes
 import innsending.*
 import innsending.dto.ErrorRespons
 import innsending.dto.MellomlagringRespons
-import innsending.postgres.H2TestBase
+import innsending.postgres.PostgresTestBase
 import innsending.redis.Key
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -19,7 +19,7 @@ import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
-class MellomlagringTest : H2TestBase() {
+class MellomlagringTest : PostgresTestBase() {
 
     @Test
     fun `kan mellomlagre søknad`() {
@@ -28,7 +28,7 @@ class MellomlagringTest : H2TestBase() {
             val jwkGen = TokenXGen(config.tokenx)
 
             testApplication {
-                application { server(config, fakes.redis, h2, fakes.kafka) }
+                application { server(config, fakes.redis, dataSource, fakes.kafka) }
                 val res = client.post("/mellomlagring/søknad") {
                     contentType(ContentType.Application.Json)
                     bearerAuth(jwkGen.generate("12345678910"))
@@ -47,7 +47,7 @@ class MellomlagringTest : H2TestBase() {
             val jwkGen = TokenXGen(config.tokenx)
 
             testApplication {
-                application { server(config, fakes.redis, h2, fakes.kafka) }
+                application { server(config, fakes.redis, dataSource, fakes.kafka) }
                 fakes.redis.set(Key("12345678910"), """{"søknadId":"1234"}""".toByteArray(), 50)
 
                 val res = client.get("/mellomlagring/søknad") {
@@ -68,7 +68,7 @@ class MellomlagringTest : H2TestBase() {
             val jwkGen = TokenXGen(config.tokenx)
 
             testApplication {
-                application { server(config, fakes.redis, h2, fakes.kafka) }
+                application { server(config, fakes.redis, dataSource, fakes.kafka) }
                 fakes.redis.set(Key("12345678910"), """{"søknadId":"1234"}""".toByteArray(), 50)
 
                 val del = client.delete("/mellomlagring/søknad") {
@@ -89,7 +89,7 @@ class MellomlagringTest : H2TestBase() {
             val jwkGen = TokenXGen(config.tokenx)
 
             testApplication {
-                application { server(config, fakes.redis, h2, fakes.kafka) }
+                application { server(config, fakes.redis, dataSource, fakes.kafka) }
                 fakes.redis.del(Key("12345678910"))
 
                 val res = client.get("/mellomlagring/søknad") {
@@ -110,7 +110,7 @@ class MellomlagringTest : H2TestBase() {
                 val client = createClient {
                     install(ContentNegotiation) { jackson() }
                 }
-                application { server(config, fakes.redis, h2, fakes.kafka) }
+                application { server(config, fakes.redis, dataSource, fakes.kafka) }
                 val res = client.submitFormWithBinaryData(url = "/mellomlagring/fil",
                     formData = formData {
                         append("document", Resource.read("/resources/images/bilde.jpg"), Headers.build {
@@ -139,7 +139,7 @@ class MellomlagringTest : H2TestBase() {
                 val client = createClient {
                     install(ContentNegotiation) { jackson() }
                 }
-                application { server(config, fakes.redis, h2, fakes.kafka) }
+                application { server(config, fakes.redis, dataSource, fakes.kafka) }
                 val res = client.submitFormWithBinaryData(url = "/mellomlagring/fil",
                     formData = formData {
                         append("document", Resource.read("/resources/pdf/53mb.pdf"), Headers.build {
@@ -166,7 +166,7 @@ class MellomlagringTest : H2TestBase() {
                 val client = createClient {
                     install(ContentNegotiation) { jackson() }
                 }
-                application { server(config, fakes.redis, h2, fakes.kafka) }
+                application { server(config, fakes.redis, dataSource, fakes.kafka) }
                 val res = client.submitFormWithBinaryData(url = "/mellomlagring/fil",
                     formData = formData {
                         append("document", Resource.read("/resources/pdf/tom.pdf"), Headers.build {
@@ -192,7 +192,7 @@ class MellomlagringTest : H2TestBase() {
                 val client = createClient {
                     install(ContentNegotiation) { jackson() }
                 }
-                application { server(config, fakes.redis, h2, fakes.kafka) }
+                application { server(config, fakes.redis, dataSource, fakes.kafka) }
                 val res = client.submitFormWithBinaryData(url = "/mellomlagring/fil",
                     formData = formData {
                         append("document", Resource.read("/resources/images/tom.png"), Headers.build {
@@ -216,7 +216,7 @@ class MellomlagringTest : H2TestBase() {
             val tokenx = TokenXGen(config.tokenx)
             val id = UUID.randomUUID()
             testApplication {
-                application { server(config, fakes.redis, h2, fakes.kafka) }
+                application { server(config, fakes.redis, dataSource, fakes.kafka) }
                 val key = Key(value = id.toString(), prefix = "12345678910")
                 fakes.redis.set(key, String(Resource.read("/resources/pdf/minimal.pdf")).toByteArray(), 50)
 
@@ -239,7 +239,7 @@ class MellomlagringTest : H2TestBase() {
                 val client = createClient {
                     install(ContentNegotiation) { jackson() }
                 }
-                application { server(config, fakes.redis, h2, fakes.kafka) }
+                application { server(config, fakes.redis, dataSource, fakes.kafka) }
                 val resLagre = client.submitFormWithBinaryData(url = "/mellomlagring/fil",
                     formData = formData {
                         append("document", Resource.read("/resources/images/bilde.jpg"), Headers.build {
@@ -276,7 +276,7 @@ class MellomlagringTest : H2TestBase() {
             val filId2 = UUID.randomUUID()
 
             testApplication {
-                application { server(config, jedis, h2, fakes.kafka) }
+                application { server(config, jedis, dataSource, fakes.kafka) }
                 jedis.set(Key("12345678910"), """{"søknadId":"1234"}""".toByteArray(), 50)
 
                 val key = Key(value = filId.toString(), prefix = "12345678910")
