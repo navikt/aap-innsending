@@ -7,6 +7,7 @@ import redis.clients.jedis.DefaultJedisClientConfig
 import redis.clients.jedis.HostAndPort
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.JedisPoolConfig
+import redis.clients.jedis.params.SetParams
 import java.net.URI
 import java.time.LocalDateTime
 
@@ -59,8 +60,7 @@ class Redis private constructor(
 
     fun set(key: Key, value: ByteArray, expireSec: Long) {
         pool.resource.use {
-            it.set(key.get(), value)
-            it.expire(key.get(), expireSec)
+            it.set(key.get(), value, SetParams().ex(expireSec))
         }
     }
 
@@ -71,9 +71,7 @@ class Redis private constructor(
                 logger.warn("Forventet å oppdatere TTL, men nøkkelen ble ikke oppdatert")
                 SECURE_LOGGER.warn("Forventet å oppdatere TTL, men nøkkelen[{}] ble ikke oppdatert", key)
             }
-            updatedRows
         }
-
     }
 
     operator fun get(key: Key): ByteArray? {
@@ -95,9 +93,8 @@ class Redis private constructor(
     }
 
     fun lastUpdated(key: Key): LocalDateTime {
-        val oneDayInSeconds = 60 * 60 * 24L
         pool.resource.use {
-            return LocalDateTime.now().minusSeconds(oneDayInSeconds - it.ttl(key.get()))
+            return LocalDateTime.now().minusSeconds(EnDagSekunder - it.ttl(key.get()))
         }
     }
 

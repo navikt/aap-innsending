@@ -1,9 +1,11 @@
 package innsending.routes
 
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import innsending.*
 import innsending.dto.ErrorRespons
 import innsending.dto.MellomlagringRespons
 import innsending.postgres.PostgresTestBase
+import innsending.redis.EnDagSekunder
 import innsending.redis.Key
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -293,6 +295,38 @@ class MellomlagringTest : PostgresTestBase() {
 
                 assertThat(jedis.expiresIn(key)).isGreaterThan(50)
                 assertThat(jedis.expiresIn(key2)).isLessThanOrEqualTo(50)
+            }
+        }
+    }
+
+    @Test
+    fun `Sjekk om søknad finnes i mellomlager`() {
+        Fakes().use { fakes ->
+            val jedis = fakes.redis
+            val config = TestConfig.default(fakes)
+            val jwkGen = TokenXGen(config.tokenx)
+
+            testApplication {
+                val client = createClient {
+                    install(ContentNegotiation) { jackson { registerModule(JavaTimeModule()) } }
+                }
+                application { server(config, jedis, dataSource, fakes.kafka) }
+                jedis.del(Key("12345678910"))
+
+                val resFørOpprettelse = client.get("/mellomlagring/søknad/finnes") {
+                    contentType(ContentType.Application.Json)
+                    bearerAuth(jwkGen.generate("12345678910"))
+                }
+
+                jedis.set(Key("12345678910"), """{"søknadId":"1234"}""".toByteArray(), EnDagSekunder)
+
+                val resEtterOpprettelse = client.get("/mellomlagring/søknad/finnes") {
+                    contentType(ContentType.Application.Json)
+                    bearerAuth(jwkGen.generate("12345678910"))
+                }
+
+                assertThat(resFørOpprettelse.status).isEqualTo(HttpStatusCode.NotFound)
+                assertThat(resEtterOpprettelse.status).isEqualTo(HttpStatusCode.OK)
             }
         }
     }

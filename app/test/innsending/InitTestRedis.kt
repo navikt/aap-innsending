@@ -2,7 +2,6 @@ package innsending
 
 import com.redis.testcontainers.RedisContainer
 import innsending.redis.Redis
-import innsending.redis.Key
 import java.net.URI
 
 object InitTestRedis {
@@ -24,7 +23,7 @@ object InitTestRedis {
         val timeout = System.currentTimeMillis() + TI_SEKUNDER_MILLIS
         while (System.currentTimeMillis() < timeout) {
             try {
-                redis[Key("test")]
+                redis.ready()
                 break
             } catch (_: Throwable) {
                 Thread.sleep(HALVT_SEKUND_MILLIS)
