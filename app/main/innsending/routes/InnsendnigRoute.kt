@@ -3,6 +3,7 @@ package innsending.routes
 import innsending.SECURE_LOGGER
 import innsending.auth.personident
 import innsending.dto.Innsending
+import innsending.dto.InnsendingResponse
 import innsending.dto.ValiderFiler
 import innsending.postgres.PostgresRepo
 import innsending.redis.EnDagSekunder
@@ -136,5 +137,5 @@ private suspend fun postInnsending(postgres: PostgresRepo,
     // Avoid duplicates
     redis.set(innsendingHash, byteArrayOf(), 60)
 
-    call.respond(HttpStatusCode.OK, "Vi har mottatt innsendingen din")
+    call.respond(HttpStatusCode.OK, InnsendingResponse(innsendingId))
 }
