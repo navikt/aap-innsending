@@ -114,7 +114,7 @@ private suspend fun postInnsending(postgres: PostgresRepo,
     if (manglendeFiler.isNotEmpty()) {
         logger.warn("Mangler filer fra innsending med id={} :: {}", innsendingId, manglendeFiler.map { it.id })
         SECURE_LOGGER.warn("$personIdent Mangler filer fra innsending :: {}", manglendeFiler.map { it.id })
-        return call.respond(HttpStatusCode.NotFound, manglendeFiler)
+        return call.respond(HttpStatusCode.PreconditionFailed, manglendeFiler)
     }
 
     postgres.lagreInnsending(
