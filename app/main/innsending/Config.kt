@@ -1,6 +1,6 @@
 package innsending
 
-import no.nav.aap.kafka.KafkaConfig
+import libs.kafka.KafkaConfig
 import no.nav.aap.ktor.client.auth.azure.AzureConfig
 import java.net.URI
 

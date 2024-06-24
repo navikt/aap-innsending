@@ -1,8 +1,8 @@
 package innsending.kafka
 
 import innsending.SECURE_LOGGER
-import no.nav.aap.kafka.KafkaConfig
-import no.nav.aap.kafka.KafkaFactory
+import libs.kafka.KafkaConfig
+import libs.kafka.KafkaFactory
 import no.nav.tms.microfrontend.MicrofrontendMessageBuilder
 import no.nav.tms.microfrontend.Sensitivitet
 import org.apache.kafka.clients.producer.ProducerRecord
