@@ -11,13 +11,11 @@ object InitTestRedis {
     val uri: URI
 
     init {
-        var uri: URI = URI.create("redis://localhost:6379")
-        if (System.getenv("GITHUB_ACTIONS") != "true") {
-            val redis = RedisContainer(RedisContainer.DEFAULT_IMAGE_NAME.withTag(RedisContainer.DEFAULT_TAG))
-            redis.start()
-            uri = URI(redis.redisURI)
-        }
-        this.uri = uri
+
+        val redisContainer = RedisContainer(RedisContainer.DEFAULT_IMAGE_NAME.withTag(RedisContainer.DEFAULT_TAG))
+        redisContainer.start()
+
+        this.uri =  URI(redisContainer.redisURI)
 
         val redis = Redis(uri)
         val timeout = System.currentTimeMillis() + TI_SEKUNDER_MILLIS

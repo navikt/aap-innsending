@@ -7,16 +7,12 @@ object InitTestDatabase {
     val hikariConfig: HikariConfig
 
     init {
-        var password = "postgres"
-        var username = "postgres"
-        var jdbcUrl = "jdbc:postgresql://localhost:5432/postgres"
-        if (System.getenv("GITHUB_ACTIONS") != "true") {
-            val postgres = PostgreSQLContainer<Nothing>("postgres:16")
-            postgres.start()
-            jdbcUrl = postgres.jdbcUrl
-            username = postgres.username
-            password = postgres.password
-        }
+        val postgres = PostgreSQLContainer<Nothing>("postgres:14")
+        postgres.start()
+        val jdbcUrl = postgres.jdbcUrl
+        val username = postgres.username
+        val password = postgres.password
+
         hikariConfig = HikariConfig().apply {
             this.jdbcUrl = jdbcUrl
             this.username = username
