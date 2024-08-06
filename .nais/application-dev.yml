@@ -52,6 +52,7 @@ spec:
       - type: POSTGRES_14
         databases:
           - name: innsending
+            highAvailability: true
   liveness:
     path: /actuator/live
   readiness:
