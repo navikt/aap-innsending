@@ -24,7 +24,7 @@ ENV PATH="${JAVA_HOME}/bin:${PATH}"
 COPY --from=jre /customjre $JAVA_HOME
 COPY /app/build/libs/app-all.jar app.jar
 
-CMD ["java", "-XX:ActiveProcessorCount=2", "-jar", "app.jar"]
+CMD ["java", "-XX:MaxRAMPercentage=75.0", "-XX:ActiveProcessorCount=2", "-jar", "app.jar"]
 
 # use -XX:+UseParallelGC when 2 CPUs and 4G RAM.
 # use G1GC when using more than 4G RAM and/or more than 2 CPUs
