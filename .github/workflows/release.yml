@@ -78,9 +78,9 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
-      - uses: nais/deploy/actions/deploy@v2
-        env:
-          PRINT_PAYLOAD: true
-          CLUSTER: prod-gcp
-          RESOURCE: .nais/application-prod.yml
-          VAR: image=${{ needs.build.outputs.image }}
+#      - uses: nais/deploy/actions/deploy@v2
+#        env:
+#          PRINT_PAYLOAD: true
+#          CLUSTER: prod-gcp
+#          RESOURCE: .nais/application-prod.yml
+#          VAR: image=${{ needs.build.outputs.image }}
