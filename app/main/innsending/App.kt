@@ -107,6 +107,7 @@ fun Application.server(
         }
     }
 
+
     install(ContentNegotiation) {
         jackson {
             registerModule(JavaTimeModule())
