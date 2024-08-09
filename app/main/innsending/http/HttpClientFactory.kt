@@ -18,7 +18,7 @@ private val APP_LOGGER: org.slf4j.Logger = LoggerFactory.getLogger(HttpClientFac
 internal object HttpClientFactory {
     fun create(logLevel: LogLevel = LogLevel.INFO): HttpClient = HttpClient(CIO) {
         install(HttpTimeout) {
-            requestTimeoutMillis = 60_000
+            requestTimeoutMillis = 120_000
             connectTimeoutMillis = 5_000
         }
 
