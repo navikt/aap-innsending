@@ -49,7 +49,9 @@ spec:
       access: readwrite
   gcp:
     sqlInstances:
-      - type: POSTGRES_14
+      - type: POSTGRES_15
+        tier: db-custom-1-3840
+        diskAutoresize: true
         highAvailability: true
         databases:
           - name: innsending
