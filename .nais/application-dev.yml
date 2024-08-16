@@ -14,8 +14,11 @@ spec:
   ingresses:
     - https://aap-innsending.intern.dev.nav.no
   replicas:
-    max: 2
     min: 2
+    max: 4
+    scalingStrategy:
+      cpu:
+        thresholdPercentage: 80
   azure:
     application:
       enabled: true
