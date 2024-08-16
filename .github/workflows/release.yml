@@ -70,17 +70,17 @@ jobs:
           VAR: image=${{ needs.build.outputs.image }}
 
 
-#  deploy-prod:
-#    needs: [build, deploy-dev]
-#    runs-on: ubuntu-latest
-#    permissions:
-#      contents: read
-#      id-token: write
-#    steps:
-#      - uses: actions/checkout@v4
-#      - uses: nais/deploy/actions/deploy@v2
-#        env:
-#          PRINT_PAYLOAD: true
-#          CLUSTER: prod-gcp
-#          RESOURCE: .nais/application-prod.yml
-#          VAR: image=${{ needs.build.outputs.image }}
+  deploy-prod:
+    needs: [build, deploy-dev]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: nais/deploy/actions/deploy@v2
+        env:
+          PRINT_PAYLOAD: true
+          CLUSTER: prod-gcp
+          RESOURCE: .nais/application-prod.yml
+          VAR: image=${{ needs.build.outputs.image }}
