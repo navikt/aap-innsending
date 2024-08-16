@@ -7,7 +7,7 @@ object InitTestDatabase {
     val hikariConfig: HikariConfig
 
     init {
-        val postgres = PostgreSQLContainer<Nothing>("postgres:14")
+        val postgres = PostgreSQLContainer<Nothing>("postgres:16")
         postgres.start()
         val jdbcUrl = postgres.jdbcUrl
         val username = postgres.username
