@@ -41,7 +41,7 @@ dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.2")
     implementation("org.apache.pdfbox:pdfbox:3.0.1")
     implementation("com.zaxxer:HikariCP:5.1.0")
-    implementation("org.flywaydb:flyway-core:10.17.0")
+    implementation("org.flywaydb:flyway-core:10.17.1")
     implementation("org.flywaydb:flyway-database-postgresql:10.8.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
     runtimeOnly("net.logstash.logback:logstash-logback-encoder:8.0")
