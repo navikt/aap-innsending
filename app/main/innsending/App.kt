@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 import javax.sql.DataSource
 
-val SECURE_LOGGER: Logger = LoggerFactory.getLogger("secureLog")
+val SECURE_LOGGER: Logger = LoggerFactory.getLogger("App")
 
 fun main() {
     Thread.currentThread().setUncaughtExceptionHandler { _, e -> SECURE_LOGGER.error("Uhåndtert feil", e) }
