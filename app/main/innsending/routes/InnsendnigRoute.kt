@@ -1,6 +1,6 @@
 package innsending.routes
 
-import innsending.SECURE_LOGGER
+import innsending.logger
 import innsending.auth.personident
 import innsending.dto.Innsending
 import innsending.dto.InnsendingResponse
@@ -94,7 +94,7 @@ private suspend fun postInnsending(postgres: PostgresRepo,
     }
 
     if (innsendingsRef != null && postgres.erRefTilknyttetPersonIdent(personIdent, innsendingsRef).not()) {
-        SECURE_LOGGER.error("$personIdent prøver å poste en innsending på $innsendingsRef, men disse hører ikke sammen")
+        innsending.logger.error("$personIdent prøver å poste en innsending på $innsendingsRef, men disse hører ikke sammen")
         return call.respond(
             HttpStatusCode.NotFound,
             "Denne innsendingenId'en finnes ikke for denne personen"
@@ -114,7 +114,7 @@ private suspend fun postInnsending(postgres: PostgresRepo,
 
     if (manglendeFiler.isNotEmpty()) {
         logger.warn("Mangler filer fra innsending med id={} :: {}", innsendingId, manglendeFiler.map { it.id })
-        SECURE_LOGGER.warn("$personIdent Mangler filer fra innsending :: {}", manglendeFiler.map { it.id })
+        innsending.logger.warn("$personIdent Mangler filer fra innsending :: {}", manglendeFiler.map { it.id })
         return call.respond(HttpStatusCode.PreconditionFailed, manglendeFiler)
     }
 

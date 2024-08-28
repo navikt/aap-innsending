@@ -2,7 +2,7 @@ package innsending.auth
 
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
-import innsending.SECURE_LOGGER
+import innsending.logger
 import innsending.TokenXConfig
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -35,27 +35,27 @@ fun Application.authentication(config: TokenXConfig) {
                 val now = Date()
 
                 if (config.clientId !in cred.audience) {
-                    SECURE_LOGGER.warn("TokenX validering feilet (clientId var ikke i audience: ${cred.audience}")
+                    logger.warn("TokenX validering feilet (clientId var ikke i audience: ${cred.audience}")
                     return@validate null
                 }
 
                 if (cred.expiresAt?.before(now) == true) {
-                    SECURE_LOGGER.warn("TokenX validering feilet (expired at: ${cred.expiresAt})")
+                    logger.warn("TokenX validering feilet (expired at: ${cred.expiresAt})")
                     return@validate null
                 }
 
                 if (cred.notBefore?.after(now) == true) {
-                    SECURE_LOGGER.warn("TokenX validering feilet (not valid yet, valid from: ${cred.notBefore})")
+                    logger.warn("TokenX validering feilet (not valid yet, valid from: ${cred.notBefore})")
                     return@validate null
                 }
 
                 if (cred.issuedAt?.after(cred.expiresAt ?: return@validate null) == true) {
-                    SECURE_LOGGER.warn("TokenX validering feilet (issued after expiration: ${cred.issuedAt} )")
+                    logger.warn("TokenX validering feilet (issued after expiration: ${cred.issuedAt} )")
                     return@validate null
                 }
 
                 if (cred.getClaim("pid", String::class) == null) {
-                    SECURE_LOGGER.warn("TokenX validering feilet (personident mangler i claims)")
+                    logger.warn("TokenX validering feilet (personident mangler i claims)")
                     return@validate null
                 }
 

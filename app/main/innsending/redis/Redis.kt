@@ -1,7 +1,7 @@
 package innsending.redis
 
 import innsending.RedisConfig
-import innsending.SECURE_LOGGER
+import innsending.logger
 import org.slf4j.LoggerFactory
 import redis.clients.jedis.DefaultJedisClientConfig
 import redis.clients.jedis.HostAndPort
@@ -69,7 +69,7 @@ class Redis private constructor(
             val updatedRows = it.expire(key.get(), expireSec)
             if (updatedRows == 0L) {
                 logger.warn("Forventet å oppdatere TTL, men nøkkelen ble ikke oppdatert")
-                SECURE_LOGGER.warn("Forventet å oppdatere TTL, men nøkkelen[{}] ble ikke oppdatert", key)
+                logger.warn("Forventet å oppdatere TTL, men nøkkelen[{}] ble ikke oppdatert", key)
             }
         }
     }

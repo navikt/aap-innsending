@@ -3,7 +3,7 @@ package innsending.pdf
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import innsending.Config
-import innsending.SECURE_LOGGER
+import innsending.logger
 import innsending.http.HttpClientFactory
 import innsending.oppslag.OppslagClient
 import innsending.postgres.InnsendingMedFiler
@@ -24,7 +24,7 @@ class PdfGen(config: Config) {
         }
 
         if (res.status.value >= 300) {
-            SECURE_LOGGER.error("feil i pdfgen: status ${res.status}")
+            logger.error("feil i pdfgen: status ${res.status}")
             throw Exception("Feil i pdfGen")
         }
 

@@ -3,7 +3,7 @@ package innsending.http
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import innsending.SECURE_LOGGER
+import innsending.logger
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
@@ -53,6 +53,6 @@ internal class ClientLogger(level: LogLevel) : Logger {
         /**
          *  HTTP code, method, url, headers request body and response body is logged
          */
-        else -> SECURE_LOGGER
+        else -> logger
     }
 }

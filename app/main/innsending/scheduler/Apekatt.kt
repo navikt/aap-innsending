@@ -1,6 +1,6 @@
 package innsending.scheduler
 
-import innsending.SECURE_LOGGER
+import innsending.logger
 import innsending.arkiv.JournalpostSender
 import innsending.kafka.KafkaProducer
 import innsending.pdf.PdfGen
@@ -62,7 +62,7 @@ class Apekatt(
                     }
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
-                SECURE_LOGGER.error("Klarte ikke å arkivere", e)
+                logger.error("Klarte ikke å arkivere", e)
                 prometheus.counter("innsending", listOf(Tag.of("resultat", "feilet"))).increment()
                 delay(10_000)
             }

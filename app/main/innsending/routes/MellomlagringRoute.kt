@@ -1,10 +1,9 @@
 package innsending.routes
 
-import innsending.SECURE_LOGGER
+import innsending.logger
 import innsending.antivirus.ClamAVClient
 import innsending.auth.personident
 import innsending.dto.ErrorRespons
-import innsending.dto.MellomlagringDto
 import innsending.dto.MellomlagringRespons
 import innsending.pdf.PdfGen
 import innsending.redis.EnDagSekunder
@@ -134,7 +133,7 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                     val pdf: ByteArray = when (contentType) {
                         in acceptedContentType -> {
                             if (virusScanClient.hasVirus(fil, contentType)) {
-                                SECURE_LOGGER.warn("Bruker prøvde å laste opp virus")
+                                logger.warn("Bruker prøvde å laste opp virus")
                                 return@post call.respond(
                                     HttpStatusCode.UnprocessableEntity,
                                     ErrorRespons("Fant virus i fil")
@@ -146,7 +145,7 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                                 try {
                                     pdfGen.bildeTilPfd(fil, contentType)
                                 } catch (e: Exception) {
-                                    SECURE_LOGGER.error("Feil fra PDFgen", e)
+                                    logger.error("Feil fra PDFgen", e)
                                     return@post call.respond(
                                         HttpStatusCode.UnprocessableEntity,
                                         ErrorRespons("Feil ved omgjøring til pdf")
@@ -156,7 +155,7 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                         }
 
                         else -> {
-                            SECURE_LOGGER.warn("Feil filtype ${contentType.contentType}")
+                            logger.warn("Feil filtype ${contentType.contentType}")
                             return@post call.respond(
                                 HttpStatusCode.UnprocessableEntity,
                                 ErrorRespons("Filtype ikke støttet")
@@ -252,7 +251,7 @@ fun kryptertEllerUgyldigPdf(fil: ByteArray): Boolean {
 
 fun sjekkFeilContentType(fil: ByteArray, contentType: ContentType): Boolean {
     val filtype = Tika().detect(fil)
-    SECURE_LOGGER.debug("sjekker filtype {} == {}", filtype, contentType)
+    logger.debug("sjekker filtype {} == {}", filtype, contentType)
 
 
     return filtype != contentType.toString()

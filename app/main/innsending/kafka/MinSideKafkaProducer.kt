@@ -1,6 +1,6 @@
 package innsending.kafka
 
-import innsending.SECURE_LOGGER
+import innsending.logger
 import libs.kafka.KafkaConfig
 import libs.kafka.KafkaFactory
 import no.nav.tms.microfrontend.MicrofrontendMessageBuilder
@@ -15,10 +15,10 @@ class MinSideKafkaProducer(config: KafkaConfig) : KafkaProducer, AutoCloseable {
         val record = createRecord(personident)
         producer.send(record) { metadata, err ->
             if (err != null) {
-                SECURE_LOGGER.error("Klarte ikke enable mikrofrontend for $personident", err)
+                logger.error("Klarte ikke enable mikrofrontend for $personident", err)
                 throw KafkaProducerException("Klarte ikke enable mikrofrontend for $personident")
             } else {
-                SECURE_LOGGER.debug("Enablet mikrofrontend for $personident: $metadata")
+                logger.debug("Enablet mikrofrontend for $personident: $metadata")
             }
         }.get() // Blocking call to ensure the message is sent
     }
