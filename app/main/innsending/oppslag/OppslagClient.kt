@@ -25,8 +25,7 @@ class OppslagClient(config: Config) {
         return if (res.status.isSuccess()) {
             res.body<Navn>()
         } else {
-            logger.error("klarte ikke hente navn fra PDL", res.body())
-            error("klarte ikke hente navn fra PDL")
+            error("klarte ikke hente navn fra PDL: ${res}")
         }
     }
 }
