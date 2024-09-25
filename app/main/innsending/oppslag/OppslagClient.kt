@@ -2,6 +2,7 @@ package innsending.oppslag
 
 import innsending.Config
 import innsending.http.HttpClientFactory
+import innsending.logger
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
@@ -24,6 +25,7 @@ class OppslagClient(config: Config) {
         return if (res.status.isSuccess()) {
             res.body<Navn>()
         } else {
+            logger.error("klarte ikke hente navn fra PDL", res.body())
             error("klarte ikke hente navn fra PDL")
         }
     }
