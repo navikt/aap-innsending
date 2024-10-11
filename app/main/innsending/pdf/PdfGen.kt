@@ -28,7 +28,7 @@ class PdfGen(config: Config) {
 
         if (res.status.value >= 300) {
             logger.error(
-                "feil i pdfgen: status ${res.status}. Bilde til PDF. Hash av fil: ${
+                "Feil i pdfgen: status ${res.status}. Bilde til PDF. Størrelse: ${bildeFil.size / 1024} kb. Hash av fil: ${
                     hashByteArray(
                         bildeFil,
                         "SHA-256"
