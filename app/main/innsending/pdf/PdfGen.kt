@@ -3,13 +3,16 @@ package innsending.pdf
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import innsending.Config
-import innsending.logger
 import innsending.http.HttpClientFactory
 import innsending.oppslag.OppslagClient
 import innsending.postgres.InnsendingMedFiler
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import org.slf4j.LoggerFactory
+import java.security.MessageDigest
+
+private val logger = LoggerFactory.getLogger("PdfGen")
 
 class PdfGen(config: Config) {
     private val host = config.pdfGenHost
@@ -17,6 +20,7 @@ class PdfGen(config: Config) {
     private val pdlClient = OppslagClient(config)
 
     suspend fun bildeTilPfd(bildeFil: ByteArray, contentType: ContentType): ByteArray {
+        logger.info("Bilde til PDF. Hash av fil: ${hashByteArray(bildeFil, "SHA-256")}")
         val res = httpClient.post("$host/api/v1/genpdf/image/aap-pdfgen") {
             contentType(contentType)
             accept(ContentType.Application.Pdf)
@@ -53,6 +57,14 @@ class PdfGen(config: Config) {
 
         return res.body()
     }
+}
+
+fun hashByteArray(byteArray: ByteArray, algorithm: String): String {
+    val digest = MessageDigest.getInstance(algorithm)
+    val hashBytes = digest.digest(byteArray)
+
+    // Convert a byte array to hexadecimal string
+    return hashBytes.joinToString("") { "%02x".format(it) }
 }
 
 data class SøknadPdfGen(
