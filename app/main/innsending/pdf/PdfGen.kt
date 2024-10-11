@@ -20,7 +20,6 @@ class PdfGen(config: Config) {
     private val pdlClient = OppslagClient(config)
 
     suspend fun bildeTilPfd(bildeFil: ByteArray, contentType: ContentType): ByteArray {
-        logger.info("Bilde til PDF. Hash av fil: ${hashByteArray(bildeFil, "SHA-256")}")
         val res = httpClient.post("$host/api/v1/genpdf/image/aap-pdfgen") {
             contentType(contentType)
             accept(ContentType.Application.Pdf)
@@ -28,7 +27,14 @@ class PdfGen(config: Config) {
         }
 
         if (res.status.value >= 300) {
-            logger.error("feil i pdfgen: status ${res.status}")
+            logger.error(
+                "feil i pdfgen: status ${res.status}. Bilde til PDF. Hash av fil: ${
+                    hashByteArray(
+                        bildeFil,
+                        "SHA-256"
+                    )
+                }"
+            )
             throw Exception("Feil i pdfGen")
         }
 
