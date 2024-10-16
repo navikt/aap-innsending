@@ -243,8 +243,12 @@ private fun PartData.FileItem.readFile(fileSizeLimit: Int): Result<ByteArray> =
 fun kryptertEllerUgyldigPdf(fil: ByteArray): Boolean {
     try {
         val pdf = Loader.loadPDF(fil)
+        if (pdf.isEncrypted) {
+            log.info("Bruker sendte inn kryptert PDF.")
+        }
         return pdf.isEncrypted
     } catch (e: Exception) {
+        log.info("Bruker sendte inn ugyldig pdf.")
         return true
     }
 }
