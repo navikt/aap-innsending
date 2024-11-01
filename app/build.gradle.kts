@@ -7,7 +7,7 @@ plugins {
 }
 
 val aapLibVersion = "5.0.23"
-val ktorVersion = "2.3.12"
+val ktorVersion = "3.0.1"
 
 application {
     mainClass.set("innsending.AppKt")
