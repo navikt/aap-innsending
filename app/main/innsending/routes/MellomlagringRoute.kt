@@ -1,37 +1,29 @@
 package innsending.routes
 
-import innsending.logger
 import innsending.antivirus.ClamAVClient
 import innsending.auth.personident
 import innsending.dto.ErrorRespons
 import innsending.dto.MellomlagringRespons
+import innsending.logger
 import innsending.pdf.PdfGen
 import innsending.redis.EnDagSekunder
 import innsending.redis.Key
 import innsending.redis.Redis
-import io.ktor.http.ContentDisposition
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.content.PartData
-import io.ktor.http.content.readAllParts
-import io.ktor.server.application.call
-import io.ktor.server.request.receive
-import io.ktor.server.request.receiveMultipart
-import io.ktor.server.response.header
-import io.ktor.server.response.respond
-import io.ktor.server.routing.Route
-import io.ktor.server.routing.delete
-import io.ktor.server.routing.get
-import io.ktor.server.routing.post
-import io.ktor.server.routing.route
+import io.ktor.http.*
+import io.ktor.http.content.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import io.ktor.utils.io.*
+import kotlinx.coroutines.runBlocking
+import kotlinx.io.EOFException
 import org.apache.pdfbox.Loader
 import org.apache.tika.Tika
 import org.slf4j.LoggerFactory
 import java.net.URI
 import java.net.URL
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 
 private val log = LoggerFactory.getLogger("App")
 
@@ -68,7 +60,11 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                 log.info("søknad created at: {}", createdAt) //TODO: fjern logg
                 call.respond(
                     HttpStatusCode.OK,
-                    SøknadFinnesRespons("Søknad om AAP", URI("https://www.nav.no/aap/soknad").toURL(), createdAt)
+                    SøknadFinnesRespons(
+                        "Søknad om AAP",
+                        URI("https://www.nav.no/aap/soknad").toURL(),
+                        createdAt
+                    )
                 )
             } else {
                 call.respond(HttpStatusCode.NotFound, SøknadFinnesRespons())
@@ -101,7 +97,11 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                 prefix = call.personident()
             )
 
-            when (val fileItem = call.receiveMultipart().readAllParts().single()) {
+            // Veldig høy maksgrense siden vi sjekker filtype manuelt
+            val receiveMultipart =
+                call.receiveMultipart(formFieldLimit = 1000 * CONTENT_LENGHT_LIMIT.toLong())
+
+            when (val fileItem = receiveMultipart.readPart()) {
                 is PartData.FileItem -> {
                     val fil = fileItem
                         .readFile(CONTENT_LENGHT_LIMIT)
@@ -112,10 +112,14 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                                     ErrorRespons("Filen er tom")
                                 )
 
-                                else -> return@post call.respond(
-                                    HttpStatusCode.UnprocessableEntity,
-                                    ErrorRespons("Filen ${fileItem.originalFileName} er større enn maksgrense på 50MB")
-                                )
+                                else -> {
+                                    log.info("Got exc: {}", it.message)
+                                    return@post call.respond(
+                                        HttpStatusCode.UnprocessableEntity,
+                                        ErrorRespons("Filen ${fileItem.originalFileName} er større enn maksgrense på 50MB")
+                                    )
+                                }
+
                             }
                         }
 
@@ -164,7 +168,10 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                     }
 
                     if (kryptertEllerUgyldigPdf(pdf)) {
-                        return@post call.respond(HttpStatusCode.UnprocessableEntity, ErrorRespons("PDF er kryptert"))
+                        return@post call.respond(
+                            HttpStatusCode.UnprocessableEntity,
+                            ErrorRespons("PDF er kryptert")
+                        )
                     }
 
                     // prefikser med innlogget bruker for å hindre at andre brukere kan hente andres filer
@@ -174,7 +181,10 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                 }
 
                 else -> {
-                    return@post call.respond(HttpStatusCode.UnprocessableEntity, ErrorRespons("Filtype ikke støttet"))
+                    return@post call.respond(
+                        HttpStatusCode.UnprocessableEntity,
+                        ErrorRespons("Filtype ikke støttet")
+                    )
                 }
             }
         }
@@ -186,7 +196,11 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
             )
 
             when (val fil = redis[key]) {
-                null -> call.respond(HttpStatusCode.NotFound, ErrorRespons("Fant ikke mellomlagret fil"))
+                null -> call.respond(
+                    HttpStatusCode.NotFound,
+                    ErrorRespons("Fant ikke mellomlagret fil")
+                )
+
                 else -> {
                     call.response.header(
                         HttpHeaders.ContentDisposition,
@@ -218,11 +232,7 @@ class EmptyStreamException(msg: String) : RuntimeException(msg)
 
 private fun PartData.FileItem.readFile(fileSizeLimit: Int): Result<ByteArray> =
     runCatching {
-        provider().use { stream ->
-            if (stream.tryPeek() == -1) {
-                throw EmptyStreamException("No bytes found in stream")
-            }
-
+        runBlocking {
             var buffer = ByteArray(1024)
             var idx = 0
 
@@ -231,9 +241,13 @@ private fun PartData.FileItem.readFile(fileSizeLimit: Int): Result<ByteArray> =
                 require(buffer.size <= fileSizeLimit) { "Filen er større enn tillat størrelse på $fileSizeLimit" }
             }
 
-            while (stream.canRead()) {
+            while (provider().awaitContent()) {
                 if (idx == buffer.size) expandBuffer()
-                buffer[idx++] = stream.readByte()
+                try {
+                    buffer[idx++] = provider().readByte()
+                } catch (e: EOFException) {
+                    throw EmptyStreamException("No bytes found in stream")
+                }
             }
 
             buffer.copyOfRange(0, idx)

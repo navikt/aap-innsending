@@ -23,7 +23,8 @@ class Fakes : AutoCloseable {
     val tokenx = embeddedServer(Netty, port = 0, module = Application::tokenx).apply { start() }
     val pdfGen = embeddedServer(Netty, port = 0, module = Application::pdfGen).apply { start() }
     val oppslag = embeddedServer(Netty, port = 0, module = Application::oppslag).apply { start() }
-    val virusScan = embeddedServer(Netty, port = 0, module = Application::virusScan).apply { start() }
+    val virusScan =
+        embeddedServer(Netty, port = 0, module = Application::virusScan).apply { start() }
     val joark = JoarkFake()
     val redis = Redis(InitTestRedis.uri)
     val kafka = KafkaFake()
@@ -54,7 +55,7 @@ class JoarkFake : AutoCloseable {
     val port = server.port()
     val receivedRequest = CompletableDeferred<Journalpost>()
 
-    private fun create(): NettyApplicationEngine =
+    private fun create(): EmbeddedServer<*, *> =
         embeddedServer(Netty, port = 0, module = {
             install(ContentNegotiation) {
                 jackson {
@@ -144,7 +145,11 @@ fun Application.virusScan() {
 }
 
 object Resource {
-    fun read(path: String): ByteArray = requireNotNull(this::class.java.getResource(path)).readBytes()
+    fun read(path: String): ByteArray =
+        requireNotNull(this::class.java.getResource(path)).readBytes()
 }
 
-fun NettyApplicationEngine.port() = runBlocking { resolvedConnectors() }.first { it.type == ConnectorType.HTTP }.port
+fun EmbeddedServer<*, *>.port(): Int =
+    runBlocking { this@port.engine.resolvedConnectors() }
+        .first { it.type == ConnectorType.HTTP }
+        .port

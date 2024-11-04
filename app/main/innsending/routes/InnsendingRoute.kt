@@ -11,18 +11,14 @@ import innsending.redis.Key
 import innsending.redis.Redis
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
-import io.ktor.server.application.call
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
-import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.UUID
-
-private val logger = LoggerFactory.getLogger("App")
 
 fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
     route("/innsending") {

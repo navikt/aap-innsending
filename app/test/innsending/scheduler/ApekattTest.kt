@@ -7,8 +7,8 @@ import innsending.Fakes
 import innsending.Resource
 import innsending.TestConfig
 import innsending.arkiv.Journalpost
-import innsending.postgres.PostgresTestBase
 import innsending.postgres.PostgresDAO
+import innsending.postgres.PostgresTestBase
 import innsending.postgres.toByteArray
 import innsending.postgres.transaction
 import innsending.server
@@ -46,7 +46,7 @@ class ApekattTest : PostgresTestBase() {
                 }
             }
 
-            app.start()
+            runBlocking { app.start() }
             suspend {
                 block(fakes, client)
             }
@@ -156,7 +156,12 @@ class ApekattTest : PostgresTestBase() {
         datoMottatt = now,
         kanal = "NAV_NO",
         journalposttype = "INNGAAENDE",
-        tilleggsopplysninger = listOf(Journalpost.Tilleggsopplysning(nokkel = "versjon", verdi = "1.0")),
+        tilleggsopplysninger = listOf(
+            Journalpost.Tilleggsopplysning(
+                nokkel = "versjon",
+                verdi = "1.0"
+            )
+        ),
         tema = "AAP"
     )
     private val expectedEttersending = Journalpost(
@@ -183,7 +188,12 @@ class ApekattTest : PostgresTestBase() {
         datoMottatt = now,
         kanal = "NAV_NO",
         journalposttype = "INNGAAENDE",
-        tilleggsopplysninger = listOf(Journalpost.Tilleggsopplysning(nokkel = "versjon", verdi = "1.0")),
+        tilleggsopplysninger = listOf(
+            Journalpost.Tilleggsopplysning(
+                nokkel = "versjon",
+                verdi = "1.0"
+            )
+        ),
         tema = "AAP"
     )
 }
