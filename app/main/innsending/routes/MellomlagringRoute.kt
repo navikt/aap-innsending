@@ -67,7 +67,7 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                     )
                 )
             } else {
-                call.respond(HttpStatusCode.NotFound, SøknadFinnesRespons())
+                call.respond(HttpStatusCode.NoContent, SøknadFinnesRespons())
             }
         }
 
