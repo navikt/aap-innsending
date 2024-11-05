@@ -1,6 +1,16 @@
 name: Deploy innsending
 
 on:
+  workflow_dispatch:
+    inputs:
+      cluster:
+        description: Cluster
+        required: true
+        default: dev-gcp
+        type: choice
+        options:
+          - dev-gcp
+          - prod-gcp
   push:
     branches: [ main ]
     paths-ignore:
@@ -55,6 +65,7 @@ jobs:
       image: ${{ steps.docker-push.outputs.image }}
 
   deploy-dev:
+    if: github.event.pull_request.merged || github.event_name == 'push' || github.event.inputs.cluster == 'dev-gcp'
     needs: build
     runs-on: ubuntu-latest
     permissions:
@@ -71,6 +82,7 @@ jobs:
 
 
   deploy-prod:
+    if: github.event.pull_request.merged || github.event_name == 'push' || github.ref == 'refs/heads/main' || github.event.inputs.cluster == 'prod-gcp'
     needs: [build, deploy-dev]
     runs-on: ubuntu-latest
     permissions:
