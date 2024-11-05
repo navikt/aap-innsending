@@ -325,7 +325,7 @@ class MellomlagringTest : PostgresTestBase() {
                     bearerAuth(jwkGen.generate("12345678910"))
                 }
 
-                assertThat(resFørOpprettelse.status).isEqualTo(HttpStatusCode.NotFound)
+                assertThat(resFørOpprettelse.status).isEqualTo(HttpStatusCode.NoContent)
                 assertThat(resEtterOpprettelse.status).isEqualTo(HttpStatusCode.OK)
             }
         }
