@@ -230,29 +230,28 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
 
 class EmptyStreamException(msg: String) : RuntimeException(msg)
 
-private fun PartData.FileItem.readFile(fileSizeLimit: Int): Result<ByteArray> =
+private suspend fun PartData.FileItem.readFile(fileSizeLimit: Int): Result<ByteArray> =
     runCatching {
-        runBlocking {
-            var buffer = ByteArray(1024)
-            var idx = 0
+        var buffer = ByteArray(1024)
+        var idx = 0
 
-            fun expandBuffer() {
-                buffer = buffer.copyOf(buffer.size * 2)
-                require(buffer.size <= fileSizeLimit) { "Filen er større enn tillat størrelse på $fileSizeLimit" }
-            }
-
-            while (provider().awaitContent()) {
-                if (idx == buffer.size) expandBuffer()
-                try {
-                    buffer[idx++] = provider().readByte()
-                } catch (e: EOFException) {
-                    throw EmptyStreamException("No bytes found in stream")
-                }
-            }
-
-            buffer.copyOfRange(0, idx)
+        fun expandBuffer() {
+            buffer = buffer.copyOf(buffer.size * 2)
+            require(buffer.size <= fileSizeLimit) { "Filen er større enn tillat størrelse på $fileSizeLimit" }
         }
+
+        while (provider().awaitContent()) {
+            if (idx == buffer.size) expandBuffer()
+            try {
+                buffer[idx++] = provider().readByte()
+            } catch (e: EOFException) {
+                throw EmptyStreamException("No bytes found in stream")
+            }
+        }
+
+        buffer.copyOfRange(0, idx)
     }
+
 
 fun kryptertEllerUgyldigPdf(fil: ByteArray): Boolean {
     try {
