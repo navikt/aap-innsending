@@ -92,7 +92,7 @@ private suspend fun postInnsending(postgres: PostgresRepo,
     if (innsendingsRef != null && postgres.erRefTilknyttetPersonIdent(personIdent, innsendingsRef).not()) {
         logger.error("$personIdent prøver å poste en innsending på $innsendingsRef, men disse hører ikke sammen")
         return call.respond(
-            HttpStatusCode.NotFound,
+            HttpStatusCode.BadRequest,
             "Denne innsendingenId'en finnes ikke for denne personen"
         )
     }
