@@ -16,7 +16,7 @@ application {
 dependencies {
     implementation("com.github.navikt.aap-libs:ktor-auth:$aapLibVersion")
     implementation("com.github.navikt.aap-libs:kafka:$aapLibVersion")
-    implementation("org.apache.kafka:kafka-clients:3.8.1")
+    implementation("org.apache.kafka:kafka-clients:3.9.0")
 
     implementation("no.nav.tms.mikrofrontend.selector:builder:20230704114948-74aa2e9")
 
