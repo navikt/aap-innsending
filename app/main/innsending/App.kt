@@ -7,6 +7,7 @@ import innsending.arkiv.JoarkClient
 import innsending.arkiv.JournalpostSender
 import innsending.auth.TOKENX
 import innsending.auth.authentication
+import innsending.jobb.ArkiverInnsendingJobbUtfører
 import innsending.kafka.KafkaProducer
 import innsending.kafka.MinSideKafkaProducer
 import innsending.pdf.PdfGen
@@ -36,6 +37,10 @@ import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.motor.Jobb
+import no.nav.aap.motor.Motor
+import no.nav.aap.motor.retry.RetryService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
@@ -115,6 +120,8 @@ fun Application.server(
         }
     }
 
+    val motor = module(datasource)
+
     routing {
         authenticate(TOKENX) {
             innsendingRoute(postgres, redis)
@@ -122,5 +129,40 @@ fun Application.server(
         }
 
         actuator(prometheus, redis)
+    }
+}
+
+fun Application.module(dataSource: DataSource): Motor {
+    val motor = Motor(
+        dataSource = dataSource,
+        antallKammer = 2,
+        jobber = ProsesseringsJobber.alle()
+    )
+
+    dataSource.transaction { dbConnection ->
+        RetryService(dbConnection).enable()
+    }
+
+    monitor.subscribe(ApplicationStarted) {
+        motor.start()
+    }
+    monitor.subscribe(ApplicationStopped) { application ->
+        application.environment.log.info("Server har stoppet")
+        motor.stop()
+        // Release resources and unsubscribe from events
+        application.monitor.unsubscribe(ApplicationStarted) {}
+        application.monitor.unsubscribe(ApplicationStopped) {}
+    }
+
+    return motor
+}
+
+object ProsesseringsJobber {
+
+    fun alle(): List<Jobb> {
+        // Legger her alle oppgavene som skal utføres i systemet
+        return listOf(
+            ArkiverInnsendingJobbUtfører
+        )
     }
 }

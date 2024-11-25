@@ -1,5 +1,7 @@
 package innsending.dto
 
+import com.google.errorprone.annotations.concurrent.LazyInit
+import innsending.postgres.InnsendingType
 import java.time.LocalDateTime
 import java.util.*
 
@@ -25,9 +27,15 @@ data class Innsending(
      */
     val filer: List<FilMetadata>,
 ) {
+    var type: InnsendingType
     init {
         if ((soknad == null && kvittering != null) || (soknad != null && kvittering == null)) {
             throw IllegalArgumentException("Kvittering og søknad må være satt samtidig")
+        }
+        type = if (soknad == null){
+            InnsendingType.ETTERSENDING
+        } else {
+            InnsendingType.SOKNAD
         }
     }
 
