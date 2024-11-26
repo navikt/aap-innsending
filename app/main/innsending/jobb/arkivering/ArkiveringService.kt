@@ -3,20 +3,19 @@ package innsending.jobb.arkivering
 import innsending.arkiv.ArkivResponse
 import innsending.arkiv.Journalpost
 import innsending.db.InnsendingNy
-import innsending.db.InnsendingRepo
+import innsending.logger
 import innsending.pdf.PdfGenClient
-import kotlinx.coroutines.runBlocking
-import java.util.*
+import innsending.postgres.InnsendingType
+import java.util.Base64
 
 class ArkiveringService(
-    val innsendingRepo: InnsendingRepo,
     val joarkClient: JoarkClient,
     val pdfGen: PdfGenClient
 ) {
-    fun arkiverInnsending(innsendingsId: Long):ArkivResponse {
-        val innsending = innsendingRepo.hent(innsendingsId)
-        val pdf = pdfGen.søknadTilPdf(innsending)
+    fun arkiverSøknadInnsending(innsending: InnsendingNy): ArkivResponse {
+        require(innsending.type == InnsendingType.SOKNAD)
 
+        val pdf = pdfGen.søknadTilPdf(innsending)
 
         val journalpost = Journalpost(
             tittel = "Søknad AAP",
@@ -31,10 +30,16 @@ class ArkiveringService(
             datoMottatt = innsending.opprettet
         )
 
-        return joarkClient.opprettJournalpost(journalpost)
+        val arkivResponse = joarkClient.opprettJournalpost(journalpost)
+        logger.info(
+            "Opprettet søknad-journalpost {} for eksternreferanseID {}",
+            arkivResponse.journalpostId,
+            journalpost.eksternReferanseId
+        )
+        return arkivResponse
     }
 
-    fun dokumenter(innsending:InnsendingNy, soknadSomPdf:ByteArray): List<Journalpost.Dokument> {
+    fun dokumenter(innsending: InnsendingNy, soknadSomPdf: ByteArray): List<Journalpost.Dokument> {
         val orginalSøknadDokument = innsending.soknad?.let {
             val encoded = Base64.getEncoder().encodeToString(it)
             Journalpost.DokumentVariant("JSON", encoded, "ORIGINAL")
@@ -45,9 +50,7 @@ class ArkiveringService(
     }
 
     private fun lagSøknadDokument(søknad: ByteArray, original: Journalpost.DokumentVariant?): Journalpost.Dokument {
-        val søknadSomPdf = runBlocking {
-            Base64.getEncoder().encodeToString(søknad)
-        }
+        val søknadSomPdf = Base64.getEncoder().encodeToString(søknad)
 
         return Journalpost.Dokument(
             tittel = "Søknad om Arbeidsavklaringspenger",
@@ -69,5 +72,30 @@ class ArkiveringService(
                 )
             )
         }
+    }
+
+    fun arkiverEttersendelseInnsending(innsending: InnsendingNy): ArkivResponse {
+        val vedleggDokumenter = lagDokumenter(innsending)
+
+        val journalpost = Journalpost(
+            tittel = "Ettersendelse til søknad om arbeidsavklaringspenger",
+            avsenderMottaker = Journalpost.AvsenderMottaker(
+                id = Journalpost.Fødselsnummer(innsending.personident)
+            ),
+            bruker = Journalpost.Bruker(
+                id = Journalpost.Fødselsnummer(innsending.personident)
+            ),
+            dokumenter = vedleggDokumenter,
+            eksternReferanseId = innsending.id.toString(),
+            datoMottatt = innsending.opprettet
+        )
+
+        val arkivResponse = joarkClient.opprettJournalpost(journalpost)
+        logger.info(
+            "Opprettet ettersending-journalpost {} for eksternreferanseID {}",
+            arkivResponse.journalpostId,
+            journalpost.eksternReferanseId
+        )
+        return arkivResponse
     }
 }

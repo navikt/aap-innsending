@@ -4,6 +4,7 @@ import innsending.db.InnsendingRepo
 import innsending.jobb.arkivering.ArkiveringService
 import innsending.jobb.arkivering.JoarkClient
 import innsending.pdf.PdfGenClient
+import innsending.postgres.InnsendingType
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
@@ -16,8 +17,21 @@ class ArkiverInnsendingJobbUtfører(
 
     override fun utfør(input: JobbInput) {
         val innsendingId = input.sakId()
-        val arkivResponse = arkiveringService.arkiverInnsending(innsendingId)
+        val innsending = innsendingRepo.hent(innsendingId)
+
+        val arkivResponse = when (innsending.type) {
+            InnsendingType.SOKNAD -> {
+                arkiveringService.arkiverSøknadInnsending(innsending)
+            }
+
+            InnsendingType.ETTERSENDING -> {
+                arkiveringService.arkiverEttersendelseInnsending(innsending)
+            }
+        }
+
         innsendingRepo.markerFerdig(innsendingId, arkivResponse.journalpostId)
+
+        // Planlegg ny jobb
     }
 
     companion object : Jobb {
@@ -27,7 +41,6 @@ class ArkiverInnsendingJobbUtfører(
             return ArkiverInnsendingJobbUtfører(
                 innsendingRepo,
                 ArkiveringService(
-                    innsendingRepo,
                     pdfGen = PdfGenClient(),
                     joarkClient = JoarkClient()
                     )
@@ -39,11 +52,11 @@ class ArkiverInnsendingJobbUtfører(
         }
 
         override fun navn(): String {
-            return "Prosesser behandling"
+            return "Arkiver innsending"
         }
 
         override fun beskrivelse(): String {
-            return "Ansvarlig for å drive prosessen på en gitt behandling"
+            return "Konverterer til PDF hvis behov og arkiverer innsendingen"
         }
     }
 }

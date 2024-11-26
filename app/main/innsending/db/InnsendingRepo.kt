@@ -1,22 +1,22 @@
 package innsending.db
 
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import java.util.*
+import java.util.UUID
 
 class InnsendingRepo(private val connection: DBConnection) {
-    val hentInnsending = """
+    private val hentInnsending = """
         SELECT * FROM innsending_ny WHERE id = ?
     """
 
-    val hentFiler = """
+    private val hentFiler = """
         SELECT * FROM fil_ny WHERE innsending_id = ?
     """
 
-    val lagreInnsending = """
+    private val lagreInnsending = """
         INSERT INTO innsending_ny (opprettet, personident, soknad, data, ekstern_referanse, type, journalpost_id, forrige_innsending_id) VALUES (?, ?, ?, ?, ?, ?, ? ,?)
     """
 
-    val lagreFil = """
+    private val lagreFil = """
         INSERT INTO fil_ny (tittel, data, innsending_id) VALUES (?, ?, ?)
     """
 
