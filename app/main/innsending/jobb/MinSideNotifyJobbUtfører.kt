@@ -1,8 +1,8 @@
 package innsending.jobb
 
-import innsending.ProdConfig
 import innsending.db.InnsendingRepo
-import innsending.kafka.MinSideKafkaProducer
+import innsending.kafka.KafkaProducer
+import innsending.kafka.MinSideProducerHolder
 import innsending.postgres.InnsendingType
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.motor.Jobb
@@ -10,17 +10,17 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 
 class MinSideNotifyJobbUtfører(
-    val innsendingRepo: InnsendingRepo
+    val innsendingRepo: InnsendingRepo,
+    val producer: KafkaProducer
 ) : JobbUtfører {
+
 
     override fun utfør(input: JobbInput) {
         val innsendingId = input.sakId()
         val innsending = innsendingRepo.hent(innsendingId)
         require(innsending.type == InnsendingType.SOKNAD)
 
-        MinSideKafkaProducer(ProdConfig.config.kafka).use { producer ->
-            producer.produce(innsending.personident)
-        }
+        producer.produce(innsending.personident)
     }
 
     companion object : Jobb {
@@ -28,7 +28,8 @@ class MinSideNotifyJobbUtfører(
             val innsendingRepo = InnsendingRepo(connection)
 
             return MinSideNotifyJobbUtfører(
-                innsendingRepo
+                innsendingRepo,
+                MinSideProducerHolder.producer()
             )
         }
 

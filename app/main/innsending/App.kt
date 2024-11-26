@@ -9,6 +9,7 @@ import innsending.jobb.ArkiverInnsendingJobbUtfører
 import innsending.jobb.MinSideNotifyJobbUtfører
 import innsending.kafka.KafkaProducer
 import innsending.kafka.MinSideKafkaProducer
+import innsending.kafka.MinSideProducerHolder
 import innsending.pdf.PdfGen
 import innsending.postgres.Hikari
 import innsending.postgres.PostgresRepo
@@ -78,6 +79,7 @@ fun Application.server(
         minsideProducer,
         leaderElector,
     )
+    MinSideProducerHolder.setProducer(minsideProducer)
 
     install(MicrometerMetrics) {
         registry = prometheus
