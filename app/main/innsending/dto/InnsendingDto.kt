@@ -1,6 +1,5 @@
 package innsending.dto
 
-import com.google.errorprone.annotations.concurrent.LazyInit
 import innsending.postgres.InnsendingType
 import java.time.LocalDateTime
 import java.util.*
@@ -67,11 +66,24 @@ data class MineAapSoknad(
     val innsendingsId: UUID
 )
 
+data class MineAapSoknadMedEttersendingNy(
+    val mottattDato: LocalDateTime,
+    val journalpostId: String?,
+    val innsendingsId: Long,
+    val ettersendinger: List<MineAapEttersendingNy>
+)
+
 data class MineAapSoknadMedEttersendinger(
     val mottattDato: LocalDateTime,
     val journalpostId: String?,
     val innsendingsId: UUID,
     val ettersendinger: List<MineAapEttersending>
+)
+
+data class MineAapEttersendingNy(
+    val mottattDato: LocalDateTime,
+    val journalpostId: String?,
+    val innsendingsId: Long
 )
 
 data class MineAapEttersending(

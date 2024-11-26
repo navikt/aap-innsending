@@ -1,15 +1,13 @@
 package innsending.db
 
 import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
 import innsending.postgres.InnsendingType
 import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
-import java.math.BigInteger
 import java.time.LocalDateTime
 import java.util.*
 
 data class InnsendingNy(
-    val id: Long,
+    val id: Long?,
     val opprettet: LocalDateTime,
     val personident: String,
     val soknad: ByteArray?,

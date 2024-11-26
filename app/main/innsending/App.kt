@@ -5,6 +5,7 @@ import innsending.arkiv.JoarkClient
 import innsending.arkiv.JournalpostSender
 import innsending.auth.TOKENX
 import innsending.auth.authentication
+import innsending.db.InnsendingRepo
 import innsending.jobb.ArkiverInnsendingJobbUtfører
 import innsending.jobb.MinSideNotifyJobbUtfører
 import innsending.kafka.KafkaProducer
@@ -41,6 +42,7 @@ import io.ktor.server.routing.routing
 import io.micrometer.core.instrument.binder.logging.LogbackMetrics
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
 import no.nav.aap.motor.Jobb
@@ -117,7 +119,7 @@ fun Application.server(
 
     routing {
         authenticate(TOKENX) {
-            innsendingRoute(postgres, redis)
+            innsendingRoute(datasource ,postgres, redis)
             mellomlagerRoute(redis, antivirus, pdfGen)
         }
 

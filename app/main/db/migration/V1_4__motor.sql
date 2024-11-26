@@ -22,7 +22,7 @@ CREATE TABLE fil_ny
 );
 
 INSERT INTO innsending_ny (opprettet, personident, soknad, data, ekstern_referanse, type, forrige_innsending_id, journalpost_id)
-SELECT l.opprettet,
+SELECT l.mottatt_dato,
        l.personident,
        NULL,
        NULL,

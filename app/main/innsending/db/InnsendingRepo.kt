@@ -1,5 +1,8 @@
 package innsending.db
 
+import innsending.dto.MineAapEttersendingNy
+import innsending.dto.MineAapSoknadMedEttersendingNy
+import innsending.postgres.InnsendingType
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import java.util.UUID
 
@@ -20,6 +23,25 @@ class InnsendingRepo(private val connection: DBConnection) {
         INSERT INTO fil_ny (tittel, data, innsending_id) VALUES (?, ?, ?)
     """
 
+    private val hentAlleSøknader = """
+        SELECT * FROM innsending_ny WHERE personident = ? AND type = ${InnsendingType.SOKNAD.name}
+    """
+
+    private val hentAlleEttersendinger = """
+        SELECT * FROM innsending_ny WHERE forrige_innsending_id = ?
+    """
+
+    fun erRefTilknyttetPersonIdent(personident: String, ref: Long): Boolean {
+        return connection.queryFirst("SELECT * FROM innsending_ny WHERE personident = ? AND id = ?"){
+            setParams {
+                setString(1, personident)
+                setLong(2, ref)
+            }
+            setRowMapper { row ->
+                true
+            }
+        }
+    }
 
 
     fun lagre(innsending: InnsendingNy): Long {
@@ -77,6 +99,37 @@ class InnsendingRepo(private val connection: DBConnection) {
                 FilNy(
                     tittel = row.getString("tittel"),
                     data = row.getBytesOrNull("data")
+                )
+            }
+        }
+    }
+
+    fun hentAlleSøknader(personident: String): List<MineAapSoknadMedEttersendingNy> {
+        return connection.queryList(hentAlleSøknader) {
+            setParams {
+                setString(1, personident)
+            }
+            setRowMapper { row ->
+                MineAapSoknadMedEttersendingNy(
+                    innsendingsId = row.getLong("id"),
+                    mottattDato = row.getLocalDateTime("opprettet"),
+                    journalpostId = row.getStringOrNull("journalpost_id"),
+                    ettersendinger = hentAlleEttersendinger(row.getLong("id"))
+                )
+            }
+        }
+    }
+
+    fun hentAlleEttersendinger(soknadId: Long): List<MineAapEttersendingNy> {
+        return connection.queryList(hentAlleEttersendinger) {
+            setParams {
+                setLong(1, soknadId)
+            }
+            setRowMapper { row ->
+                MineAapEttersendingNy(
+                    innsendingsId = row.getLong("id"),
+                    mottattDato = row.getLocalDateTime("opprettet"),
+                    journalpostId = row.getStringOrNull("journalpost_id")
                 )
             }
         }
