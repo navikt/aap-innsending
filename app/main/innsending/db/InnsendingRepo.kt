@@ -32,13 +32,13 @@ class InnsendingRepo(private val connection: DBConnection) {
     """
 
     fun erRefTilknyttetPersonIdent(personident: String, ref: Long): Boolean {
-        return connection.queryFirst("SELECT * FROM innsending_ny WHERE personident = ? AND id = ?"){
+        return connection.queryFirst("SELECT count(*)>0 as a FROM innsending_ny WHERE personident = ? AND id = ?"){
             setParams {
                 setString(1, personident)
                 setLong(2, ref)
             }
             setRowMapper { row ->
-                true
+                row.getBoolean("a")
             }
         }
     }

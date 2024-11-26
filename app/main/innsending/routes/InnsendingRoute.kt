@@ -112,7 +112,7 @@ private suspend fun postInnsending(
     val erRefTilknyttetPersonIdent = dataSource.transaction { dbconnection ->
         val innsendingRepo = InnsendingRepo(dbconnection)
         if (innsendingsRef == null) {
-            false
+            true
         } else
         innsendingRepo.erRefTilknyttetPersonIdent(personIdent, innsendingsRef).not()
     }
