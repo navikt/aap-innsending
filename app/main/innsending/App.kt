@@ -1,7 +1,5 @@
 package innsending
 
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import innsending.antivirus.ClamAVClient
 import innsending.arkiv.JoarkClient
 import innsending.arkiv.JournalpostSender
@@ -20,12 +18,12 @@ import innsending.routes.actuator
 import innsending.routes.innsendingRoute
 import innsending.routes.mellomlagerRoute
 import innsending.scheduler.Apekatt
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.serialization.jackson.jackson
+import io.ktor.serialization.jackson.JacksonConverter
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStarted
 import io.ktor.server.application.ApplicationStopped
-import io.ktor.server.application.ApplicationStopping
 import io.ktor.server.application.install
 import io.ktor.server.auth.authenticate
 import io.ktor.server.engine.embeddedServer
@@ -42,9 +40,8 @@ import io.ktor.server.routing.routing
 import io.micrometer.core.instrument.binder.logging.LogbackMetrics
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.retry.RetryService
@@ -82,15 +79,6 @@ fun Application.server(
         leaderElector,
     )
 
-    environment.monitor.subscribe(ApplicationStopping) {
-        runBlocking {
-            delay(50)
-        }
-        arkivScheduler.close()
-        minsideProducer.close()
-        redis.close()
-    }
-
     install(MicrometerMetrics) {
         registry = prometheus
         meterBinders += LogbackMetrics()
@@ -119,15 +107,11 @@ fun Application.server(
         }
     }
 
-
     install(ContentNegotiation) {
-        jackson {
-            registerModule(JavaTimeModule())
-            disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-        }
+        register(ContentType.Application.Json, JacksonConverter(objectMapper = DefaultJsonMapper.objectMapper(), true))
     }
 
-    val motor = module(datasource)
+    module(datasource, arkivScheduler, minsideProducer, redis)
 
     routing {
         authenticate(TOKENX) {
@@ -139,7 +123,10 @@ fun Application.server(
     }
 }
 
-fun Application.module(dataSource: DataSource): Motor {
+fun Application.module(dataSource: DataSource,
+                       arkivScheduler: Apekatt,
+                       minsideProducer: KafkaProducer,
+                       redis: Redis): Motor {
     val motor = Motor(
         dataSource = dataSource,
         antallKammer = 2,
@@ -156,6 +143,9 @@ fun Application.module(dataSource: DataSource): Motor {
     monitor.subscribe(ApplicationStopped) { application ->
         application.environment.log.info("Server har stoppet")
         motor.stop()
+        arkivScheduler.close()
+        minsideProducer.close()
+        redis.close()
         // Release resources and unsubscribe from events
         application.monitor.unsubscribe(ApplicationStarted) {}
         application.monitor.unsubscribe(ApplicationStopped) {}
