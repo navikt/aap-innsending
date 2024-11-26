@@ -6,13 +6,15 @@ import innsending.jobb.arkivering.JoarkClient
 import innsending.pdf.PdfGenClient
 import innsending.postgres.InnsendingType
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 
 class ArkiverInnsendingJobbUtfører(
     val innsendingRepo: InnsendingRepo,
-    val arkiveringService: ArkiveringService
+    val arkiveringService: ArkiveringService,
+    val flytJobbRepository: FlytJobbRepository
 ) : JobbUtfører {
 
     override fun utfør(input: JobbInput) {
@@ -31,7 +33,10 @@ class ArkiverInnsendingJobbUtfører(
 
         innsendingRepo.markerFerdig(innsendingId, arkivResponse.journalpostId)
 
-        // Planlegg ny jobb
+        if (innsending.type == InnsendingType.SOKNAD) {
+            // Planlegg ny jobb
+            flytJobbRepository.leggTil(JobbInput(MinSideNotifyJobbUtfører).forSak(innsendingId))
+        }
     }
 
     companion object : Jobb {
@@ -43,7 +48,8 @@ class ArkiverInnsendingJobbUtfører(
                 ArkiveringService(
                     pdfGen = PdfGenClient(),
                     joarkClient = JoarkClient()
-                    )
+                ),
+                FlytJobbRepository(connection)
             )
         }
 
