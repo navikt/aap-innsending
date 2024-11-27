@@ -5,7 +5,6 @@ import innsending.arkiv.JoarkClient
 import innsending.arkiv.JournalpostSender
 import innsending.auth.TOKENX
 import innsending.auth.authentication
-import innsending.db.InnsendingRepo
 import innsending.jobb.ArkiverInnsendingJobbUtfører
 import innsending.jobb.MinSideNotifyJobbUtfører
 import innsending.kafka.KafkaProducer

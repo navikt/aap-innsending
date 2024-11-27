@@ -9,6 +9,7 @@ import innsending.dto.Innsending
 import innsending.dto.InnsendingResponse
 import innsending.dto.ValiderFiler
 import innsending.logger
+import innsending.jobb.ArkiverInnsendingJobbUtfører
 import innsending.postgres.PostgresRepo
 import innsending.redis.EnDagSekunder
 import innsending.redis.Key
@@ -22,6 +23,8 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.motor.FlytJobbRepository
+import no.nav.aap.motor.JobbInput
 import java.time.LocalDateTime
 import java.util.UUID
 import javax.sql.DataSource
@@ -142,7 +145,7 @@ private suspend fun postInnsending(
     }
     dataSource.transaction { dbconnection ->
         val innsendingRepo = InnsendingRepo(dbconnection)
-        innsendingRepo.lagre(
+        val innsendingId = innsendingRepo.lagre(
             InnsendingNy(
                 null,
                 opprettet = LocalDateTime.now(),
@@ -161,6 +164,7 @@ private suspend fun postInnsending(
                 }.toList()
             )
         )
+        FlytJobbRepository(connection = dbconnection).leggTil(JobbInput(ArkiverInnsendingJobbUtfører).forSak(innsendingId))
     }
 
     innsending.filer.forEach { fil ->
