@@ -1,7 +1,6 @@
 package innsending.routes
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import innsending.logger
 import innsending.auth.personident
 import innsending.db.FilNy
 import innsending.db.InnsendingNy
@@ -9,6 +8,7 @@ import innsending.db.InnsendingRepo
 import innsending.dto.Innsending
 import innsending.dto.InnsendingResponse
 import innsending.dto.ValiderFiler
+import innsending.logger
 import innsending.postgres.PostgresRepo
 import innsending.redis.EnDagSekunder
 import innsending.redis.Key
@@ -31,7 +31,7 @@ fun Route.innsendingRoute(dataSource: DataSource, postgres: PostgresRepo, redis:
 
         get("/søknadmedettersendinger") {
             val personIdent = call.personident()
-            val res = dataSource.transaction { dbconnection ->
+            val res = dataSource.transaction(readOnly = true) { dbconnection ->
                 val innsendingRepo = InnsendingRepo(dbconnection)
                 innsendingRepo.hentAlleSøknader(personIdent)
             }
@@ -40,7 +40,7 @@ fun Route.innsendingRoute(dataSource: DataSource, postgres: PostgresRepo, redis:
 
         get("/søknader") {
             val personIdent = call.personident()
-            val res = dataSource.transaction { dbconnection ->
+            val res = dataSource.transaction(readOnly = true) { dbconnection ->
                 val innsendingRepo = InnsendingRepo(dbconnection)
                 innsendingRepo.hentAlleSøknader(personIdent)
             }
@@ -109,7 +109,7 @@ private suspend fun postInnsending(
         call.respond(HttpStatusCode.Conflict, "Denne innsendingen har vi allerede mottatt")
     }
 
-    val erRefTilknyttetPersonIdent = dataSource.transaction { dbconnection ->
+    val erRefTilknyttetPersonIdent = dataSource.transaction(readOnly = true) { dbconnection ->
         val innsendingRepo = InnsendingRepo(dbconnection)
         if (innsendingsRef == null) {
             true
@@ -159,7 +159,6 @@ private suspend fun postInnsending(
                         data = byteArray
                     )
                 }.toList()
-
             )
         )
     }
