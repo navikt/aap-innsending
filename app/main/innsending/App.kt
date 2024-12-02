@@ -71,7 +71,7 @@ fun Application.server(
     val postgres = PostgresRepo(datasource)
     val leaderElector = LeaderElector(redis)
     val joarkClient = JoarkClient(config.azure, config.joark)
-    val journalpostSender = JournalpostSender(joarkClient, postgres)
+    val journalpostSender = JournalpostSender(joarkClient, postgres, datasource)
     val arkivScheduler = Apekatt(
         pdfGen,
         postgres,

@@ -8,7 +8,6 @@ import innsending.db.InnsendingRepo
 import innsending.dto.FilMetadata
 import innsending.dto.Innsending
 import innsending.postgres.InnsendingType
-import innsending.postgres.PostgresDAO
 import innsending.postgres.PostgresTestBase
 import innsending.redis.Key
 import innsending.server
