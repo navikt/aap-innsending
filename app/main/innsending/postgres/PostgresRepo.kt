@@ -38,18 +38,6 @@ class PostgresRepo(private val hikari: DataSource) {
         }
     }
 
-    fun kobleSoeknadEttersending(soknadRef: UUID, ettersendingRef: UUID) {
-        hikari.transaction { con ->
-            PostgresDAO.insertSoknadEttersending(soknadRef, ettersendingRef, con)
-        }
-    }
-
-    fun hentSoeknadEttersendelser(soknadRef: UUID): List<UUID> {
-        return hikari.transaction { con ->
-            PostgresDAO.selectSoknadEttersendelser(soknadRef, con)
-        }
-    }
-
     fun hentAlleSøknader(personident: String): List<MineAapSoknad> = hikari.transaction { con ->
         val innsendinger = PostgresDAO.selectInnsendingerByPersonIdent(personident, con)
         val logger = PostgresDAO.selectLogg(personident, InnsendingType.SOKNAD.name, con)
