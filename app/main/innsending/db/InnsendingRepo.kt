@@ -24,7 +24,7 @@ class InnsendingRepo(private val connection: DBConnection) {
     """
 
     private val hentAlleSøknader = """
-        SELECT id, opprettet, journalpost_id FROM innsending_ny WHERE personident = ? AND type = ${InnsendingType.SOKNAD.name}
+        SELECT id, opprettet, journalpost_id FROM innsending_ny WHERE personident = ? AND type = '${InnsendingType.SOKNAD.name}'
     """
 
     private val hentAlleEttersendinger = """
