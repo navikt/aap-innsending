@@ -31,6 +31,17 @@ class InnsendingRepo(private val connection: DBConnection) {
         SELECT * FROM innsending_ny WHERE forrige_innsending_id = ?
     """
 
+    fun hentIdFraEksternRef(eksternRef: UUID): Long? {
+        return connection.queryFirstOrNull("SELECT id FROM innsending_ny WHERE ekstern_referanse = ?"){
+            setParams {
+                setUUID(1, eksternRef)
+            }
+            setRowMapper { row ->
+                row.getLong("id")
+            }
+        }
+    }
+
     fun erRefTilknyttetPersonIdent(personident: String, ref: Long): Boolean {
         return connection.queryFirst("SELECT count(*)>0 as a FROM innsending_ny WHERE personident = ? AND id = ?"){
             setParams {

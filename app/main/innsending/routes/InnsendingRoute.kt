@@ -66,12 +66,20 @@ fun Route.innsendingRoute(dataSource: DataSource, postgres: PostgresRepo, redis:
         }
 
         post("/{ref}") {
-            val innsendingsRef = call.parameters["ref"]?.toLong() ?: return@post call.respond(
+            val innsendingsRef = call.parameters["ref"]?.toLong()?: UUID.fromString(call.parameters["ref"]) ?: return@post call.respond(
                 HttpStatusCode.BadRequest,
                 "Mangler innsendingsId"
             )
+            val ref = when(innsendingsRef){
+                is Long -> innsendingsRef
+                is UUID -> dataSource.transaction(readOnly = true) { dbconnection ->
+                    val innsendingRepo = InnsendingRepo(dbconnection)
+                    innsendingRepo.hentIdFraEksternRef(innsendingsRef)
+                } ?: return@post call.respond(HttpStatusCode.BadRequest, "Ugyldig innsendingsId")
+                else -> return@post call.respond(HttpStatusCode.BadRequest, "Ugyldig innsendingsId")
+            }
 
-            postInnsending(dataSource, redis, call, innsendingsRef)
+            postInnsending(dataSource, redis, call, ref)
         }
 
         post("/valider-filer") {
