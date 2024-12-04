@@ -24,7 +24,7 @@ class InnsendingRepo(private val connection: DBConnection) {
     """
 
     private val hentAlleSøknader = """
-        SELECT id, opprettet, journalpost_id FROM innsending_ny WHERE personident = ? AND type = '${InnsendingType.SOKNAD.name}'
+        SELECT id, opprettet, journalpost_id FROM innsending_ny WHERE personident = ? AND type = ?
     """
 
     private val hentAlleEttersendinger = """
@@ -119,6 +119,7 @@ class InnsendingRepo(private val connection: DBConnection) {
         return connection.queryList(hentAlleSøknader) {
             setParams {
                 setString(1, personident)
+                setEnumName(2, InnsendingType.SOKNAD)
             }
             setRowMapper { row ->
                 MineAapSoknadMedEttersendingNy(
