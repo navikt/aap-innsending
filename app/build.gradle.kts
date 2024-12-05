@@ -8,6 +8,7 @@ plugins {
 
 val aapLibVersion = "5.0.24"
 val ktorVersion = "3.0.2"
+val komponenterVersjon = "1.0.67"
 
 application {
     mainClass.set("innsending.AppKt")
@@ -16,8 +17,12 @@ application {
 dependencies {
     implementation("com.github.navikt.aap-libs:ktor-auth:$aapLibVersion")
     implementation("com.github.navikt.aap-libs:kafka:$aapLibVersion")
-    implementation("org.apache.kafka:kafka-clients:3.9.0")
+    implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")
+    implementation("no.nav.aap.kelvin:motor:$komponenterVersjon")
+    implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")
+    implementation("no.nav.aap.kelvin:motor-api:$komponenterVersjon")
 
+    implementation("org.apache.kafka:kafka-clients:3.9.0")
     implementation("no.nav.tms.mikrofrontend.selector:builder:20230704114948-74aa2e9")
 
     implementation("io.ktor:ktor-server-core:$ktorVersion")

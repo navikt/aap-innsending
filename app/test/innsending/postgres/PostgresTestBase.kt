@@ -45,4 +45,25 @@ abstract class PostgresTestBase {
             val result = stmt.executeQuery()
             result.map { it.getUUID("id") }
         }
+
+    fun countInnsendingNy(): Int? =
+        dataSource.transaction { con ->
+            val stmt = con.prepareStatement("SELECT count(*) FROM innsending_ny")
+            val resultSet = stmt.executeQuery()
+            resultSet.map { row -> row.getInt(1) }.singleOrNull()
+        }
+
+    fun countFilerNy(): Int? =
+        dataSource.transaction { con ->
+            val stmt = con.prepareStatement("SELECT count(*) FROM fil_ny")
+            val resultSet = stmt.executeQuery()
+            resultSet.map { row -> row.getInt(1) }.singleOrNull()
+        }
+
+    fun getAllInnsendingerNy(): List<Long> =
+        dataSource.transaction { con ->
+            val stmt = con.prepareStatement("SELECT * FROM innsending_ny")
+            val result = stmt.executeQuery()
+            result.map { it.getLong("id") }
+        }
 }
