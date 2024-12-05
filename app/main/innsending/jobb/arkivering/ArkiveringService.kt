@@ -50,13 +50,11 @@ class ArkiveringService(
     }
 
     private fun lagSøknadDokument(søknad: ByteArray, original: Journalpost.DokumentVariant?): Journalpost.Dokument {
-        val søknadSomPdf = Base64.getEncoder().encodeToString(søknad)
-
         return Journalpost.Dokument(
             tittel = "Søknad om Arbeidsavklaringspenger",
             brevkode = "NAV 11-13.05",
             dokumentVarianter = listOfNotNull(
-                Journalpost.DokumentVariant(fysiskDokument = søknadSomPdf),
+                Journalpost.DokumentVariant(fysiskDokument = Base64.getEncoder().encodeToString(søknad)),
                 original
             )
         )

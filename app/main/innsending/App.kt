@@ -41,7 +41,6 @@ import io.ktor.server.routing.routing
 import io.micrometer.core.instrument.binder.logging.LogbackMetrics
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
-import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
 import no.nav.aap.motor.Jobb
@@ -118,7 +117,7 @@ fun Application.server(
 
     routing {
         authenticate(TOKENX) {
-            innsendingRoute(datasource ,postgres, redis)
+            innsendingRoute(datasource, redis)
             mellomlagerRoute(redis, antivirus, pdfGen)
         }
 

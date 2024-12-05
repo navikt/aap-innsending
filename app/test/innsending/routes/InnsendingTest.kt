@@ -162,16 +162,16 @@ class InnsendingTest : PostgresTestBase() {
         Fakes().use { fakes ->
             val config = TestConfig.default(fakes)
             val tokenx = TokenXGen(config.tokenx)
-            val soknadRef = 2L
             val filId1 = Key(UUID.randomUUID().toString(), prefix = "12345678910")
             val filId2 = Key(UUID.randomUUID().toString(), prefix = "12345678910")
 
+            val eksternRef = UUID.randomUUID()
             testApplication {
                 application { server(config, fakes.redis, dataSource, fakes.kafka) }
                 fakes.redis.set(filId1, byteArrayOf(), 60)
                 fakes.redis.set(filId2, byteArrayOf(), 60)
 
-                val id = dataSource.transaction { con ->
+                dataSource.transaction { con ->
                     val innsendingRepo = InnsendingRepo(con)
                     innsendingRepo.lagre(
                         InnsendingNy(
@@ -180,7 +180,7 @@ class InnsendingTest : PostgresTestBase() {
                             opprettet = LocalDateTime.now(),
                             soknad = null,
                             data = null,
-                            eksternRef = UUID.randomUUID(),
+                            eksternRef = eksternRef,
                             type = InnsendingType.ETTERSENDING,
                             forrigeInnsendingId = null,
                             journalpost_Id = null,
@@ -189,7 +189,7 @@ class InnsendingTest : PostgresTestBase() {
                     )
                 }
 
-                val res = jsonHttpClient.post("/innsending/$id") {
+                val res = jsonHttpClient.post("/innsending/$eksternRef") {
                     bearerAuth(tokenx.generate("12345678910"))
                     contentType(ContentType.Application.Json)
                     setBody(
@@ -222,7 +222,7 @@ class InnsendingTest : PostgresTestBase() {
         Fakes().use { fakes ->
             val config = TestConfig.default(fakes)
             val tokenx = TokenXGen(config.tokenx)
-            val soknadRef = 1L
+            val soknadRef = UUID.randomUUID()
             val filId1 = Key(UUID.randomUUID().toString(), prefix = "12345678910")
             val filId2 = Key(UUID.randomUUID().toString(), prefix = "12345678910")
 
@@ -235,12 +235,12 @@ class InnsendingTest : PostgresTestBase() {
                     val innsendingRepo = InnsendingRepo(con)
                     innsendingRepo.lagre(
                         InnsendingNy(
-                            id = soknadRef,
+                            id = 1,
                             personident = "12345678910",
                             opprettet = LocalDateTime.now(),
                             soknad = null,
                             data = null,
-                            eksternRef = UUID.randomUUID(),
+                            eksternRef = soknadRef,
                             type = InnsendingType.SOKNAD,
                             forrigeInnsendingId = null,
                             journalpost_Id = null,

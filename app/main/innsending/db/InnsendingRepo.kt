@@ -24,7 +24,11 @@ class InnsendingRepo(private val connection: DBConnection) {
     """
 
     private val hentAlleSøknader = """
-        SELECT id, opprettet, journalpost_id FROM innsending_ny WHERE personident = ? AND type = ?
+        SELECT id, ekstern_referanse, opprettet, journalpost_id FROM innsending_ny WHERE personident = ? AND type = ?
+    """
+
+    private val hentSøknadForRef = """
+        SELECT id, ekstern_referanse, opprettet, journalpost_id FROM innsending_ny WHERE ekstern_referanse = ? AND type = ?
     """
 
     private val hentAlleEttersendinger = """
@@ -32,7 +36,7 @@ class InnsendingRepo(private val connection: DBConnection) {
     """
 
     fun hentIdFraEksternRef(eksternRef: UUID): Long? {
-        return connection.queryFirstOrNull("SELECT id FROM innsending_ny WHERE ekstern_referanse = ?"){
+        return connection.queryFirstOrNull("SELECT id FROM innsending_ny WHERE ekstern_referanse = ?") {
             setParams {
                 setUUID(1, eksternRef)
             }
@@ -42,18 +46,17 @@ class InnsendingRepo(private val connection: DBConnection) {
         }
     }
 
-    fun erRefTilknyttetPersonIdent(personident: String, ref: Long): Boolean {
-        return connection.queryFirst("SELECT count(*)>0 as a FROM innsending_ny WHERE personident = ? AND id = ?"){
+    fun erRefTilknyttetPersonIdent(personident: String, ref: UUID): Boolean {
+        return connection.queryFirst("SELECT count(*)>0 as a FROM innsending_ny WHERE personident = ? AND ekstern_referanse = ?") {
             setParams {
                 setString(1, personident)
-                setLong(2, ref)
+                setUUID(2, ref)
             }
             setRowMapper { row ->
                 row.getBoolean("a")
             }
         }
     }
-
 
     fun lagre(innsending: InnsendingNy): Long {
         val innsendingId = connection.executeReturnKey(lagreInnsending) {
@@ -123,7 +126,7 @@ class InnsendingRepo(private val connection: DBConnection) {
             }
             setRowMapper { row ->
                 MineAapSoknadMedEttersendingNy(
-                    innsendingsId = row.getLong("id"),
+                    innsendingsId = row.getUUID("ekstern_referanse"),
                     mottattDato = row.getLocalDateTime("opprettet"),
                     journalpostId = row.getStringOrNull("journalpost_id"),
                     ettersendinger = hentAlleEttersendinger(row.getLong("id"))
@@ -132,14 +135,31 @@ class InnsendingRepo(private val connection: DBConnection) {
         }
     }
 
-    fun hentAlleEttersendinger(soknadId: Long): List<MineAapEttersendingNy> {
+    fun hentSøknadMedReferanse(eksternRef: UUID): MineAapSoknadMedEttersendingNy? {
+        return connection.queryFirstOrNull(hentSøknadForRef) {
+            setParams {
+                setUUID(1, eksternRef)
+                setEnumName(2, InnsendingType.SOKNAD)
+            }
+            setRowMapper { row ->
+                MineAapSoknadMedEttersendingNy(
+                    innsendingsId = row.getUUID("ekstern_referanse"),
+                    mottattDato = row.getLocalDateTime("opprettet"),
+                    journalpostId = row.getStringOrNull("journalpost_id"),
+                    ettersendinger = hentAlleEttersendinger(row.getLong("id"))
+                )
+            }
+        }
+    }
+
+    private fun hentAlleEttersendinger(soknadId: Long): List<MineAapEttersendingNy> {
         return connection.queryList(hentAlleEttersendinger) {
             setParams {
                 setLong(1, soknadId)
             }
             setRowMapper { row ->
                 MineAapEttersendingNy(
-                    innsendingsId = row.getLong("id"),
+                    innsendingsId = row.getUUID("ekstern_referanse"),
                     mottattDato = row.getLocalDateTime("opprettet"),
                     journalpostId = row.getStringOrNull("journalpost_id")
                 )
@@ -147,25 +167,14 @@ class InnsendingRepo(private val connection: DBConnection) {
         }
     }
 
-    fun hentInnsendingIdForReferanse(eksternRef: UUID): Long {
-        return connection.queryFirst("SELECT id FROM innsending_ny WHERE ekstern_referanse = ?"){
-            setParams {
-                setUUID(1, eksternRef)
-            }
-            setRowMapper { row ->
-                row.getLong("id")
-            }
-        }
-    }
-
     fun markerFerdig(innsendingId: Long, journalpostId: String) {
-        connection.execute("UPDATE innsending_ny SET soknad = NULL, data=NULL, journalpost_id=? WHERE id = ?"){
+        connection.execute("UPDATE innsending_ny SET soknad = NULL, data=NULL, journalpost_id=? WHERE id = ?") {
             setParams {
                 setString(1, journalpostId)
                 setLong(2, innsendingId)
             }
         }
-        connection.execute("UPDATE fil_ny SET data=NULL WHERE innsending_id = ?"){
+        connection.execute("UPDATE fil_ny SET data=NULL WHERE innsending_id = ?") {
             setParams {
                 setLong(1, innsendingId)
             }

@@ -7,10 +7,11 @@ import innsending.db.InnsendingNy
 import innsending.db.InnsendingRepo
 import innsending.dto.Innsending
 import innsending.dto.InnsendingResponse
+import innsending.dto.MineAapEttersending
+import innsending.dto.MineAapSoknadMedEttersendinger
 import innsending.dto.ValiderFiler
-import innsending.logger
 import innsending.jobb.ArkiverInnsendingJobbUtfører
-import innsending.postgres.PostgresRepo
+import innsending.logger
 import innsending.redis.EnDagSekunder
 import innsending.redis.Key
 import innsending.redis.Redis
@@ -29,7 +30,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 import javax.sql.DataSource
 
-fun Route.innsendingRoute(dataSource: DataSource, postgres: PostgresRepo, redis: Redis) {
+fun Route.innsendingRoute(dataSource: DataSource, redis: Redis) {
     route("/innsending") {
 
         get("/søknadmedettersendinger") {
@@ -56,30 +57,36 @@ fun Route.innsendingRoute(dataSource: DataSource, postgres: PostgresRepo, redis:
                 "Mangler innsendingsId"
             )
 
-            val søknadMedEttersendinger = postgres.hentSøknadMedEttersendelser(innsendingsRef)
+            val søknadMedEttersendinger = dataSource.transaction(readOnly = true) { dbconnection ->
+                val innsendingRepo = InnsendingRepo(dbconnection)
+                innsendingRepo.hentSøknadMedReferanse(innsendingsRef)
+            }
 
             if (søknadMedEttersendinger == null) {
                 call.respond(HttpStatusCode.NotFound, "Fant ikke søknad for angitt referanse")
             } else {
-                call.respond(søknadMedEttersendinger)
+                val response = MineAapSoknadMedEttersendinger(
+                    mottattDato = søknadMedEttersendinger.mottattDato,
+                    journalpostId = søknadMedEttersendinger.journalpostId,
+                    innsendingsId = innsendingsRef,
+                    ettersendinger = søknadMedEttersendinger.ettersendinger.map { ny ->
+                        MineAapEttersending(
+                            mottattDato = ny.mottattDato,
+                            journalpostId = ny.journalpostId,
+                            innsendingsId = ny.innsendingsId
+                        )
+                    })
+                call.respond(response)
             }
         }
 
         post("/{ref}") {
-            val innsendingsRef = call.parameters["ref"]?.toLong()?: UUID.fromString(call.parameters["ref"]) ?: return@post call.respond(
+            val innsendingsRef = UUID.fromString(call.parameters["ref"]) ?: return@post call.respond(
                 HttpStatusCode.BadRequest,
                 "Mangler innsendingsId"
             )
-            val ref = when(innsendingsRef){
-                is Long -> innsendingsRef
-                is UUID -> dataSource.transaction(readOnly = true) { dbconnection ->
-                    val innsendingRepo = InnsendingRepo(dbconnection)
-                    innsendingRepo.hentIdFraEksternRef(innsendingsRef)
-                } ?: return@post call.respond(HttpStatusCode.BadRequest, "Ugyldig innsendingsId")
-                else -> return@post call.respond(HttpStatusCode.BadRequest, "Ugyldig innsendingsId")
-            }
 
-            postInnsending(dataSource, redis, call, ref)
+            postInnsending(dataSource, redis, call, innsendingsRef)
         }
 
         post("/valider-filer") {
@@ -109,7 +116,7 @@ private suspend fun postInnsending(
     dataSource: DataSource,
     redis: Redis,
     call: ApplicationCall,
-    innsendingsRef: Long? = null
+    innsendingsRef: UUID? = null
 ) {
     val personIdent = call.personident()
     val innsending = call.receive<Innsending>()
@@ -125,7 +132,7 @@ private suspend fun postInnsending(
         if (innsendingsRef == null) {
             true
         } else
-        innsendingRepo.erRefTilknyttetPersonIdent(personIdent, innsendingsRef).not()
+            innsendingRepo.erRefTilknyttetPersonIdent(personIdent, innsendingsRef).not()
     }
 
     if (innsendingsRef != null && erRefTilknyttetPersonIdent) {
@@ -162,7 +169,7 @@ private suspend fun postInnsending(
                 data = innsending.kvittering?.toByteArray(),
                 eksternRef = innsendingId,
                 type = innsending.type,
-                forrigeInnsendingId = innsendingsRef,
+                forrigeInnsendingId = innsendingsRef?.let { uUID -> innsendingRepo.hentIdFraEksternRef(innsendingsRef) },
                 journalpost_Id = null,
                 filer = filerMedInnhold.map { (metadata, byteArray) ->
                     FilNy(
@@ -172,7 +179,11 @@ private suspend fun postInnsending(
                 }.toList()
             )
         )
-        FlytJobbRepository(connection = dbconnection).leggTil(JobbInput(ArkiverInnsendingJobbUtfører).forSak(innsendingId))
+        FlytJobbRepository(connection = dbconnection).leggTil(
+            JobbInput(ArkiverInnsendingJobbUtfører).forSak(
+                innsendingId
+            )
+        )
     }
 
     innsending.filer.forEach { fil ->

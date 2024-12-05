@@ -2,7 +2,7 @@ package innsending.dto
 
 import innsending.postgres.InnsendingType
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 data class Logg(
     val journalpost: String,
@@ -69,7 +69,7 @@ data class MineAapSoknad(
 data class MineAapSoknadMedEttersendingNy(
     val mottattDato: LocalDateTime,
     val journalpostId: String?,
-    val innsendingsId: Long,
+    val innsendingsId: UUID,
     val ettersendinger: List<MineAapEttersendingNy>
 )
 
@@ -83,7 +83,7 @@ data class MineAapSoknadMedEttersendinger(
 data class MineAapEttersendingNy(
     val mottattDato: LocalDateTime,
     val journalpostId: String?,
-    val innsendingsId: Long
+    val innsendingsId: UUID
 )
 
 data class MineAapEttersending(
