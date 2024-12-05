@@ -23,6 +23,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
+import io.micrometer.core.instrument.MeterRegistry
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
@@ -30,7 +31,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 import javax.sql.DataSource
 
-fun Route.innsendingRoute(dataSource: DataSource, redis: Redis) {
+fun Route.innsendingRoute(dataSource: DataSource, redis: Redis, promethius: MeterRegistry) {
     route("/innsending") {
 
         get("/søknadmedettersendinger") {
@@ -86,7 +87,7 @@ fun Route.innsendingRoute(dataSource: DataSource, redis: Redis) {
                 "Mangler innsendingsId"
             )
 
-            postInnsending(dataSource, redis, call, innsendingsRef)
+            postInnsending(dataSource, redis, call, innsendingsRef, promethius)
         }
 
         post("/valider-filer") {
@@ -107,7 +108,7 @@ fun Route.innsendingRoute(dataSource: DataSource, redis: Redis) {
         }
 
         post {
-            postInnsending(dataSource, redis, call)
+            postInnsending(dataSource, redis, call, null, promethius)
         }
     }
 }
@@ -116,7 +117,8 @@ private suspend fun postInnsending(
     dataSource: DataSource,
     redis: Redis,
     call: ApplicationCall,
-    innsendingsRef: UUID? = null
+    innsendingsRef: UUID? = null,
+    prometheus: MeterRegistry
 ) {
     val personIdent = call.personident()
     val innsending = call.receive<Innsending>()
@@ -185,6 +187,7 @@ private suspend fun postInnsending(
             )
         )
     }
+    prometheus.counter("innsendinger").increment()
 
     innsending.filer.forEach { fil ->
         val key = Key(value = fil.id, prefix = personIdent)

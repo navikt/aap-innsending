@@ -5,6 +5,8 @@ import innsending.jobb.arkivering.ArkiveringService
 import innsending.jobb.arkivering.JoarkClient
 import innsending.pdf.PdfGenClient
 import innsending.postgres.InnsendingType
+import innsending.prometheus
+import io.micrometer.core.instrument.Tag
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.Jobb
@@ -14,9 +16,8 @@ import no.nav.aap.motor.JobbUtfører
 class ArkiverInnsendingJobbUtfører(
     val innsendingRepo: InnsendingRepo,
     val arkiveringService: ArkiveringService,
-    val flytJobbRepository: FlytJobbRepository
+    val flytJobbRepository: FlytJobbRepository,
 ) : JobbUtfører {
-
     override fun utfør(input: JobbInput) {
         val innsendingId = input.sakId()
         val innsending = innsendingRepo.hent(innsendingId)
@@ -37,6 +38,7 @@ class ArkiverInnsendingJobbUtfører(
             // Planlegg ny jobb
             flytJobbRepository.leggTil(JobbInput(MinSideNotifyJobbUtfører).forSak(innsendingId))
         }
+        prometheus.prometheus.counter("innsending", listOf(Tag.of("resultat", "ok"))).increment()
     }
 
     companion object : Jobb {

@@ -39,8 +39,6 @@ import io.ktor.server.request.path
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.routing
 import io.micrometer.core.instrument.binder.logging.LogbackMetrics
-import io.micrometer.prometheusmetrics.PrometheusConfig
-import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.json.DefaultJsonMapper
 import no.nav.aap.motor.Jobb
@@ -64,7 +62,7 @@ fun Application.server(
     datasource: DataSource = Hikari.createAndMigrate(config.postgres),
     minsideProducer: KafkaProducer = MinSideKafkaProducer(config.kafka),
 ) {
-    val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+    val prometheus = prometheus.prometheus
     val antivirus = ClamAVClient(config.virusScanHost)
     val pdfGen = PdfGen(config)
     val postgres = PostgresRepo(datasource)
@@ -117,7 +115,7 @@ fun Application.server(
 
     routing {
         authenticate(TOKENX) {
-            innsendingRoute(datasource, redis)
+            innsendingRoute(datasource, redis, prometheus)
             mellomlagerRoute(redis, antivirus, pdfGen)
         }
 
