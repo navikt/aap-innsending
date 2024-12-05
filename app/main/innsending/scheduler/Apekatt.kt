@@ -1,28 +1,19 @@
 package innsending.scheduler
 
+import innsending.logger
 import innsending.arkiv.JournalpostSender
 import innsending.kafka.KafkaProducer
-import innsending.logger
 import innsending.pdf.PdfGen
 import innsending.postgres.InnsendingMedFiler
 import innsending.postgres.PostgresRepo
 import innsending.redis.LeaderElector
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tag
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
-@Deprecated("Erstattes av motor")
 class Apekatt(
     private val pdfGen: PdfGen,
     private val repo: PostgresRepo,

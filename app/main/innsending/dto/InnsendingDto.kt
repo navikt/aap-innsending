@@ -1,8 +1,7 @@
 package innsending.dto
 
-import innsending.postgres.InnsendingType
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 
 data class Logg(
     val journalpost: String,
@@ -26,15 +25,9 @@ data class Innsending(
      */
     val filer: List<FilMetadata>,
 ) {
-    var type: InnsendingType
     init {
         if ((soknad == null && kvittering != null) || (soknad != null && kvittering == null)) {
             throw IllegalArgumentException("Kvittering og søknad må være satt samtidig")
-        }
-        type = if (soknad == null){
-            InnsendingType.ETTERSENDING
-        } else {
-            InnsendingType.SOKNAD
         }
     }
 
@@ -66,24 +59,11 @@ data class MineAapSoknad(
     val innsendingsId: UUID
 )
 
-data class MineAapSoknadMedEttersendingNy(
-    val mottattDato: LocalDateTime,
-    val journalpostId: String?,
-    val innsendingsId: UUID,
-    val ettersendinger: List<MineAapEttersendingNy>
-)
-
 data class MineAapSoknadMedEttersendinger(
     val mottattDato: LocalDateTime,
     val journalpostId: String?,
     val innsendingsId: UUID,
     val ettersendinger: List<MineAapEttersending>
-)
-
-data class MineAapEttersendingNy(
-    val mottattDato: LocalDateTime,
-    val journalpostId: String?,
-    val innsendingsId: UUID
 )
 
 data class MineAapEttersending(

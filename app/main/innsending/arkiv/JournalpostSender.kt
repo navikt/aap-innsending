@@ -1,21 +1,15 @@
 package innsending.arkiv
 
-import innsending.db.FilNy
-import innsending.db.InnsendingNy
-import innsending.db.InnsendingRepo
 import innsending.logger
 import innsending.postgres.InnsendingMedFiler
 import innsending.postgres.InnsendingType
 import innsending.postgres.PostgresRepo
 import kotlinx.coroutines.runBlocking
-import no.nav.aap.komponenter.dbconnect.transaction
 import java.util.*
-import javax.sql.DataSource
 
 class JournalpostSender(
     private val client: JoarkClient,
     private val repo: PostgresRepo,
-    private val dataSource: DataSource
 ) {
     fun arkiverSøknad(søknadSomPdf: ByteArray, innsending: InnsendingMedFiler) {
         fun dokumenter(): List<Journalpost.Dokument> {
@@ -44,27 +38,13 @@ class JournalpostSender(
         val arkivResponse = client.opprettJournalpost(journalpost, innsending.id.toString())
         logger.info("Opprettet journalpost {} for eksternreferanseID {}", arkivResponse.journalpostId, journalpost.eksternReferanseId)
 
-        dataSource.transaction { con ->
-            InnsendingRepo(con).lagre(
-                InnsendingNy(
-                    id=null,
-                    opprettet=innsending.opprettet,
-                    personident=innsending.personident,
-                    soknad = null,
-                    data = null,
-                    eksternRef = innsending.id,
-                    forrigeInnsendingId = null,
-                    type = InnsendingType.SOKNAD,
-                    journalpost_Id = arkivResponse.journalpostId,
-                    filer = innsending.fil.map { fil ->
-                        FilNy(
-                            tittel = fil.tittel,
-                            data = null
-                        )
-                    }
-                )
-            )
-        }
+        repo.loggførJournalføring(
+            personIdent = innsending.personident,
+            mottattDato = innsending.opprettet,
+            journalpostId = arkivResponse.journalpostId,
+            innsendingsId = innsending.id,
+            type = InnsendingType.SOKNAD
+        )
 
         repo.slettInnsending(innsending.id)
     }
@@ -88,41 +68,13 @@ class JournalpostSender(
         val arkivResponse = client.opprettJournalpost(journalpost, innsending.id.toString())
         logger.info("Opprettet ettersending-journalpost {} for eksternreferanseID {}", arkivResponse.journalpostId, journalpost.eksternReferanseId)
 
-
-        dataSource.transaction { con ->
-            val kobletSoknadUUID = con.queryList<UUID>("SELECT * FROM soknad_ettersending WHERE innsending_ettersending_ref = ?") {
-                setParams { setUUID(1, innsending.id) }
-                setRowMapper { row ->
-                    row.getUUID("innsending_soknad_ref")
-                }
-            }.firstOrNull()
-            val kobletSoknadLong = con.queryList<Long>("SELECT * FROM innsending_ny WHERE ekstern_referanse = ?") {
-                setParams { setUUID(1, kobletSoknadUUID) }
-                setRowMapper { row ->
-                    row.getLong("id")
-                }
-            }.firstOrNull()
-            InnsendingRepo(con).lagre(
-                InnsendingNy(
-                    id=null,
-                    opprettet=innsending.opprettet,
-                    personident=innsending.personident,
-                    soknad = null,
-                    data = null,
-                    eksternRef = innsending.id,
-                    forrigeInnsendingId = kobletSoknadLong,
-                    type = InnsendingType.ETTERSENDING,
-                    journalpost_Id = arkivResponse.journalpostId,
-                    filer = innsending.fil.map { fil ->
-                        FilNy(
-                            tittel = fil.tittel,
-                            data = null
-                        )
-                    }
-                )
-            )
-        }
-
+        repo.loggførJournalføring(
+            personIdent = innsending.personident,
+            mottattDato = innsending.opprettet,
+            journalpostId = arkivResponse.journalpostId,
+            innsendingsId = innsending.id,
+            type = InnsendingType.ETTERSENDING
+        )
 
         repo.slettInnsending(innsending.id)
     }
