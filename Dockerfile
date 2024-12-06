@@ -16,7 +16,7 @@ RUN jlink \
     --output /customjre
 
 
-FROM alpine:3.20.3 as app
+FROM alpine:3.21.0 as app
 ENV JAVA_HOME=/jre
 ENV LANG='nb_NO.UTF-8' LANGUAGE='nb_NO:nb' LC_ALL='nb:NO.UTF-8' TZ="Europe/Oslo"
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
