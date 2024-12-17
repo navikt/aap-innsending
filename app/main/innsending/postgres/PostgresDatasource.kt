@@ -7,7 +7,7 @@ import org.flywaydb.core.Flyway
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
-import java.util.*
+import java.util.UUID
 import javax.sql.DataSource
 
 internal object Hikari {
@@ -24,7 +24,6 @@ internal object Hikari {
             initializationFailTimeout = 5000
             idleTimeout = 10001
             connectionTimeout = 1000
-            maxLifetime = 30001
             driverClassName = config.driver
         }
 
