@@ -38,7 +38,12 @@ class InnsendingTest : PostgresTestBase() {
             val filId2 = Key(value = UUID.randomUUID().toString(), prefix = "12345678910")
 
             testApplication {
-                application { server(config, fakes.redis, dataSource, fakes.kafka) }
+                application { server(
+                    config,
+                    fakes.redis,
+                    minsideProducer = fakes.kafka,
+                    datasource = dataSource
+                ) }
                 fakes.redis.set(filId1, byteArrayOf(), 60)
                 fakes.redis.set(filId2, byteArrayOf(), 60)
 
@@ -79,7 +84,12 @@ class InnsendingTest : PostgresTestBase() {
             val jwkGen = TokenXGen(config.tokenx)
             println(JSONObject({ "søknad" }))
             testApplication {
-                application { server(config, fakes.redis, dataSource, fakes.kafka) }
+                application { server(
+                    config,
+                    fakes.redis,
+                    minsideProducer = fakes.kafka,
+                    datasource = dataSource
+                ) }
 
                 val res = jsonHttpClient.post("/innsending") {
                     bearerAuth(jwkGen.generate("12345678910"))
@@ -114,7 +124,12 @@ class InnsendingTest : PostgresTestBase() {
             val filId2 = Key(UUID.randomUUID().toString(), prefix = "12345678910")
 
             testApplication {
-                application { server(config, fakes.redis, dataSource, fakes.kafka) }
+                application { server(
+                    config,
+                    fakes.redis,
+                    minsideProducer = fakes.kafka,
+                    datasource = dataSource
+                ) }
                 fakes.redis.set(filId1, byteArrayOf(), 60)
                 fakes.redis.set(filId2, byteArrayOf(), 60)
 
@@ -156,7 +171,12 @@ class InnsendingTest : PostgresTestBase() {
             val filId2 = Key(UUID.randomUUID().toString(), prefix = "12345678910")
 
             testApplication {
-                application { server(config, fakes.redis, dataSource, fakes.kafka) }
+                application { server(
+                    config,
+                    fakes.redis,
+                    minsideProducer = fakes.kafka,
+                    datasource = dataSource
+                ) }
                 fakes.redis.set(filId1, byteArrayOf(), 60)
                 fakes.redis.set(filId2, byteArrayOf(), 60)
 
@@ -209,7 +229,12 @@ class InnsendingTest : PostgresTestBase() {
             val filId2 = Key(UUID.randomUUID().toString(), prefix = "12345678910")
 
             testApplication {
-                application { server(config, fakes.redis, dataSource, fakes.kafka) }
+                application { server(
+                    config,
+                    fakes.redis,
+                    minsideProducer = fakes.kafka,
+                    datasource = dataSource
+                ) }
                 fakes.redis.set(filId1, byteArrayOf(), 60)
                 fakes.redis.set(filId2, byteArrayOf(), 60)
 

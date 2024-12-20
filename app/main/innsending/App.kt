@@ -51,10 +51,10 @@ fun main() {
 fun Application.server(
     config: Config = Config(),
     redis: Redis = Redis(config.redis),
-    datasource: DataSource = Hikari.createAndMigrate(config.postgres),
+    prometheus: PrometheusMeterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT),
     minsideProducer: KafkaProducer = MinSideKafkaProducer(config.kafka),
+    datasource: DataSource = Hikari.createAndMigrate(config.postgres, meterRegistry = prometheus),
 ) {
-    val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
     val antivirus = ClamAVClient(config.virusScanHost)
     val pdfGen = PdfGen(config)
     val postgres = PostgresRepo(datasource)
@@ -70,7 +70,7 @@ fun Application.server(
         leaderElector,
     )
 
-    environment.monitor.subscribe(ApplicationStopping) {
+    monitor.subscribe(ApplicationStopping) {
         runBlocking {
             delay(50)
         }
@@ -103,7 +103,10 @@ fun Application.server(
     install(StatusPages) {
         exception<Throwable> { call, cause ->
             logger.error("Uhåndtert feil ved kall til '{}'", call.request.local.uri, cause)
-            call.respondText(text = "Feil i tjeneste: ${cause.message}", status = HttpStatusCode.InternalServerError)
+            call.respondText(
+                text = "Feil i tjeneste: ${cause.message}",
+                status = HttpStatusCode.InternalServerError
+            )
         }
     }
 

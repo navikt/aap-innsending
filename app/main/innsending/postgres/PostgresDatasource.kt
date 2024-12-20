@@ -3,17 +3,19 @@ package innsending.postgres
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import innsending.PostgresConfig
+import io.micrometer.core.instrument.MeterRegistry
 import org.flywaydb.core.Flyway
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
-import java.util.UUID
+import java.util.*
 import javax.sql.DataSource
 
 internal object Hikari {
     fun createAndMigrate(
         config: PostgresConfig,
-        locations: Array<String> = arrayOf("classpath:db/migration", "classpath:db/gcp")
+        locations: Array<String> = arrayOf("classpath:db/migration", "classpath:db/gcp"),
+        meterRegistry: MeterRegistry? = null
     ): DataSource {
         val hikariConfig = HikariConfig().apply {
             jdbcUrl = config.url
@@ -25,6 +27,7 @@ internal object Hikari {
             idleTimeout = 10001
             connectionTimeout = 1000
             driverClassName = config.driver
+            metricRegistry = meterRegistry
         }
 
         return createAndMigrate(hikariConfig, locations)

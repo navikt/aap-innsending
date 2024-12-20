@@ -32,7 +32,12 @@ class ApekattTest : PostgresTestBase() {
 
             val app = TestApplication {
                 application {
-                    server(config, fakes.redis, dataSource, fakes.kafka)
+                    server(
+                        config,
+                        fakes.redis,
+                        minsideProducer = fakes.kafka,
+                        datasource = dataSource
+                    )
                 }
             }
 
