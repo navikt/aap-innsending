@@ -42,7 +42,7 @@ dependencies {
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("redis.clients:jedis:5.2.0")
     implementation("io.micrometer:micrometer-registry-prometheus:1.14.2")
-    implementation("ch.qos.logback:logback-classic:1.5.12")
+    implementation("ch.qos.logback:logback-classic:1.5.14")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.18.2")
     implementation("org.apache.pdfbox:pdfbox:3.0.3")
     implementation("com.zaxxer:HikariCP:6.2.1")
