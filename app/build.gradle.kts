@@ -54,7 +54,7 @@ dependencies {
 
     testImplementation(kotlin("test"))
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
-    testImplementation("com.nimbusds:nimbus-jose-jwt:9.47")
+    testImplementation("com.nimbusds:nimbus-jose-jwt:9.48")
     testImplementation("com.redis:testcontainers-redis:2.2.2")
     constraints {
         implementation("org.apache.commons:commons-compress:1.27.1") {
