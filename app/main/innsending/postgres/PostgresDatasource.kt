@@ -4,6 +4,7 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import innsending.PostgresConfig
 import io.micrometer.core.instrument.MeterRegistry
+import org.flywaydb.core.Flyway
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
@@ -38,13 +39,13 @@ internal object Hikari {
     ): DataSource {
         val dataSource = HikariDataSource(config)
 
-//        Flyway
-//            .configure()
-//            .dataSource(dataSource)
-//            .locations(*locations)
-//            .validateMigrationNaming(true)
-//            .load()
-//            .migrate()
+        Flyway
+            .configure()
+            .dataSource(dataSource)
+            .locations(*locations)
+            .validateMigrationNaming(true)
+            .load()
+            .migrate()
 
         return dataSource
     }
