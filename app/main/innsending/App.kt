@@ -1,8 +1,6 @@
 package innsending
 
 import innsending.antivirus.ClamAVClient
-import innsending.arkiv.JoarkClient
-import innsending.arkiv.JournalpostSender
 import innsending.auth.TOKENX
 import innsending.auth.authentication
 import innsending.jobb.ArkiverInnsendingJobbUtfører
@@ -12,13 +10,10 @@ import innsending.kafka.MinSideKafkaProducer
 import innsending.kafka.MinSideProducerHolder
 import innsending.pdf.PdfGen
 import innsending.postgres.Hikari
-import innsending.postgres.PostgresRepo
-import innsending.redis.LeaderElector
 import innsending.redis.Redis
 import innsending.routes.actuator
 import innsending.routes.innsendingRoute
 import innsending.routes.mellomlagerRoute
-import innsending.scheduler.Apekatt
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.jackson.JacksonConverter
@@ -65,18 +60,6 @@ fun Application.server(
     val prometheus = prometheus.prometheus
     val antivirus = ClamAVClient(config.virusScanHost)
     val pdfGen = PdfGen(config)
-    val postgres = PostgresRepo(datasource)
-    val leaderElector = LeaderElector(redis)
-    val joarkClient = JoarkClient(config.azure, config.joark)
-    val journalpostSender = JournalpostSender(joarkClient, postgres, datasource)
-    val arkivScheduler = Apekatt(
-        pdfGen,
-        postgres,
-        prometheus,
-        journalpostSender,
-        minsideProducer,
-        leaderElector,
-    )
 
     MinSideProducerHolder.setProducer(minsideProducer)
 
@@ -115,7 +98,7 @@ fun Application.server(
         register(ContentType.Application.Json, JacksonConverter(objectMapper = DefaultJsonMapper.objectMapper(), true))
     }
 
-    module(datasource, arkivScheduler, minsideProducer, redis)
+    module(datasource, minsideProducer, redis)
 
     routing {
         authenticate(TOKENX) {
@@ -128,7 +111,6 @@ fun Application.server(
 }
 
 fun Application.module(dataSource: DataSource,
-                       arkivScheduler: Apekatt,
                        minsideProducer: KafkaProducer,
                        redis: Redis): Motor {
     val motor = Motor(
@@ -147,7 +129,6 @@ fun Application.module(dataSource: DataSource,
     monitor.subscribe(ApplicationStopped) { application ->
         application.environment.log.info("Server har stoppet")
         motor.stop()
-        arkivScheduler.close()
         minsideProducer.close()
         redis.close()
         // Release resources and unsubscribe from events

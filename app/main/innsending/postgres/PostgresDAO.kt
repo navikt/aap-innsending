@@ -2,7 +2,6 @@ package innsending.postgres
 
 import innsending.dto.Logg
 import innsending.dto.MineAapEttersending
-import innsending.dto.MineAapSoknad
 import innsending.dto.MineAapSoknadMedEttersendinger
 import java.sql.Connection
 import java.sql.Timestamp
@@ -43,20 +42,6 @@ object PostgresDAO {
             SELECT innsending_ettersending_ref AS innsending_id FROM soknad_ettersending WHERE innsending_soknad_ref = ?
         )
     """
-
-    fun erRefTilknyttetPersonIdent(personident: String, ref: UUID, con: Connection): Boolean {
-        val innsending_stmt = con.prepareStatement("SELECT * FROM innsending WHERE personident = ? AND id = ?")
-        innsending_stmt.setString(1, personident)
-        innsending_stmt.setObject(2, ref)
-        val innsending_resultat = innsending_stmt.executeQuery()
-
-        val logg_stmt = con.prepareStatement("SELECT * FROM logg WHERE personident = ? AND innsending_id = ?")
-        logg_stmt.setString(1, personident)
-        logg_stmt.setObject(2, ref)
-        val logg_resultat = logg_stmt.executeQuery()
-        return logg_resultat.next() || innsending_resultat.next()
-
-    }
 
     fun insertSoknadEttersending(soknadRef: UUID, ettersendingRef: UUID, con: Connection) {
         val stmt = con.prepareStatement(INSERT_SOKNAD_ETTERSENDING)
@@ -126,25 +111,6 @@ object PostgresDAO {
         stmt.setObject(3, tittel)
         stmt.setObject(4, fil)
         stmt.execute()
-    }
-
-    fun selectInnsendinger(con: Connection): List<UUID> {
-        val stmt = con.prepareStatement(SELECT_INNSENDING_IDS)
-        val resultat = stmt.executeQuery()
-        return resultat.map { row -> row.getUUID("id") }
-    }
-
-    fun selectInnsendingerByPersonIdent(personident: String, con: Connection): List<MineAapSoknad> {
-        val stmt = con.prepareStatement(SELECT_INNSENDINGER_BY_PERSONIDENT)
-        stmt.setString(1, personident)
-        val resultat = stmt.executeQuery()
-        return resultat.map { row ->
-            MineAapSoknad(
-                mottattDato = row.getTimestamp("opprettet").toLocalDateTime(),
-                journalpostId = null,
-                innsendingsId = row.getUUID("id")
-            )
-        }.toList()
     }
 
     fun selectInnsendingMedFiler(innsendingId: UUID, con: Connection): InnsendingMedFiler? {

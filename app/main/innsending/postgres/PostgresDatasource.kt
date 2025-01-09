@@ -52,7 +52,6 @@ internal object Hikari {
             flyway.repair()
         }
 
-
         flyway
             .migrate()
 
