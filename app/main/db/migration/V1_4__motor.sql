@@ -21,7 +21,7 @@ CREATE TABLE fil_ny
     data          BYTEA
 );
 
-INSERT INTO innsending_ny (opprettet, personident, soknad, data, ekstern_referanse, type, forrige_innsending_id,
+INSERT INTO innsending_ny (opprettet, personident, soknad, data, ekstern_referanse, type,
                            journalpost_id)
 SELECT l.mottatt_dato,
        l.personident,
@@ -29,14 +29,19 @@ SELECT l.mottatt_dato,
        NULL,
        l.innsending_id,
        l.type,
-       (SELECT i.id
-        from soknad_ettersending s
-                 JOIN innsending_ny i ON i.ekstern_referanse = s.innsending_soknad_ref
-        WHERE s.innsending_ettersending_ref = l.innsending_id),
        l.journalpost_id
 FROM Logg l
 ORDER BY l.mottatt_dato;
 
+UPDATE innsending_ny l
+set forrige_innsending_id = (SELECT i.id
+                             from soknad_ettersending s
+                                      JOIN innsending_ny i ON i.ekstern_referanse = s.innsending_soknad_ref
+                             WHERE s.innsending_ettersending_ref = l.ekstern_referanse)
+WHERE exists(SELECT i.id
+             from soknad_ettersending s
+                      JOIN innsending_ny i ON i.ekstern_referanse = s.innsending_soknad_ref
+             WHERE s.innsending_ettersending_ref = l.ekstern_referanse);
 
 
 CREATE TABLE JOBB
