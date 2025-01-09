@@ -4,6 +4,8 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import innsending.PostgresConfig
 import io.micrometer.core.instrument.MeterRegistry
+import no.nav.aap.komponenter.miljo.Miljø
+import no.nav.aap.komponenter.miljo.MiljøKode
 import org.flywaydb.core.Flyway
 import java.sql.Connection
 import java.sql.PreparedStatement
@@ -39,12 +41,19 @@ internal object Hikari {
     ): DataSource {
         val dataSource = HikariDataSource(config)
 
-        Flyway
+        val flyway = Flyway
             .configure()
             .dataSource(dataSource)
             .locations(*locations)
             .validateMigrationNaming(true)
             .load()
+
+        if (Miljø.er() in setOf(MiljøKode.DEV, MiljøKode.LOKALT)) {
+            flyway.repair()
+        }
+
+
+        flyway
             .migrate()
 
         return dataSource
