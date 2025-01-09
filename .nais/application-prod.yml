@@ -55,6 +55,9 @@ spec:
         databases:
           - name: innsending
   liveness:
+    initialDelay: 60
+    failureThreshold: 50
+    periodSeconds: 10
     path: /actuator/live
   readiness:
     initialDelay: 60
