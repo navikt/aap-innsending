@@ -1,6 +1,7 @@
 package innsending.postgres
 
 import innsending.InitTestDatabase
+import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.BeforeEach
 import java.util.UUID
 import javax.sql.DataSource
@@ -11,7 +12,7 @@ abstract class PostgresTestBase {
         arrayOf("classpath:db/migration")
     )
 
-    /*init {
+    init {
         Flyway
             .configure()
             .dataSource(dataSource)
@@ -19,7 +20,7 @@ abstract class PostgresTestBase {
             .validateMigrationNaming(true)
             .load()
             .migrate()
-    }*/
+    }
 
     @BeforeEach
     fun clearTables() {
