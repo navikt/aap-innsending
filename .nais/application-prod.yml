@@ -9,8 +9,8 @@ metadata:
 spec:
   image: {{image}}
   replicas:
-    min: 1
-    max: 1
+    min: 2
+    max: 4
     scalingStrategy:
       cpu:
         thresholdPercentage: 80
@@ -55,14 +55,8 @@ spec:
         databases:
           - name: innsending
   liveness:
-    initialDelay: 120
-    failureThreshold: 100
-    periodSeconds: 20
     path: /actuator/live
   readiness:
-    initialDelay: 60
-    failureThreshold: 50
-    periodSeconds: 10
     path: /actuator/ready
   prometheus:
     enabled: true
