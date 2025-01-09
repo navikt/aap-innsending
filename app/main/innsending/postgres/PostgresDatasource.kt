@@ -48,7 +48,7 @@ internal object Hikari {
             .validateMigrationNaming(true)
             .load()
 
-        if (Miljø.er() in setOf(MiljøKode.DEV, MiljøKode.LOKALT)) {
+        if (Miljø.er() in setOf(MiljøKode.LOKALT)) {
             flyway.repair()
         }
 
