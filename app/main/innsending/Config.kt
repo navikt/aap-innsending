@@ -55,3 +55,7 @@ data class TokenXConfig(
     val issuer: String = getEnvVar("TOKEN_X_ISSUER"),
     val jwks: URI = URI.create(getEnvVar("TOKEN_X_JWKS_URI"))
 )
+
+object ProdConfig {
+    val config = Config()
+}

@@ -3,11 +3,12 @@ package innsending.routes
 import innsending.Fakes
 import innsending.TestConfig
 import innsending.TokenXGen
+import innsending.db.InnsendingNy
+import innsending.db.InnsendingRepo
 import innsending.dto.FilMetadata
 import innsending.dto.Innsending
-import innsending.postgres.PostgresDAO
+import innsending.postgres.InnsendingType
 import innsending.postgres.PostgresTestBase
-import innsending.postgres.transaction
 import innsending.redis.Key
 import innsending.server
 import io.ktor.client.HttpClient
@@ -21,13 +22,23 @@ import io.ktor.http.contentType
 import io.ktor.serialization.jackson.jackson
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
+import no.nav.aap.komponenter.dbconnect.transaction
 import org.json.JSONObject
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.test.assertEquals
 
 class InnsendingTest : PostgresTestBase() {
+
+    @BeforeEach
+    fun `truncate tables`() {
+        dataSource.transaction { con ->
+            con.execute("TRUNCATE innsending_ny CASCADE")
+            con.execute("TRUNCATE fil_ny CASCADE")
+        }
+    }
 
     @Test
     fun `kan sende inn søknad med 1 fil`() {
@@ -70,9 +81,9 @@ class InnsendingTest : PostgresTestBase() {
 
                 assertEquals(HttpStatusCode.OK, res.status)
 
-                assertEquals(1, countInnsending())
-                assertEquals(2, countFiler())
-                assertEquals(1, getAllInnsendinger().size)
+                assertEquals(1, countInnsendingNy())
+                assertEquals(2, countFilerNy())
+                assertEquals(1, getAllInnsendingerNy().size)
             }
         }
     }
@@ -109,8 +120,8 @@ class InnsendingTest : PostgresTestBase() {
                 }
 
                 assertEquals(HttpStatusCode.PreconditionFailed, res.status)
-                assertEquals(0, countInnsending())
-                assertEquals(0, countFiler())
+                assertEquals(0, countInnsendingNy())
+                assertEquals(0, countFilerNy())
             }
         }
     }
@@ -154,9 +165,9 @@ class InnsendingTest : PostgresTestBase() {
 
                 assertEquals(HttpStatusCode.OK, res.status)
 
-                assertEquals(1, countInnsending())
-                assertEquals(2, countFiler())
-                assertEquals(1, getAllInnsendinger().size)
+                assertEquals(1, countInnsendingNy())
+                assertEquals(2, countFilerNy())
+                assertEquals(1, getAllInnsendingerNy().size)
             }
         }
     }
@@ -166,10 +177,10 @@ class InnsendingTest : PostgresTestBase() {
         Fakes().use { fakes ->
             val config = TestConfig.default(fakes)
             val tokenx = TokenXGen(config.tokenx)
-            val soknadRef = UUID.randomUUID()
             val filId1 = Key(UUID.randomUUID().toString(), prefix = "12345678910")
             val filId2 = Key(UUID.randomUUID().toString(), prefix = "12345678910")
 
+            val eksternRef = UUID.randomUUID()
             testApplication {
                 application { server(
                     config,
@@ -181,17 +192,24 @@ class InnsendingTest : PostgresTestBase() {
                 fakes.redis.set(filId2, byteArrayOf(), 60)
 
                 dataSource.transaction { con ->
-                    PostgresDAO.insertInnsending(
-                        innsendingId = soknadRef,
-                        personident = "12345678910",
-                        mottattDato = LocalDateTime.now(),
-                        soknad = null,
-                        data = null,
-                        con = con
+                    val innsendingRepo = InnsendingRepo(con)
+                    innsendingRepo.lagre(
+                        InnsendingNy(
+                            id = 2L,
+                            personident = "12345678910",
+                            opprettet = LocalDateTime.now(),
+                            soknad = null,
+                            data = null,
+                            eksternRef = eksternRef,
+                            type = InnsendingType.ETTERSENDING,
+                            forrigeInnsendingId = null,
+                            journalpost_Id = null,
+                            filer = emptyList()
+                        )
                     )
                 }
 
-                val res = jsonHttpClient.post("/innsending/$soknadRef") {
+                val res = jsonHttpClient.post("/innsending/$eksternRef") {
                     bearerAuth(tokenx.generate("12345678910"))
                     contentType(ContentType.Application.Json)
                     setBody(
@@ -212,9 +230,9 @@ class InnsendingTest : PostgresTestBase() {
 
                 assertEquals(HttpStatusCode.OK, res.status)
 
-                assertEquals(2, countInnsending())
-                assertEquals(2, countFiler())
-                assertEquals(2, getAllInnsendinger().size)
+                assertEquals(2, countInnsendingNy())
+                assertEquals(2, countFilerNy())
+                assertEquals(2, getAllInnsendingerNy().size)
             }
         }
     }
@@ -239,13 +257,20 @@ class InnsendingTest : PostgresTestBase() {
                 fakes.redis.set(filId2, byteArrayOf(), 60)
 
                 dataSource.transaction { con ->
-                    PostgresDAO.insertLogg(
-                        innsendingId = soknadRef,
-                        personident = "12345678910",
-                        mottattDato = LocalDateTime.now(),
-                        type = "SOKNAD",
-                        journalpostId = "1234",
-                        con = con
+                    val innsendingRepo = InnsendingRepo(con)
+                    innsendingRepo.lagre(
+                        InnsendingNy(
+                            id = 1,
+                            personident = "12345678910",
+                            opprettet = LocalDateTime.now(),
+                            soknad = null,
+                            data = null,
+                            eksternRef = soknadRef,
+                            type = InnsendingType.SOKNAD,
+                            forrigeInnsendingId = null,
+                            journalpost_Id = null,
+                            filer = emptyList()
+                        )
                     )
                 }
 
@@ -270,9 +295,9 @@ class InnsendingTest : PostgresTestBase() {
 
                 assertEquals(HttpStatusCode.OK, res.status)
 
-                assertEquals(1, countInnsending())
-                assertEquals(2, countFiler())
-                assertEquals(1, getAllInnsendinger().size)
+                assertEquals(2, countInnsendingNy())
+                assertEquals(2, countFilerNy())
+                assertEquals(2, getAllInnsendingerNy().size)
             }
         }
     }
@@ -282,4 +307,6 @@ class InnsendingTest : PostgresTestBase() {
             createClient {
                 install(ContentNegotiation) { jackson() }
             }
+
+
 }

@@ -1,11 +1,17 @@
 package innsending.routes
 
-import innsending.logger
+import com.fasterxml.jackson.databind.ObjectMapper
 import innsending.auth.personident
+import innsending.db.FilNy
+import innsending.db.InnsendingNy
+import innsending.db.InnsendingRepo
 import innsending.dto.Innsending
 import innsending.dto.InnsendingResponse
+import innsending.dto.MineAapEttersending
+import innsending.dto.MineAapSoknadMedEttersendinger
 import innsending.dto.ValiderFiler
-import innsending.postgres.PostgresRepo
+import innsending.jobb.ArkiverInnsendingJobbUtfører
+import innsending.logger
 import innsending.redis.EnDagSekunder
 import innsending.redis.Key
 import innsending.redis.Redis
@@ -17,16 +23,33 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
+import io.micrometer.core.instrument.MeterRegistry
+import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.motor.FlytJobbRepository
+import no.nav.aap.motor.JobbInput
 import java.time.LocalDateTime
 import java.util.UUID
+import javax.sql.DataSource
 
-fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
+fun Route.innsendingRoute(dataSource: DataSource, redis: Redis, promethius: MeterRegistry) {
     route("/innsending") {
+
+        get("/søknadmedettersendinger") {
+            val personIdent = call.personident()
+            val res = dataSource.transaction(readOnly = true) { dbconnection ->
+                val innsendingRepo = InnsendingRepo(dbconnection)
+                innsendingRepo.hentAlleSøknader(personIdent)
+            }
+            call.respond(res)
+        }
 
         get("/søknader") {
             val personIdent = call.personident()
-
-            call.respond(postgres.hentAlleSøknader(personIdent))
+            val res = dataSource.transaction(readOnly = true) { dbconnection ->
+                val innsendingRepo = InnsendingRepo(dbconnection)
+                innsendingRepo.hentAlleSøknader(personIdent)
+            }
+            call.respond(res)
         }
 
         get("/søknader/{ref}/ettersendinger") {
@@ -35,22 +58,36 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
                 "Mangler innsendingsId"
             )
 
-            val søknadMedEttersendinger = postgres.hentSøknadMedEttersendelser(innsendingsRef)
+            val søknadMedEttersendinger = dataSource.transaction(readOnly = true) { dbconnection ->
+                val innsendingRepo = InnsendingRepo(dbconnection)
+                innsendingRepo.hentSøknadMedReferanse(innsendingsRef)
+            }
 
             if (søknadMedEttersendinger == null) {
                 call.respond(HttpStatusCode.NotFound, "Fant ikke søknad for angitt referanse")
             } else {
-                call.respond(søknadMedEttersendinger)
+                val response = MineAapSoknadMedEttersendinger(
+                    mottattDato = søknadMedEttersendinger.mottattDato,
+                    journalpostId = søknadMedEttersendinger.journalpostId,
+                    innsendingsId = innsendingsRef,
+                    ettersendinger = søknadMedEttersendinger.ettersendinger.map { ny ->
+                        MineAapEttersending(
+                            mottattDato = ny.mottattDato,
+                            journalpostId = ny.journalpostId,
+                            innsendingsId = ny.innsendingsId
+                        )
+                    })
+                call.respond(response)
             }
         }
 
         post("/{ref}") {
-            val innsendingsRef = call.parameters["ref"]?.let(UUID::fromString) ?: return@post call.respond(
+            val innsendingsRef = UUID.fromString(call.parameters["ref"]) ?: return@post call.respond(
                 HttpStatusCode.BadRequest,
                 "Mangler innsendingsId"
             )
 
-            postInnsending(postgres, redis, call, innsendingsRef)
+            postInnsending(dataSource, redis, call, innsendingsRef, promethius)
         }
 
         post("/valider-filer") {
@@ -71,15 +108,18 @@ fun Route.innsendingRoute(postgres: PostgresRepo, redis: Redis) {
         }
 
         post {
-            postInnsending(postgres, redis, call)
+            postInnsending(dataSource, redis, call, null, promethius)
         }
     }
 }
 
-private suspend fun postInnsending(postgres: PostgresRepo,
-                                   redis: Redis,
-                                   call: ApplicationCall,
-                                   innsendingsRef: UUID? = null) {
+private suspend fun postInnsending(
+    dataSource: DataSource,
+    redis: Redis,
+    call: ApplicationCall,
+    innsendingsRef: UUID? = null,
+    prometheus: MeterRegistry
+) {
     val personIdent = call.personident()
     val innsending = call.receive<Innsending>()
 
@@ -89,7 +129,15 @@ private suspend fun postInnsending(postgres: PostgresRepo,
         call.respond(HttpStatusCode.Conflict, "Denne innsendingen har vi allerede mottatt")
     }
 
-    if (innsendingsRef != null && postgres.erRefTilknyttetPersonIdent(personIdent, innsendingsRef).not()) {
+    val erRefTilknyttetPersonIdent = dataSource.transaction(readOnly = true) { dbconnection ->
+        val innsendingRepo = InnsendingRepo(dbconnection)
+        if (innsendingsRef == null) {
+            true
+        } else
+            innsendingRepo.erRefTilknyttetPersonIdent(personIdent, innsendingsRef).not()
+    }
+
+    if (innsendingsRef != null && erRefTilknyttetPersonIdent) {
         logger.error("$personIdent prøver å poste en innsending på $innsendingsRef, men disse hører ikke sammen")
         return call.respond(
             HttpStatusCode.BadRequest,
@@ -112,15 +160,34 @@ private suspend fun postInnsending(postgres: PostgresRepo,
         logger.warn("Mangler filer fra innsending med id={} :: {}", innsendingId, manglendeFiler.map { it.id })
         return call.respond(HttpStatusCode.PreconditionFailed, manglendeFiler)
     }
-
-    postgres.lagreInnsending(
-        innsendingId = innsendingId,
-        personIdent = personIdent,
-        mottattDato = LocalDateTime.now(),
-        innsending = innsending,
-        fil = filerMedInnhold,
-        referanseId = innsendingsRef
-    )
+    dataSource.transaction { dbconnection ->
+        val innsendingRepo = InnsendingRepo(dbconnection)
+        val innsendingId = innsendingRepo.lagre(
+            InnsendingNy(
+                null,
+                opprettet = LocalDateTime.now(),
+                personident = personIdent,
+                soknad = innsending.soknad?.toByteArray(),
+                data = innsending.kvittering?.toByteArray(),
+                eksternRef = innsendingId,
+                type = innsending.type,
+                forrigeInnsendingId = innsendingsRef?.let { uUID -> innsendingRepo.hentIdFraEksternRef(innsendingsRef) },
+                journalpost_Id = null,
+                filer = filerMedInnhold.map { (metadata, byteArray) ->
+                    FilNy(
+                        tittel = metadata.tittel,
+                        data = byteArray
+                    )
+                }.toList()
+            )
+        )
+        FlytJobbRepository(connection = dbconnection).leggTil(
+            JobbInput(ArkiverInnsendingJobbUtfører).forSak(
+                innsendingId
+            )
+        )
+    }
+    prometheus.counter("innsendinger").increment()
 
     innsending.filer.forEach { fil ->
         val key = Key(value = fil.id, prefix = personIdent)
@@ -133,4 +200,9 @@ private suspend fun postInnsending(postgres: PostgresRepo,
     redis.set(innsendingHash, byteArrayOf(), 60)
 
     call.respond(HttpStatusCode.OK, InnsendingResponse(innsendingId))
+}
+
+fun Map<String, Any>.toByteArray(): ByteArray {
+    val mapper = ObjectMapper()
+    return mapper.writeValueAsBytes(this)
 }
