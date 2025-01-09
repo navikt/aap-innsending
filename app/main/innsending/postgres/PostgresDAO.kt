@@ -8,7 +8,7 @@ import java.sql.Connection
 import java.sql.Timestamp
 import java.sql.Types
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 object PostgresDAO {
     private const val DELETE_INNSENDING = """DELETE FROM innsending WHERE id = ?"""
@@ -32,9 +32,6 @@ object PostgresDAO {
     """
     private const val INSERT_SOKNAD_ETTERSENDING = """
         INSERT INTO soknad_ettersending (innsending_soknad_ref, innsending_ettersending_ref) VALUES (?, ?) ON CONFLICT DO NOTHING
-    """
-    private const val SELECT_SOKNAD_ETTERSENDING = """
-        SELECT innsending_ettersending_ref FROM soknad_ettersending WHERE innsending_soknad_ref = ?
     """
     private const val SELECT_LOGG_INNSENDING = """
         SELECT journalpost_id, mottatt_dato, innsending_id FROM logg 
@@ -66,13 +63,6 @@ object PostgresDAO {
         stmt.setObject(1, soknadRef)
         stmt.setObject(2, ettersendingRef)
         stmt.execute()
-    }
-
-    fun selectSoknadEttersendelser(soknadRef: UUID, con: Connection): List<UUID> {
-        val stmt = con.prepareStatement(SELECT_SOKNAD_ETTERSENDING)
-        stmt.setObject(1, soknadRef)
-        val resultat = stmt.executeQuery()
-        return resultat.map { row -> row.getUUID("ettersending_id") }.toList()
     }
 
     fun insertLogg(

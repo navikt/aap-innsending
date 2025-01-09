@@ -16,12 +16,7 @@ class LeaderElector(private val redis: Redis) {
      * Check if this pod is the leader
      */
     fun elected(): Boolean {
-        val key = Key("LEADER")
-
-        return when (val leader = redis[key]) {
-            null -> electSelf(key)
-            else -> String(leader) == pod
-        }
+        return false
     }
 
     /**
