@@ -26,7 +26,7 @@ class ArkiveringService(
                 id = Journalpost.Fødselsnummer(innsending.personident)
             ),
             dokumenter = dokumenter(innsending, pdf),
-            eksternReferanseId = innsending.id.toString(),
+            eksternReferanseId = innsending.eksternRef.toString(),
             datoMottatt = innsending.opprettet
         )
 
@@ -84,7 +84,7 @@ class ArkiveringService(
                 id = Journalpost.Fødselsnummer(innsending.personident)
             ),
             dokumenter = vedleggDokumenter,
-            eksternReferanseId = innsending.id.toString(),
+            eksternReferanseId = innsending.eksternRef.toString(),
             datoMottatt = innsending.opprettet
         )
 
