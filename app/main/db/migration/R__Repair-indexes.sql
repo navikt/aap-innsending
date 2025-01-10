@@ -1,1 +1,4 @@
 CREATE INDEX IF NOT EXISTS IDX_LOGG_REKKEFØLGE ON Logg (mottatt_dato);
+CREATE INDEX IDX_INNSENDING_PERSON_REFERANSE ON innsending_ny (personident);
+CREATE INDEX IDX_INNSENDING_TYPE ON innsending_ny (type);
+CREATE INDEX IDX_INNSENDING_PERSON_TYPE ON innsending_ny (personident, type);
