@@ -1,23 +1,38 @@
 package innsending.routes
 
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import innsending.*
+import innsending.Fakes
+import innsending.Resource
+import innsending.TestConfig
+import innsending.TokenXGen
 import innsending.dto.ErrorRespons
 import innsending.dto.MellomlagringRespons
 import innsending.postgres.PostgresTestBase
 import innsending.redis.EnDagSekunder
 import innsending.redis.Key
-import io.ktor.client.call.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.request.*
-import io.ktor.client.request.forms.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import io.ktor.serialization.jackson.*
-import io.ktor.server.testing.*
+import innsending.server
+import io.ktor.client.call.body
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.accept
+import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.delete
+import io.ktor.client.request.forms.formData
+import io.ktor.client.request.forms.submitFormWithBinaryData
+import io.ktor.client.request.get
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.readRawBytes
+import io.ktor.http.ContentType
+import io.ktor.http.Headers
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
+import io.ktor.serialization.jackson.jackson
+import io.ktor.server.testing.testApplication
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.util.*
+import java.util.UUID
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
@@ -272,7 +287,7 @@ class MellomlagringTest : PostgresTestBase() {
                     bearerAuth(tokenx.generate("12345678910"))
                 }
                 assertEquals(HttpStatusCode.OK, res.status)
-                assertEquals(String(Resource.read("/resources/pdf/minimal.pdf")), String(res.readBytes()))
+                assertEquals(String(Resource.read("/resources/pdf/minimal.pdf")), String(res.readRawBytes()))
             }
         }
     }
@@ -313,7 +328,7 @@ class MellomlagringTest : PostgresTestBase() {
                     bearerAuth(tokenx.generate("12345678910"))
                 }
                 assertEquals(HttpStatusCode.OK, resHent.status)
-                assertEquals(String(Resource.read("/resources/pdf/minimal.pdf")), String(resHent.readBytes()))
+                assertEquals(String(Resource.read("/resources/pdf/minimal.pdf")), String(resHent.readRawBytes()))
             }
         }
     }
