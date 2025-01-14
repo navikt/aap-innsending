@@ -25,4 +25,6 @@
         <appender-ref ref="json"/>
     </root>
 
+    <logger name="no.nav.aap.komponenter.httpklient.httpclient.tokenprovider" level="WARN"/>
+
 </configuration>
