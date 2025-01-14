@@ -74,7 +74,7 @@ dependencies {
             because("https://github.com/advisories/GHSA-4g9r-vxhx-9pgx")
         }
     }
-    testImplementation("org.assertj:assertj-core:3.27.1")
+    testImplementation("org.assertj:assertj-core:3.27.2")
 
 }
 
