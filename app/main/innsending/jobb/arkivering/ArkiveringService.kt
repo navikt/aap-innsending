@@ -9,8 +9,8 @@ import innsending.postgres.InnsendingType
 import java.util.Base64
 
 class ArkiveringService(
-    val joarkClient: JoarkClient,
-    val pdfGen: PdfGenClient
+    private val joarkClient: JoarkClient,
+    private val pdfGen: PdfGenClient
 ) {
     fun arkiverSøknadInnsending(innsending: InnsendingNy): ArkivResponse {
         require(innsending.type == InnsendingType.SOKNAD)
@@ -39,7 +39,37 @@ class ArkiveringService(
         return arkivResponse
     }
 
-    fun dokumenter(innsending: InnsendingNy, soknadSomPdf: ByteArray): List<Journalpost.Dokument> {
+    fun arkiverEttersendelseInnsending(innsending: InnsendingNy): ArkivResponse {
+        val vedleggDokumenter = lagDokumenter(innsending)
+
+        val kviteringDokument = if (innsending.data != null ) {
+            val kviteringPdf = pdfGen.ettersendelseTilPdf(innsending)
+            listOf(lagEttersendelseDokument(kviteringPdf))
+        } else { emptyList() }
+
+        val journalpost = Journalpost(
+            tittel = "Ettersendelse til søknad om arbeidsavklaringspenger",
+            avsenderMottaker = Journalpost.AvsenderMottaker(
+                id = Journalpost.Fødselsnummer(innsending.personident)
+            ),
+            bruker = Journalpost.Bruker(
+                id = Journalpost.Fødselsnummer(innsending.personident)
+            ),
+            dokumenter = kviteringDokument + vedleggDokumenter,
+            eksternReferanseId = innsending.eksternRef.toString(),
+            datoMottatt = innsending.opprettet
+        )
+
+        val arkivResponse = joarkClient.opprettJournalpost(journalpost)
+        logger.info(
+            "Opprettet ettersending-journalpost {} for eksternreferanseID {}",
+            arkivResponse.journalpostId,
+            journalpost.eksternReferanseId
+        )
+        return arkivResponse
+    }
+
+    private fun dokumenter(innsending: InnsendingNy, soknadSomPdf: ByteArray): List<Journalpost.Dokument> {
         val orginalSøknadDokument = innsending.soknad?.let {
             val encoded = Base64.getEncoder().encodeToString(it)
             Journalpost.DokumentVariant("JSON", encoded, "ORIGINAL")
@@ -75,28 +105,16 @@ class ArkiveringService(
         }
     }
 
-    fun arkiverEttersendelseInnsending(innsending: InnsendingNy): ArkivResponse {
-        val vedleggDokumenter = lagDokumenter(innsending)
-
-        val journalpost = Journalpost(
-            tittel = "Ettersendelse til søknad om arbeidsavklaringspenger",
-            avsenderMottaker = Journalpost.AvsenderMottaker(
-                id = Journalpost.Fødselsnummer(innsending.personident)
-            ),
-            bruker = Journalpost.Bruker(
-                id = Journalpost.Fødselsnummer(innsending.personident)
-            ),
-            dokumenter = vedleggDokumenter,
-            eksternReferanseId = innsending.eksternRef.toString(),
-            datoMottatt = innsending.opprettet
+    private fun lagEttersendelseDokument(kviteringPdf: ByteArray): Journalpost.Dokument {
+        return Journalpost.Dokument(
+            tittel = "Kvittering",
+            brevkode = "NAVe 11-13.05",
+            dokumentVarianter = listOf(
+                Journalpost.DokumentVariant(
+                    fysiskDokument = Base64.getEncoder().encodeToString(kviteringPdf),
+                )
+            )
         )
-
-        val arkivResponse = joarkClient.opprettJournalpost(journalpost)
-        logger.info(
-            "Opprettet ettersending-journalpost {} for eksternreferanseID {}",
-            arkivResponse.journalpostId,
-            journalpost.eksternReferanseId
-        )
-        return arkivResponse
     }
+
 }

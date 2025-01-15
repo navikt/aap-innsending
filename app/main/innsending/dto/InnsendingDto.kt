@@ -28,7 +28,7 @@ data class Innsending(
 ) {
     var type: InnsendingType
     init {
-        if ((soknad == null && kvittering != null) || (soknad != null && kvittering == null)) {
+        if (soknad != null && kvittering == null) {
             throw IllegalArgumentException("Kvittering og søknad må være satt samtidig")
         }
         type = if (soknad == null) {

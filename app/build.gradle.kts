@@ -75,7 +75,7 @@ dependencies {
         }
     }
     testImplementation("org.assertj:assertj-core:3.27.2")
-
+    testImplementation("io.mockk:mockk:1.13.12")
 }
 
 repositories {

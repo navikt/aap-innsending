@@ -1,6 +1,7 @@
 package innsending.pdf
 
 import innsending.ProdConfig
+import innsending.arkiv.Journalpost
 import innsending.db.InnsendingNy
 import innsending.oppslag.OppslagClientNy
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
@@ -15,12 +16,7 @@ class PdfGenClient {
     private val oppslagClientNy = OppslagClientNy()
 
     fun søknadTilPdf(innsending: InnsendingNy): ByteArray {
-        val navn = oppslagClientNy.hentNavn(innsending.personident).let { navn ->
-            SøkerPdfGen.Navn(
-                fornavn = navn.fornavn,
-                etternavn = navn.etternavn,
-            )
-        }
+        val navn = hentNavn(innsending.personident)
 
         val kvittering = innsending.kvitteringToMap() + mapOf("mottattdato" to innsending.opprettet.toString())
         val data = SøknadPdfGen(SøkerPdfGen(navn = navn), kvittering)
@@ -35,5 +31,29 @@ class PdfGenClient {
             request = httpPostRequest,
             mapper = { body, _ -> body.readAllBytes() }
         )) { "Response from pdfgen was null" }
+    }
+
+    fun ettersendelseTilPdf(innsending: InnsendingNy): ByteArray {
+        val navn = SøkerPdfGen(hentNavn(innsending.personident))
+        val data = SøknadPdfGen(navn, innsending.kvitteringToMap())
+
+        val httpPostRequest = PostRequest(
+            body = data,
+            additionalHeaders = listOf(Header("accept", "application/pdf"))
+        )
+
+        return requireNotNull(
+            httpClient.post(
+                uri = URI.create(ProdConfig.config.pdfGenHost + "/api/v1/genpdf/aap-pdfgen/ettersending"),
+                request = httpPostRequest,
+                mapper = { body, _ -> body.readAllBytes() }
+            )) { "Response from pdfgen was null" }
+    }
+
+    private fun hentNavn(personident: String) = oppslagClientNy.hentNavn(personident).let { navn ->
+        SøkerPdfGen.Navn(
+            fornavn = navn.fornavn,
+            etternavn = navn.etternavn,
+        )
     }
 }
