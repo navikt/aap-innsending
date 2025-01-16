@@ -23,7 +23,7 @@ spec:
     pool: nav-prod
   resources:
     limits:
-      memory: 2048Mi
+      memory: 4048Mi
     requests:
       cpu: 800m
       memory: 2048Mi
