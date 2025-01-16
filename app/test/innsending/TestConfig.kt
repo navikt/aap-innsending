@@ -1,7 +1,7 @@
 package innsending
 
-import libs.kafka.KafkaConfig
-import no.nav.aap.ktor.client.auth.azure.AzureConfig
+import innsending.kafka.KafkaConfig
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 import java.net.URI
 
 internal object TestConfig {
@@ -33,7 +33,7 @@ internal object TestConfig {
             pdfGenHost = "http://localhost:${fakes.pdfGen.port()}",
             virusScanHost = "http://localhost:${fakes.virusScan.port()}",
             azure = AzureConfig(
-                tokenEndpoint = "http://localhost:${fakes.azure.port()}/token",
+                tokenEndpoint = URI.create("http://localhost:${fakes.azure.port()}/token"),
                 clientId = "test",
                 clientSecret = "test",
                 jwksUri = "test",

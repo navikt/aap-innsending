@@ -15,8 +15,6 @@ application {
 }
 
 dependencies {
-    implementation("com.github.navikt.aap-libs:ktor-auth:$aapLibVersion")
-    implementation("com.github.navikt.aap-libs:kafka:$aapLibVersion")
     implementation("no.nav.aap.kelvin:json:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:motor:$komponenterVersjon")

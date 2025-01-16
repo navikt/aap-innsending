@@ -1,7 +1,7 @@
 package innsending
 
-import libs.kafka.KafkaConfig
-import no.nav.aap.ktor.client.auth.azure.AzureConfig
+import innsending.kafka.KafkaConfig
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 import java.net.URI
 
 private fun getEnvVar(envar: String) = System.getenv(envar) ?: error("missing envvar $envar")
