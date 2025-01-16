@@ -177,7 +177,7 @@ private suspend fun postInnsending(
                 filer = filerMedInnhold.map { (metadata, byteArray) ->
                     FilNy(
                         tittel = metadata.tittel,
-                        data = byteArray?.let { InMemoryFilData(it) }
+                        data = InMemoryFilData(requireNotNull(byteArray))
                     )
                 }.toList()
             )

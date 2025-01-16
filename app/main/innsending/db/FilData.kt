@@ -1,5 +1,5 @@
 package innsending.db
 
 interface FilData {
-    fun hent(): ByteArray?
+    fun hent(): ByteArray
 }
