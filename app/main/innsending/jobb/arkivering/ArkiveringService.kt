@@ -66,7 +66,7 @@ class ArkiveringService(
                 tittel = fil.tittel,
                 brevkode = "",
                 dokumentVarianter = listOf(
-                    Journalpost.DokumentVariant(fysiskDokument = Base64.getEncoder().encodeToString(fil.data))
+                    Journalpost.DokumentVariant(fysiskDokument = Base64.getEncoder().encodeToString(fil.data?.hent()))
                 )
             )
         }

@@ -28,5 +28,5 @@ data class InnsendingNy(
 
 data class FilNy(
     val tittel: String,
-    val data: ByteArray?
+    val data: FilData?
 )

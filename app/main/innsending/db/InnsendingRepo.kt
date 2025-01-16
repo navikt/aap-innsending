@@ -12,7 +12,7 @@ class InnsendingRepo(private val connection: DBConnection) {
     """
 
     private val hentFiler = """
-        SELECT * FROM fil_ny WHERE innsending_id = ?
+        SELECT id, tittel FROM fil_ny WHERE innsending_id = ?
     """
 
     private val lagreInnsending = """
@@ -74,7 +74,7 @@ class InnsendingRepo(private val connection: DBConnection) {
         connection.executeBatch(lagreFil, innsending.filer) {
             setParams { fil ->
                 setString(1, fil.tittel)
-                setBytes(2, fil.data)
+                setBytes(2, fil.data?.hent())
                 setLong(3, innsendingId)
             }
         }
@@ -112,7 +112,7 @@ class InnsendingRepo(private val connection: DBConnection) {
             setRowMapper { row ->
                 FilNy(
                     tittel = row.getString("tittel"),
-                    data = row.getBytesOrNull("data")
+                    data = LazyFilData(row.getLong("id"), connection)
                 )
             }
         }

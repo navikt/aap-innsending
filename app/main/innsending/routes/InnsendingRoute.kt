@@ -3,6 +3,7 @@ package innsending.routes
 import com.fasterxml.jackson.databind.ObjectMapper
 import innsending.auth.personident
 import innsending.db.FilNy
+import innsending.db.InMemoryFilData
 import innsending.db.InnsendingNy
 import innsending.db.InnsendingRepo
 import innsending.dto.Innsending
@@ -176,7 +177,7 @@ private suspend fun postInnsending(
                 filer = filerMedInnhold.map { (metadata, byteArray) ->
                     FilNy(
                         tittel = metadata.tittel,
-                        data = byteArray
+                        data = byteArray?.let { InMemoryFilData(it) }
                     )
                 }.toList()
             )
