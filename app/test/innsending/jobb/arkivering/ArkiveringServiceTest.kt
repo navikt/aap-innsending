@@ -1,5 +1,6 @@
 package innsending.jobb.arkivering
 
+import innsending.db.FilData
 import innsending.db.FilNy
 import innsending.db.InnsendingNy
 import innsending.pdf.PdfGenClient
@@ -61,8 +62,8 @@ class ArkiveringServiceTest {
         type = InnsendingType.ETTERSENDING,
         journalpost_Id = null,
         filer = listOf(
-            FilNy("Fil1", ByteArray(0)),
-            FilNy("Fil2", ByteArray(0))
+            FilNy("Fil1", mockk<FilData>(relaxed = true)),
+            FilNy("Fil2", mockk<FilData>(relaxed = true))
         )
     )
 }
