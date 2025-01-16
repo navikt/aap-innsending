@@ -79,19 +79,19 @@ jobs:
           RESOURCE: .nais/application-dev.yml
           VAR: image=${{ needs.build.outputs.image }}
 
-#
-#  deploy-prod:
-#    if: github.event.pull_request.merged || github.event_name == 'push' && github.ref == 'refs/heads/main'
-#    needs: [build, deploy-dev]
-#    runs-on: ubuntu-latest
-#    permissions:
-#      contents: read
-#      id-token: write
-#    steps:
-#      - uses: actions/checkout@v4
-#      - uses: nais/deploy/actions/deploy@v2
-#        env:
-#          PRINT_PAYLOAD: true
-#          CLUSTER: prod-gcp
-#          RESOURCE: .nais/application-prod.yml
-#          VAR: image=${{ needs.build.outputs.image }}
+
+  deploy-prod:
+    if: github.event.pull_request.merged || github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [ build, deploy-dev ]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: nais/deploy/actions/deploy@v2
+        env:
+          PRINT_PAYLOAD: true
+          CLUSTER: prod-gcp
+          RESOURCE: .nais/application-prod.yml
+          VAR: image=${{ needs.build.outputs.image }}
