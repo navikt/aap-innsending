@@ -68,7 +68,7 @@ class ArkiveringService(
                 dokumentVarianter = listOf(
                     Journalpost.DokumentVariant(
                         fysiskDokument = Base64.getEncoder()
-                            .encodeToString(fil.data.hent().also { logger.info("Vedlegg size in bytes :: ${it.size}") })
+                            .encodeToString(fil.data.hent())
                     )
                 )
             )
