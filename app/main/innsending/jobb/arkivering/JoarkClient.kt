@@ -9,6 +9,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import java.net.URI
+import java.time.Duration
 
 class JoarkClient {
     private val joarkConfig = ProdConfig.config.joark
@@ -22,6 +23,7 @@ class JoarkClient {
     ): ArkivResponse {
         val httpPostRequest = PostRequest(
             body = journalpost,
+            timeout = Duration.ofMinutes(5)
         )
         val response: ArkivResponse? = httpClient.post(
             uri = URI.create(joarkConfig.baseUrl + "/rest/journalpostapi/v1/journalpost"),
