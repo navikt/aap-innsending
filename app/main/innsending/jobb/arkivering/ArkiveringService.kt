@@ -43,8 +43,8 @@ class ArkiveringService(
         val vedleggDokumenter = lagDokumenter(innsending)
 
         val kviteringDokument = if (innsending.data != null ) {
-            val kviteringPdf = pdfGen.ettersendelseTilPdf(innsending)
-            listOf(lagEttersendelseDokument(kviteringPdf))
+            val kvitteringPdf = pdfGen.ettersendelseTilPdf(innsending)
+            listOf(lagEttersendelseDokument(kvitteringPdf))
         } else { emptyList() }
 
         val journalpost = Journalpost(

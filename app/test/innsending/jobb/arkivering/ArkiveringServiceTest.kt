@@ -23,7 +23,7 @@ class ArkiveringServiceTest {
     )
 
     @Test
-    fun `arkiverEttersendelseInnsending håndterer innsendinger uten kvittering`() {
+    fun `arkiverEttersendelseInnsending skal ikke generere kvittering dersom insendingsdata er null`() {
 
         val innsending = genererInnsending(null)
 
@@ -36,7 +36,7 @@ class ArkiveringServiceTest {
     }
 
     @Test
-    fun `arkiverEttersendelseInnsending håndterer innsendinger med kvittering`() {
+    fun `arkiverEttersendelseInnsending kvitteringsdokument blir lagt først i dokumentlisten dersom innsendingsdata eksisterer`() {
 
         val innsending = genererInnsending(ByteArray(0))
 

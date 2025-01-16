@@ -50,10 +50,10 @@ class PdfGenClient {
             )) { "Response from pdfgen was null" }
     }
 
-    private fun hentNavn(personident: String) = oppslagClientNy.hentNavn(personident).let { navn ->
+    private fun hentNavn(personident: String) = oppslagClientNy.hentNavn(personident).let { (fornavn, etternavn) ->
         SøkerPdfGen.Navn(
-            fornavn = navn.fornavn,
-            etternavn = navn.etternavn,
+            fornavn = fornavn,
+            etternavn = etternavn,
         )
     }
 }
