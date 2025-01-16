@@ -30,7 +30,7 @@ dependencies {
     implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
     constraints {
-        implementation("io.netty:netty-common:4.1.116.Final")
+        implementation("io.netty:netty-common:4.1.117.Final")
     }
     implementation("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
     implementation("io.ktor:ktor-server-call-logging:$ktorVersion")
