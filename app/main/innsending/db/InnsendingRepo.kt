@@ -74,7 +74,7 @@ class InnsendingRepo(private val connection: DBConnection) {
         connection.executeBatch(lagreFil, innsending.filer) {
             setParams { fil ->
                 setString(1, fil.tittel)
-                setBytes(2, fil.data?.hent())
+                setBytes(2, fil.data.hent())
                 setLong(3, innsendingId)
             }
         }
