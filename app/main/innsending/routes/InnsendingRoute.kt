@@ -161,6 +161,17 @@ private suspend fun postInnsending(
         logger.warn("Mangler filer fra innsending med id={} :: {}", innsendingId, manglendeFiler.map { it.id })
         return call.respond(HttpStatusCode.PreconditionFailed, manglendeFiler)
     }
+
+    val totalSize = filerMedInnhold.sumOf { it.second?.size ?: 0 }
+    if (totalSize > CONTENT_LENGHT_LIMIT) {
+        logger.warn(
+            "Vedleggenes totale størrelse overskrider maks på 50mb({}), totalt {}",
+            CONTENT_LENGHT_LIMIT,
+            totalSize
+        )
+        return call.respond(HttpStatusCode.PreconditionFailed, "Total vedleggstørrelse overskrider maks på 50 mb.")
+    }
+
     dataSource.transaction { dbconnection ->
         val innsendingRepo = InnsendingRepo(dbconnection)
         val innsendingId = innsendingRepo.lagre(
