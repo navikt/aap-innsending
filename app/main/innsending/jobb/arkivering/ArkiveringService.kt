@@ -6,6 +6,7 @@ import innsending.db.InnsendingNy
 import innsending.logger
 import innsending.pdf.PdfGenClient
 import innsending.postgres.InnsendingType
+import no.nav.aap.komponenter.httpklient.httpclient.error.UhåndtertHttpResponsException
 import java.util.Base64
 
 class ArkiveringService(
@@ -98,5 +99,37 @@ class ArkiveringService(
             journalpost.eksternReferanseId
         )
         return arkivResponse
+    }
+
+    fun arkiverEttersendelseInnsendingSpesielhåndtering(innsending: InnsendingNy, nummer: Int): String? {
+        val vedleggDokumenter = lagDokumenter(innsending)
+
+        val journalpost = Journalpost(
+            tittel = "Ettersendelse til søknad om arbeidsavklaringspenger",
+            avsenderMottaker = Journalpost.AvsenderMottaker(
+                id = Journalpost.Fødselsnummer(innsending.personident)
+            ),
+            bruker = Journalpost.Bruker(
+                id = Journalpost.Fødselsnummer(innsending.personident)
+            ),
+            dokumenter = vedleggDokumenter,
+            eksternReferanseId = innsending.eksternRef.toString() + "-$nummer",
+            datoMottatt = innsending.opprettet
+        )
+
+        try {
+            val arkivResponse = joarkClient.opprettJournalpost(journalpost)
+            logger.info(
+                "Opprettet ettersending-journalpost {} for eksternreferanseID {}",
+                arkivResponse.journalpostId,
+                journalpost.eksternReferanseId
+            )
+            return arkivResponse.journalpostId
+        } catch (exception: UhåndtertHttpResponsException) {
+            if (exception.message?.contains("409") == true) {
+                return null
+            }
+            throw exception
+        }
     }
 }

@@ -1,5 +1,6 @@
 package innsending.jobb
 
+import innsending.db.InnsendingNy
 import innsending.db.InnsendingRepo
 import innsending.jobb.arkivering.ArkiveringService
 import innsending.jobb.arkivering.JoarkClient
@@ -22,23 +23,56 @@ class ArkiverInnsendingJobbUtfører(
         val innsendingId = input.sakId()
         val innsending = innsendingRepo.hent(innsendingId)
 
-        val arkivResponse = when (innsending.type) {
-            InnsendingType.SOKNAD -> {
-                arkiveringService.arkiverSøknadInnsending(innsending)
+        if (innsendingId == 256521L) {
+            val innsendinger = splittOppInnsending(innsending)
+            var innsendingNr = 1
+            var journalpostId = ""
+            for (innsendingNy in innsendinger) {
+                val jpId = arkiveringService.arkiverEttersendelseInnsendingSpesielhåndtering(
+                    innsendingNy,
+                    innsendingNr
+                )
+                if (jpId != null) {
+                    journalpostId = jpId
+                }
+                innsendingNr = innsendingNr++
             }
+            innsendingRepo.markerFerdig(innsendingId, journalpostId)
+        } else {
+            val arkivResponse = when (innsending.type) {
+                InnsendingType.SOKNAD -> {
+                    arkiveringService.arkiverSøknadInnsending(innsending)
+                }
 
-            InnsendingType.ETTERSENDING -> {
-                arkiveringService.arkiverEttersendelseInnsending(innsending)
+                InnsendingType.ETTERSENDING -> {
+                    arkiveringService.arkiverEttersendelseInnsending(innsending)
+                }
             }
+            innsendingRepo.markerFerdig(innsendingId, arkivResponse.journalpostId)
         }
-
-        innsendingRepo.markerFerdig(innsendingId, arkivResponse.journalpostId)
 
         if (innsending.type == InnsendingType.SOKNAD) {
             // Planlegg ny jobb
             flytJobbRepository.leggTil(JobbInput(MinSideNotifyJobbUtfører).forSak(innsendingId))
         }
         prometheus.prometheus.counter("innsending", listOf(Tag.of("resultat", "ok"))).increment()
+    }
+
+    private fun splittOppInnsending(innsendingNy: InnsendingNy): List<InnsendingNy> {
+        return innsendingNy.filer.sortedBy { it.id }.chunked(10).map { listerMedFiler ->
+            InnsendingNy(
+                innsendingNy.id,
+                innsendingNy.opprettet,
+                innsendingNy.personident,
+                innsendingNy.soknad,
+                innsendingNy.data,
+                innsendingNy.eksternRef,
+                innsendingNy.forrigeInnsendingId,
+                innsendingNy.type,
+                null,
+                listerMedFiler
+            )
+        }
     }
 
     companion object : Jobb {

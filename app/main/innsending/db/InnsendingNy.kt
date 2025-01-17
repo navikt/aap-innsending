@@ -27,6 +27,7 @@ data class InnsendingNy(
 }
 
 data class FilNy(
+    val id: Long? = null,
     val tittel: String,
     val data: FilData
 )

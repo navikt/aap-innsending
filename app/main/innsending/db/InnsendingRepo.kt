@@ -110,9 +110,11 @@ class InnsendingRepo(private val connection: DBConnection) {
                 setLong(1, innsendingId)
             }
             setRowMapper { row ->
+                val filId = row.getLong("id")
                 FilNy(
+                    id = filId,
                     tittel = row.getString("tittel"),
-                    data = LazyFilData(row.getLong("id"), connection)
+                    data = LazyFilData(filId, connection)
                 )
             }
         }
