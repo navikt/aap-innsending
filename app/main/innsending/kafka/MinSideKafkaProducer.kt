@@ -1,8 +1,6 @@
 package innsending.kafka
 
 import innsending.logger
-import libs.kafka.KafkaConfig
-import libs.kafka.KafkaFactory
 import no.nav.tms.microfrontend.MicrofrontendMessageBuilder
 import no.nav.tms.microfrontend.Sensitivitet
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -18,7 +16,7 @@ class MinSideKafkaProducer(config: KafkaConfig) : KafkaProducer, AutoCloseable {
                 logger.error("Klarte ikke enable mikrofrontend for $personident", err)
                 throw KafkaProducerException("Klarte ikke enable mikrofrontend for $personident")
             } else {
-                logger.debug("Enablet mikrofrontend for $personident: $metadata")
+                logger.debug("Enablet mikrofrontend for {}: {}", personident, metadata)
             }
         }.get() // Blocking call to ensure the message is sent
     }
