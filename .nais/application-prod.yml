@@ -23,10 +23,10 @@ spec:
     pool: nav-prod
   resources:
     limits:
-      memory: 8192Mi
+      memory: 2048Mi
     requests:
       cpu: 800m
-      memory: 2048Mi
+      memory: 1024Mi
   accessPolicy:
     inbound:
       rules:
