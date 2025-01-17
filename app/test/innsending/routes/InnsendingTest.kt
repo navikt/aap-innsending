@@ -1,5 +1,6 @@
 package innsending.routes
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import innsending.Fakes
 import innsending.TestConfig
 import innsending.TokenXGen
@@ -11,23 +12,18 @@ import innsending.postgres.InnsendingType
 import innsending.postgres.PostgresTestBase
 import innsending.redis.Key
 import innsending.server
-import io.ktor.client.HttpClient
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.request.bearerAuth
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.contentType
-import io.ktor.serialization.jackson.jackson
-import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.testing.testApplication
+import io.ktor.client.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.request.*
+import io.ktor.http.*
+import io.ktor.serialization.jackson.*
+import io.ktor.server.testing.*
 import no.nav.aap.komponenter.dbconnect.transaction
 import org.json.JSONObject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 import kotlin.test.assertEquals
 
 class InnsendingTest : PostgresTestBase() {
@@ -49,12 +45,14 @@ class InnsendingTest : PostgresTestBase() {
             val filId2 = Key(value = UUID.randomUUID().toString(), prefix = "12345678910")
 
             testApplication {
-                application { server(
-                    config,
-                    fakes.redis,
-                    minsideProducer = fakes.kafka,
-                    datasource = dataSource
-                ) }
+                application {
+                    server(
+                        config,
+                        fakes.redis,
+                        minsideProducer = fakes.kafka,
+                        datasource = dataSource
+                    )
+                }
                 fakes.redis.set(filId1, byteArrayOf(), 60)
                 fakes.redis.set(filId2, byteArrayOf(), 60)
 
@@ -95,12 +93,14 @@ class InnsendingTest : PostgresTestBase() {
             val jwkGen = TokenXGen(config.tokenx)
             println(JSONObject({ "søknad" }))
             testApplication {
-                application { server(
-                    config,
-                    fakes.redis,
-                    minsideProducer = fakes.kafka,
-                    datasource = dataSource
-                ) }
+                application {
+                    server(
+                        config,
+                        fakes.redis,
+                        minsideProducer = fakes.kafka,
+                        datasource = dataSource
+                    )
+                }
 
                 val res = jsonHttpClient.post("/innsending") {
                     bearerAuth(jwkGen.generate("12345678910"))
@@ -135,12 +135,14 @@ class InnsendingTest : PostgresTestBase() {
             val filId2 = Key(UUID.randomUUID().toString(), prefix = "12345678910")
 
             testApplication {
-                application { server(
-                    config,
-                    fakes.redis,
-                    minsideProducer = fakes.kafka,
-                    datasource = dataSource
-                ) }
+                application {
+                    server(
+                        config,
+                        fakes.redis,
+                        minsideProducer = fakes.kafka,
+                        datasource = dataSource
+                    )
+                }
                 fakes.redis.set(filId1, byteArrayOf(), 60)
                 fakes.redis.set(filId2, byteArrayOf(), 60)
 
@@ -158,9 +160,15 @@ class InnsendingTest : PostgresTestBase() {
                                     id = filId2.value,
                                     tittel = "nice to have"
                                 )
+                            ),
+                            kvittering = ObjectMapper().readerFor(MutableMap::class.java).readValue(
+                                """
+                                    {"temaer":{"vedlegg":{"type":"TEMA","overskrift":"Ettersending","underblokker":[{"type":"FELT","felt":"Antall ettersendte dokumenter: 1"}]}}}
+                                """.trimIndent()
                             )
                         )
                     )
+
                 }
 
                 assertEquals(HttpStatusCode.OK, res.status)
@@ -182,12 +190,14 @@ class InnsendingTest : PostgresTestBase() {
 
             val eksternRef = UUID.randomUUID()
             testApplication {
-                application { server(
-                    config,
-                    fakes.redis,
-                    minsideProducer = fakes.kafka,
-                    datasource = dataSource
-                ) }
+                application {
+                    server(
+                        config,
+                        fakes.redis,
+                        minsideProducer = fakes.kafka,
+                        datasource = dataSource
+                    )
+                }
                 fakes.redis.set(filId1, byteArrayOf(), 60)
                 fakes.redis.set(filId2, byteArrayOf(), 60)
 
@@ -247,12 +257,14 @@ class InnsendingTest : PostgresTestBase() {
             val filId2 = Key(UUID.randomUUID().toString(), prefix = "12345678910")
 
             testApplication {
-                application { server(
-                    config,
-                    fakes.redis,
-                    minsideProducer = fakes.kafka,
-                    datasource = dataSource
-                ) }
+                application {
+                    server(
+                        config,
+                        fakes.redis,
+                        minsideProducer = fakes.kafka,
+                        datasource = dataSource
+                    )
+                }
                 fakes.redis.set(filId1, byteArrayOf(), 60)
                 fakes.redis.set(filId2, byteArrayOf(), 60)
 
