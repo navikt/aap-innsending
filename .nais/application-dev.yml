@@ -61,9 +61,9 @@ spec:
           - name: innsending
         flags:
           - name: cloudsql.enable_pgaudit
-            value: true
+            value: "true"
           - name: pgaudit.log
-            value: all
+            value: "all"
   liveness:
     path: /actuator/live
   readiness:
