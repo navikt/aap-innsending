@@ -41,7 +41,7 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-client-jackson:$ktorVersion")
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
-    implementation("org.apache.tika:tika-core:3.0.0")
+    implementation("org.apache.tika:tika-core:3.1.0")
 
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("redis.clients:jedis:5.2.0")
