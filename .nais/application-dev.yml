@@ -47,7 +47,7 @@ spec:
         - application: oppslag
         - application: clamav
           namespace: nais-system
-  redis:
+  valkey:
     - instance: mellomlager
       access: readwrite
   gcp:

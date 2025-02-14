@@ -1,10 +1,10 @@
 apiVersion: aiven.io/v1alpha1
-kind: Redis
+kind: Valkey
 metadata:
   labels:
     app: aap-innsending
     team: aap
-  name: redis-aap-mellomlager
+  name: valkey-aap-mellomlager
   namespace: aap
 spec:
   plan: business-4
@@ -17,10 +17,10 @@ kind: ServiceIntegration
 metadata:
   labels:
     team: aap
-  name: redis-aap-mellomlager
+  name: valkey-aap-mellomlager
   namespace: aap
 spec:
   project: nav-prod
   integrationType: prometheus
   destinationEndpointId: 76685598-1048-4f56-b34a-9769ef747a92
-  sourceServiceName: redis-aap-mellomlager
+  sourceServiceName: valkey-aap-mellomlager

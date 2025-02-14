@@ -183,7 +183,7 @@ private suspend fun postInnsending(
                 data = innsending.kvittering?.toByteArray(),
                 eksternRef = innsendingId,
                 type = innsending.type,
-                forrigeInnsendingId = innsendingsRef?.let { uUID -> innsendingRepo.hentIdFraEksternRef(innsendingsRef) },
+                forrigeInnsendingId = innsendingsRef?.let { _ -> innsendingRepo.hentIdFraEksternRef(innsendingsRef) },
                 journalpost_Id = null,
                 filer = filerMedInnhold.map { (metadata, byteArray) ->
                     FilNy(
