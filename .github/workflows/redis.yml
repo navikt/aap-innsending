@@ -19,6 +19,7 @@ jobs:
       manifest: .nais/redis-dev.yml
 
   prod:
+    needs: dev
     permissions:
       contents: read
       id-token: write
