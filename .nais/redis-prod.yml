@@ -10,7 +10,7 @@ spec:
   plan: business-4
   project: nav-prod
   userConfig:
-    redis_persistence: "off"
+    valkey_persistence: "off"
 ---
 apiVersion: aiven.io/v1alpha1
 kind: ServiceIntegration
