@@ -6,6 +6,7 @@ import innsending.dto.ErrorRespons
 import innsending.dto.MellomlagringRespons
 import innsending.logger
 import innsending.pdf.PdfGen
+import innsending.prometheus
 import innsending.redis.EnDagSekunder
 import innsending.redis.Key
 import innsending.redis.Redis
@@ -15,6 +16,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.utils.io.*
+import io.micrometer.core.instrument.DistributionSummary
 import kotlinx.io.EOFException
 import org.apache.pdfbox.Loader
 import org.apache.tika.Tika
@@ -121,6 +123,8 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
 
                             }
                         }
+
+                    prometheus.registrerVedleggStørrelse(fil.size.toLong())
 
                     val contentType = requireNotNull(fileItem.contentType) {
                         "contentType i multipartForm mangler"

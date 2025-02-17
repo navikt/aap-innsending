@@ -14,7 +14,7 @@ data class ValiderFiler(
 )
 data class Innsending(
     /**
-     * Kvittering er JSON for å produsere kvitterings pdf til bruker
+     * Kvittering er JSON for å produsere kvitterings-PDF til bruker
      */
     val kvittering: Map<String, Any>? = null,
     /*
@@ -58,12 +58,6 @@ data class Innsending(
 data class FilMetadata(
     val id: String,
     val tittel: String,
-)
-
-data class MineAapSoknad(
-    val mottattDato: LocalDateTime,
-    val journalpostId: String?,
-    val innsendingsId: UUID
 )
 
 data class MineAapSoknadMedEttersendingNy(
