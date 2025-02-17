@@ -14,26 +14,21 @@ import innsending.redis.Redis
 import innsending.routes.actuator
 import innsending.routes.innsendingRoute
 import innsending.routes.mellomlagerRoute
-import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
-import io.ktor.serialization.jackson.JacksonConverter
-import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationStarted
-import io.ktor.server.application.ApplicationStopped
-import io.ktor.server.application.install
-import io.ktor.server.auth.authenticate
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.metrics.micrometer.MicrometerMetrics
-import io.ktor.server.netty.Netty
-import io.ktor.server.plugins.calllogging.CallLogging
-import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.server.plugins.statuspages.StatusPages
-import io.ktor.server.request.header
-import io.ktor.server.request.httpMethod
-import io.ktor.server.request.path
-import io.ktor.server.response.respondText
-import io.ktor.server.routing.routing
+import io.ktor.http.*
+import io.ktor.serialization.jackson.*
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.engine.*
+import io.ktor.server.metrics.micrometer.*
+import io.ktor.server.netty.*
+import io.ktor.server.plugins.calllogging.*
+import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.plugins.statuspages.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.micrometer.core.instrument.binder.logging.LogbackMetrics
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.motor.Jobb
@@ -55,7 +50,10 @@ fun Application.server(
     config: Config = Config(),
     redis: Redis = Redis(config.redis),
     minsideProducer: KafkaProducer = MinSideKafkaProducer(config.kafka),
-    datasource: DataSource = Hikari.createAndMigrate(config.postgres, meterRegistry = prometheus.prometheus),
+    datasource: DataSource = Hikari.createAndMigrate(
+        config.postgres,
+        meterRegistry = prometheus.prometheus
+    ),
 ) {
     val prometheus = prometheus.prometheus
     val antivirus = ClamAVClient(config.virusScanHost)
@@ -95,10 +93,13 @@ fun Application.server(
     }
 
     install(ContentNegotiation) {
-        register(ContentType.Application.Json, JacksonConverter(objectMapper = DefaultJsonMapper.objectMapper(), true))
+        register(
+            ContentType.Application.Json,
+            JacksonConverter(objectMapper = DefaultJsonMapper.objectMapper(), true)
+        )
     }
 
-    module(datasource, minsideProducer, redis)
+    module(datasource, minsideProducer, redis, prometheus)
 
     routing {
         authenticate(TOKENX) {
@@ -110,13 +111,17 @@ fun Application.server(
     }
 }
 
-fun Application.module(dataSource: DataSource,
-                       minsideProducer: KafkaProducer,
-                       redis: Redis): Motor {
+fun Application.module(
+    dataSource: DataSource,
+    minsideProducer: KafkaProducer,
+    redis: Redis,
+    prometheus: PrometheusMeterRegistry
+): Motor {
     val motor = Motor(
         dataSource = dataSource,
         antallKammer = 2,
-        jobber = ProsesseringsJobber.alle()
+        jobber = ProsesseringsJobber.alle(),
+        prometheus = prometheus
     )
 
     dataSource.transaction { dbConnection ->
