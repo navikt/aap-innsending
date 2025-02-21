@@ -1,5 +1,5 @@
 # jlink ligger ikke i jre lengere (etter java 21)
-FROM eclipse-temurin:21-jdk-alpine as jre
+FROM eclipse-temurin:21-jdk-alpine AS jre
 
 # --strip-debug uses objcopy from binutils
 RUN apk add binutils
@@ -16,7 +16,7 @@ RUN jlink \
     --output /customjre
 
 
-FROM alpine:3.21.3 as app
+FROM alpine:3.21.3 AS app
 ENV JAVA_HOME=/jre
 ENV LANG='nb_NO.UTF-8' LANGUAGE='nb_NO:nb' LC_ALL='nb:NO.UTF-8' TZ="Europe/Oslo"
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
