@@ -25,6 +25,7 @@
         <appender-ref ref="json"/>
     </root>
 
+    <logger name="org.apache.pdfbox.pdfparser.COSParser" level="ERROR" />
     <logger name="no.nav.aap.komponenter.httpklient.httpclient.tokenprovider" level="WARN"/>
 
 </configuration>
