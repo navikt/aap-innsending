@@ -18,6 +18,7 @@ class PdfGenClient {
         val navn = oppslagClientNy.hentNavn(innsending.personident).let { navn ->
             SøkerPdfGen.Navn(
                 fornavn = navn.fornavn,
+                mellomnavn = navn.mellomnavn,
                 etternavn = navn.etternavn,
             )
         }
