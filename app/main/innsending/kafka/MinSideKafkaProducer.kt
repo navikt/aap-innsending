@@ -13,8 +13,8 @@ class MinSideKafkaProducer(config: KafkaConfig) : KafkaProducer, AutoCloseable {
         val record = createRecord(personident)
         producer.send(record) { metadata, err ->
             if (err != null) {
-                logger.error("Klarte ikke enable mikrofrontend for $personident", err)
-                throw KafkaProducerException("Klarte ikke enable mikrofrontend for $personident")
+                logger.error("Klarte ikke enable mikrofrontend for bruker", err)
+                throw KafkaProducerException("Klarte ikke enable mikrofrontend for bruker")
             } else {
                 logger.debug("Enablet mikrofrontend for {}: {}", personident, metadata)
             }
