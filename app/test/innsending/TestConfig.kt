@@ -12,8 +12,7 @@ internal object TestConfig {
         username = "sa",
         password = "",
         url = "jdbc:h2:mem:test_db;MODE=PostgreSQL",
-        driver = "org.h2.Driver",
-        cluster = "test"
+        driver = "org.h2.Driver"
     )
 
     private val redis = RedisConfig(

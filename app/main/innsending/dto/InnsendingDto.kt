@@ -4,11 +4,6 @@ import innsending.postgres.InnsendingType
 import java.time.LocalDateTime
 import java.util.UUID
 
-data class Logg(
-    val journalpost: String,
-    val mottattDato: LocalDateTime,
-    val innsendingsId: UUID
-)
 data class ValiderFiler(
     val filer: List<FilMetadata>,
 )

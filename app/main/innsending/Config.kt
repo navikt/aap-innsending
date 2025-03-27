@@ -42,8 +42,7 @@ data class PostgresConfig(
     val password: String = getEnvVar("NAIS_DATABASE_INNSENDING_INNSENDING_PASSWORD"),
     val url: String = "jdbc:postgresql://${host}:${port}/${database}",
     val driver: String = "org.postgresql.Driver",
-    val cluster: String = getEnvVar("NAIS_CLUSTER_NAME")
-)
+    )
 
 data class JoarkConfig(
     val baseUrl: String = getEnvVar("JOARK_BASE_URL"),
