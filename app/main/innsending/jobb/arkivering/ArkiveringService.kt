@@ -27,7 +27,9 @@ class ArkiveringService(
             ),
             dokumenter = dokumenter(innsending, pdf),
             eksternReferanseId = innsending.eksternRef.toString(),
-            datoMottatt = innsending.opprettet
+            // Denne kan være null
+            // https://nav-it.slack.com/archives/C6W9E5GPJ/p1743070812137639?thread_ts=1743061165.686699&cid=C6W9E5GPJ
+            datoMottatt = null
         )
 
         val arkivResponse = joarkClient.opprettJournalpost(journalpost)
@@ -88,7 +90,7 @@ class ArkiveringService(
             ),
             dokumenter = vedleggDokumenter,
             eksternReferanseId = innsending.eksternRef.toString(),
-            datoMottatt = innsending.opprettet
+            datoMottatt = null,
         )
 
         val arkivResponse = joarkClient.opprettJournalpost(journalpost)

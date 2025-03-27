@@ -17,7 +17,7 @@ data class Journalpost(
     val bruker: Bruker,
     val dokumenter: List<Dokument>,
     val eksternReferanseId: String,
-    val datoMottatt: LocalDateTime,
+    val datoMottatt: LocalDateTime?,
     val kanal: String = KANAL,
     val journalposttype: String = INNGÅENDE,
     val tilleggsopplysninger: List<Tilleggsopplysning> = listOf(Tilleggsopplysning("versjon", "1.0")),
