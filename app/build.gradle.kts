@@ -7,7 +7,7 @@ plugins {
 }
 
 val ktorVersion = "3.1.2"
-val komponenterVersjon = "1.0.188"
+val komponenterVersjon = "1.0.193"
 
 application {
     mainClass.set("innsending.AppKt")
