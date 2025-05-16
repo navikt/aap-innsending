@@ -89,4 +89,4 @@ spec:
     - name: OPPSLAG_SCOPE
       value: api://dev-gcp.aap.oppslag/.default
     - name: MAX_FILE_SIZE
-      value: 75
+      value: "75"
