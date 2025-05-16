@@ -3,10 +3,10 @@ package innsending.routes
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import innsending.Fakes
 import innsending.Resource
-import innsending.TestConfig
 import innsending.TokenXGen
 import innsending.dto.ErrorRespons
 import innsending.dto.MellomlagringRespons
+import innsending.innsending.TestConfig
 import innsending.postgres.PostgresTestBase
 import innsending.redis.EnDagSekunder
 import innsending.redis.Key
@@ -199,7 +199,7 @@ class MellomlagringTest : PostgresTestBase() {
                     }
                 )
                 assertEquals(HttpStatusCode.UnprocessableEntity, res.status)
-                assertEquals(ErrorRespons("Filen 53mb.pdf er større enn maksgrense på 50MB"), res.body())
+                assertEquals(ErrorRespons("Filen 53mb.pdf er større enn maksgrense på ${config.maxFileSize}MB"), res.body())
             }
         }
     }

@@ -32,7 +32,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 import javax.sql.DataSource
 
-fun Route.innsendingRoute(dataSource: DataSource, redis: Redis, promethius: MeterRegistry) {
+fun Route.innsendingRoute(dataSource: DataSource, redis: Redis, promethius: MeterRegistry, maxFileSize: Int) {
     route("/innsending") {
 
         get("/søknadmedettersendinger") {
@@ -88,7 +88,7 @@ fun Route.innsendingRoute(dataSource: DataSource, redis: Redis, promethius: Mete
                 "Mangler innsendingsId"
             )
 
-            postInnsending(dataSource, redis, call, innsendingsRef, promethius)
+            postInnsending(dataSource, redis, call, innsendingsRef, promethius, maxFileSize)
         }
 
         post("/valider-filer") {
@@ -109,7 +109,7 @@ fun Route.innsendingRoute(dataSource: DataSource, redis: Redis, promethius: Mete
         }
 
         post {
-            postInnsending(dataSource, redis, call, null, promethius)
+            postInnsending(dataSource, redis, call, null, promethius, maxFileSize)
         }
     }
 }
@@ -119,8 +119,10 @@ private suspend fun postInnsending(
     redis: Redis,
     call: ApplicationCall,
     innsendingsRef: UUID? = null,
-    prometheus: MeterRegistry
+    prometheus: MeterRegistry,
+    maxFileSize: Int
 ) {
+    val CONTENT_LENGHT_LIMIT = maxFileSize * 1024 * 1024
     val personIdent = call.personident()
     val innsending = call.receive<Innsending>()
 

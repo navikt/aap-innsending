@@ -103,8 +103,8 @@ fun Application.server(
 
     routing {
         authenticate(TOKENX) {
-            innsendingRoute(datasource, redis, prometheus)
-            mellomlagerRoute(redis, antivirus, pdfGen)
+            innsendingRoute(datasource, redis, prometheus, config.maxFileSize)
+            mellomlagerRoute(redis, antivirus, pdfGen, config.maxFileSize)
         }
 
         actuator(prometheus, redis)

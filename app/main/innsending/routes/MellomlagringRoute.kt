@@ -16,7 +16,6 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.utils.io.*
-import io.micrometer.core.instrument.DistributionSummary
 import kotlinx.io.EOFException
 import org.apache.pdfbox.Loader
 import org.apache.tika.Tika
@@ -31,9 +30,9 @@ private val log = LoggerFactory.getLogger("App")
 private val acceptedContentType =
     listOf(ContentType.Image.JPEG, ContentType.Image.PNG, ContentType.Application.Pdf)
 
-const val CONTENT_LENGHT_LIMIT = 75 * 1024 * 1024 // 50 MB
 
-fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: PdfGen) {
+fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: PdfGen, maxFileSize: Int) {
+    val CONTENT_LENGHT_LIMIT = maxFileSize * 1024 * 1024 // 75 MB
     route("/mellomlagring/søknad") {
 
         post {
@@ -117,7 +116,7 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                                     log.info("Got exc: {}", it.message)
                                     return@post call.respond(
                                         HttpStatusCode.UnprocessableEntity,
-                                        ErrorRespons("Filen ${fileItem.originalFileName} er større enn maksgrense på 50MB")
+                                        ErrorRespons("Filen ${fileItem.originalFileName} er større enn maksgrense på ${maxFileSize}MB")
                                     )
                                 }
 

@@ -1,10 +1,19 @@
-package innsending
+package innsending.innsending
 
+import innsending.Config
+import innsending.Fakes
+import innsending.JoarkConfig
+import innsending.OppslagConfig
+import innsending.PostgresConfig
+import innsending.RedisConfig
+import innsending.TokenXConfig
 import innsending.kafka.KafkaConfig
+import innsending.port
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 import java.net.URI
 
 internal object TestConfig {
+
     internal val postgres = PostgresConfig(
         host = "stub",
         port = "5432",
@@ -23,6 +32,7 @@ internal object TestConfig {
 
     fun default(fakes: Fakes): Config {
         return Config(
+            maxFileSize = 50,
             postgres = postgres,
             redis = redis,
             joark = JoarkConfig(

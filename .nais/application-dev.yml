@@ -88,3 +88,5 @@ spec:
       value: api://dev-fss.teamdokumenthandtering.dokarkiv/.default
     - name: OPPSLAG_SCOPE
       value: api://dev-gcp.aap.oppslag/.default
+    - name: MAX_FILE_SIZE
+      value: 75
