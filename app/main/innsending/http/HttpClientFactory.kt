@@ -36,6 +36,11 @@ internal object HttpClientFactory {
                 registerModule(JavaTimeModule())
             }
         }
+
+        install(HttpRequestRetry) {
+            retryOnServerErrors(maxRetries = 2)
+            exponentialDelay()
+        }
     }
 }
 
