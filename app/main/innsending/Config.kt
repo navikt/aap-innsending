@@ -21,7 +21,7 @@ data class Config(
         credstorePsw = getEnvVar("KAFKA_CREDSTORE_PASSWORD"),
     ),
     val oppslag: OppslagConfig = OppslagConfig(),
-    val maxFileSize: Int = 75,
+    val maxFileSize: Int = getEnvVar("MAX_FILE_SIZE").toInt(),
 )
 
 data class RedisConfig(
