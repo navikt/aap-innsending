@@ -6,6 +6,7 @@ import innsending.jobb.arkivering.JoarkClient
 import innsending.pdf.PdfGenClient
 import innsending.postgres.InnsendingType
 import innsending.prometheus
+import innsending.prometheus.arkivertTeller
 import io.micrometer.core.instrument.Tag
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.motor.FlytJobbRepository
@@ -24,11 +25,15 @@ class ArkiverInnsendingJobbUtfører(
 
         val arkivResponse = when (innsending.type) {
             InnsendingType.SOKNAD -> {
-                arkiveringService.arkiverSøknadInnsending(innsending)
+                arkiveringService.arkiverSøknadInnsending(innsending).also {
+                    prometheus.prometheus.arkivertTeller("soknad").increment()
+                }
             }
 
             InnsendingType.ETTERSENDING -> {
-                arkiveringService.arkiverEttersendelseInnsending(innsending)
+                arkiveringService.arkiverEttersendelseInnsending(innsending).also {
+                    prometheus.prometheus.arkivertTeller("ettersending").increment()
+                }
             }
         }
 
