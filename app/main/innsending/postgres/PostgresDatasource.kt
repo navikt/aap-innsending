@@ -8,7 +8,6 @@ import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.miljo.MiljøKode
 import org.flywaydb.core.Flyway
 import java.sql.Connection
-import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.util.UUID
 import javax.sql.DataSource
@@ -82,10 +81,3 @@ fun <T> DataSource.transaction(block: (Connection) -> T): T {
 
 fun ResultSet.getUUID(columnLabel: String): UUID = UUID.fromString(this.getString(columnLabel))
 
-fun PreparedStatement.setNullableObject(index: Int, obj: Any?, type: Int) {
-    if (obj != null) {
-        this.setObject(index, obj)
-    } else {
-        this.setNull(index, type)
-    }
-}

@@ -6,7 +6,7 @@ import innsending.Resource
 import innsending.TokenXGen
 import innsending.dto.ErrorRespons
 import innsending.dto.MellomlagringRespons
-import innsending.innsending.TestConfig
+import innsending.TestConfig
 import innsending.postgres.PostgresTestBase
 import innsending.redis.EnDagSekunder
 import innsending.redis.Key

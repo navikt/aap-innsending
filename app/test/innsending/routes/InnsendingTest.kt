@@ -1,7 +1,7 @@
 package innsending.routes
 
 import innsending.Fakes
-import innsending.innsending.TestConfig
+import innsending.TestConfig
 import innsending.TokenXGen
 import innsending.db.InnsendingNy
 import innsending.db.InnsendingRepo
