@@ -129,7 +129,7 @@ private suspend fun postInnsending(
     // Avoid duplicates
     val innsendingHash = Key(innsending.hashCode().toString())
     if (redis.exists(innsendingHash)) {
-        call.respond(HttpStatusCode.Conflict, "Denne innsendingen har vi allerede mottatt")
+        return call.respond(HttpStatusCode.Conflict, "Denne innsendingen har vi allerede mottatt")
     }
 
     val erRefTilknyttetPersonIdent = dataSource.transaction(readOnly = true) { dbconnection ->
