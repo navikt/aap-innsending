@@ -6,7 +6,7 @@ plugins {
     application
 }
 
-val ktorVersion = "3.2.0"
+val ktorVersion = "3.2.1"
 val komponenterVersjon = "1.0.277"
 
 application {
