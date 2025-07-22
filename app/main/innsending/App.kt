@@ -42,7 +42,12 @@ import javax.sql.DataSource
 val logger: Logger = LoggerFactory.getLogger("App")
 
 fun main() {
-    Thread.currentThread().setUncaughtExceptionHandler { _, e -> logger.error("Uhåndtert feil", e) }
+    Thread.currentThread().setUncaughtExceptionHandler { _, e ->
+        logger.error(
+            "Uhåndtert feil. Type: ${e.javaClass}.",
+            e
+        )
+    }
     embeddedServer(Netty, port = 8080, module = Application::server).start(wait = true)
 }
 
@@ -84,7 +89,11 @@ fun Application.server(
 
     install(StatusPages) {
         exception<Throwable> { call, cause ->
-            logger.error("Uhåndtert feil ved kall til '{}'", call.request.local.uri, cause)
+            logger.error(
+                "Uhåndtert feil ved kall til '{}'. Type: ${cause.javaClass}.",
+                call.request.local.uri,
+                cause
+            )
             call.respondText(
                 text = "Feil i tjeneste: ${cause.message}",
                 status = HttpStatusCode.InternalServerError
