@@ -61,13 +61,13 @@ dependencies {
     testImplementation("com.nimbusds:nimbus-jose-jwt:10.4")
     testImplementation("com.redis:testcontainers-redis:2.2.4")
     constraints {
-        implementation("org.apache.commons:commons-compress:1.27.1") {
+        implementation("org.apache.commons:commons-compress:1.28.0") {
             because("https://github.com/advisories/GHSA-4g9r-vxhx-9pgx")
         }
     }
     testImplementation("org.testcontainers:postgresql:1.21.3")
     constraints {
-        implementation("org.apache.commons:commons-compress:1.27.1") {
+        implementation("org.apache.commons:commons-compress:1.28.0") {
             because("https://github.com/advisories/GHSA-4g9r-vxhx-9pgx")
         }
     }
