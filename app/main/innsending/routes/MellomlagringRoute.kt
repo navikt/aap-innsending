@@ -25,7 +25,7 @@ import java.net.URL
 import java.time.LocalDateTime
 import java.util.*
 
-private val log = LoggerFactory.getLogger("App")
+private val log = LoggerFactory.getLogger("MellomLagringRoute")
 
 private val acceptedContentType =
     listOf(ContentType.Image.JPEG, ContentType.Image.PNG, ContentType.Application.Pdf)
