@@ -3,6 +3,7 @@ package innsending.jobb.arkivering
 import innsending.ProdConfig
 import innsending.arkiv.ArkivResponse
 import innsending.arkiv.Journalpost
+import innsending.prometheus
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
@@ -15,7 +16,8 @@ class JoarkClient {
     private val joarkConfig = ProdConfig.config.joark
     private val httpClient = RestClient.withDefaultResponseHandler(
         config = ClientConfig(joarkConfig.scope),
-        tokenProvider = ClientCredentialsTokenProvider
+        tokenProvider = ClientCredentialsTokenProvider,
+        prometheus = prometheus.prometheus
     )
 
     fun opprettJournalpost(
