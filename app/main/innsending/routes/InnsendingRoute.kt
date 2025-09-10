@@ -6,30 +6,23 @@ import innsending.db.FilNy
 import innsending.db.InMemoryFilData
 import innsending.db.InnsendingNy
 import innsending.db.InnsendingRepo
-import innsending.dto.Innsending
-import innsending.dto.InnsendingResponse
-import innsending.dto.MineAapEttersending
-import innsending.dto.MineAapSoknadMedEttersendinger
-import innsending.dto.ValiderFiler
+import innsending.dto.*
 import innsending.jobb.ArkiverInnsendingJobbUtfører
 import innsending.logger
 import innsending.redis.EnDagSekunder
 import innsending.redis.Key
 import innsending.redis.Redis
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.ApplicationCall
-import io.ktor.server.request.receive
-import io.ktor.server.response.respond
-import io.ktor.server.routing.Route
-import io.ktor.server.routing.get
-import io.ktor.server.routing.post
-import io.ktor.server.routing.route
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 import javax.sql.DataSource
 
 fun Route.innsendingRoute(dataSource: DataSource, redis: Redis, promethius: MeterRegistry, maxFileSize: Int) {
@@ -166,12 +159,15 @@ private suspend fun postInnsending(
 
     val totalSize = filerMedInnhold.sumOf { it.second?.size ?: 0 }
     if (totalSize > CONTENT_LENGHT_LIMIT) {
-        logger.warn(
+        logger.info(
             "Vedleggenes totale størrelse overskrider maks på 50mb({}), totalt {}",
             CONTENT_LENGHT_LIMIT,
             totalSize
         )
-        return call.respond(HttpStatusCode.PreconditionFailed, "Total vedleggstørrelse overskrider maks på 50 mb.")
+        return call.respond(
+            HttpStatusCode.PreconditionFailed,
+            "Total vedleggstørrelse overskrider maks på 50 mb."
+        )
     }
 
     dataSource.transaction { dbconnection ->
