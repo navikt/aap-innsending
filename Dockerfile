@@ -1,5 +1,5 @@
 # jlink ligger ikke i jre lengere (etter java 21)
-FROM eclipse-temurin:21-jdk-alpine AS jre
+FROM eclipse-temurin:25-jdk-alpine AS jre
 
 # --strip-debug uses objcopy from binutils
 RUN apk add binutils
