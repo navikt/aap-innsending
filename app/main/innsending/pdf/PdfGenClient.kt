@@ -3,6 +3,7 @@ package innsending.pdf
 import innsending.ProdConfig
 import innsending.db.InnsendingNy
 import innsending.oppslag.OppslagClientNy
+import innsending.prometheus
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.Header
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
@@ -11,7 +12,11 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.NoTokenTokenPr
 import java.net.URI
 
 class PdfGenClient {
-    private val httpClient = RestClient.withDefaultResponseHandler(ClientConfig(), NoTokenTokenProvider())
+    private val httpClient = RestClient.withDefaultResponseHandler(
+        ClientConfig(),
+        NoTokenTokenProvider(),
+        prometheus = prometheus.prometheus
+    )
     private val oppslagClientNy = OppslagClientNy()
 
     fun søknadTilPdf(innsending: InnsendingNy): ByteArray {
@@ -23,7 +28,8 @@ class PdfGenClient {
             )
         }
 
-        val kvittering = innsending.kvitteringToMap() + mapOf("mottattdato" to innsending.opprettet.toString())
+        val kvittering =
+            innsending.kvitteringToMap() + mapOf("mottattdato" to innsending.opprettet.toString())
         val data = SøknadPdfGen(SøkerPdfGen(navn = navn), kvittering)
         val httpPostRequest = PostRequest(
             body = data,
@@ -32,9 +38,9 @@ class PdfGenClient {
 
         return requireNotNull(
             httpClient.post(
-            uri = URI.create(ProdConfig.config.pdfGenHost + "/api/v1/genpdf/aap-pdfgen/soknad"),
-            request = httpPostRequest,
-            mapper = { body, _ -> body.readAllBytes() }
-        )) { "Response from pdfgen was null" }
+                uri = URI.create(ProdConfig.config.pdfGenHost + "/api/v1/genpdf/aap-pdfgen/soknad"),
+                request = httpPostRequest,
+                mapper = { body, _ -> body.readAllBytes() }
+            )) { "Response from pdfgen was null" }
     }
 }
