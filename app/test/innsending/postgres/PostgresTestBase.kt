@@ -1,12 +1,13 @@
 package innsending.postgres
 
+import com.zaxxer.hikari.HikariDataSource
 import innsending.InitTestDatabase
 import org.junit.jupiter.api.BeforeEach
 import java.util.UUID
 import javax.sql.DataSource
 
 abstract class PostgresTestBase {
-    protected val dataSource: DataSource = Hikari.createAndMigrate(
+    protected val dataSource: HikariDataSource = Hikari.createAndMigrate(
         InitTestDatabase.hikariConfig,
         arrayOf("classpath:db/migration")
     )
