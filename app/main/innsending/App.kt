@@ -1,5 +1,6 @@
 package innsending
 
+import com.zaxxer.hikari.HikariDataSource
 import innsending.antivirus.ClamAVClient
 import innsending.auth.TOKENX
 import innsending.auth.authentication
@@ -37,7 +38,6 @@ import no.nav.aap.motor.retry.RetryService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
-import javax.sql.DataSource
 
 val logger: Logger = LoggerFactory.getLogger("App")
 
@@ -55,7 +55,7 @@ fun Application.server(
     config: Config = Config(),
     redis: Redis = Redis(config.redis),
     minsideProducer: KafkaProducer = MinSideKafkaProducer(config.kafka),
-    datasource: DataSource = Hikari.createAndMigrate(
+    datasource: HikariDataSource = Hikari.createAndMigrate(
         config.postgres,
         meterRegistry = prometheus.prometheus
     ),
@@ -121,7 +121,7 @@ fun Application.server(
 }
 
 fun Application.module(
-    dataSource: DataSource,
+    dataSource: HikariDataSource,
     minsideProducer: KafkaProducer,
     redis: Redis,
     prometheus: PrometheusMeterRegistry
@@ -140,14 +140,16 @@ fun Application.module(
     monitor.subscribe(ApplicationStarted) {
         motor.start()
     }
-    monitor.subscribe(ApplicationStopped) { application ->
-        application.environment.log.info("Server har stoppet")
+    monitor.subscribe(ApplicationStopPreparing) {
         motor.stop()
+    }
+    monitor.subscribe(ApplicationStopping) {
         minsideProducer.close()
         redis.close()
-        // Release resources and unsubscribe from events
-        application.monitor.unsubscribe(ApplicationStarted) {}
-        application.monitor.unsubscribe(ApplicationStopped) {}
+        dataSource.close()
+    }
+    monitor.subscribe(ApplicationStopped) { application ->
+        application.environment.log.info("Server har stoppet")
     }
 
     return motor

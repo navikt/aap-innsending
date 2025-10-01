@@ -17,7 +17,7 @@ internal object Hikari {
         config: PostgresConfig,
         locations: Array<String> = arrayOf("classpath:db/migration", "classpath:db/gcp"),
         meterRegistry: MeterRegistry? = null
-    ): DataSource {
+    ): HikariDataSource {
         val hikariConfig = HikariConfig().apply {
             jdbcUrl = config.url
             username = config.username
@@ -37,7 +37,7 @@ internal object Hikari {
     fun createAndMigrate(
         config: HikariConfig,
         locations: Array<String>
-    ): DataSource {
+    ): HikariDataSource {
         val dataSource = HikariDataSource(config)
 
         val flyway = Flyway
