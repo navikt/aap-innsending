@@ -90,7 +90,7 @@ fun Application.server(
     install(StatusPages) {
         exception<Throwable> { call, cause ->
             logger.error(
-                "Uhåndtert feil ved kall til '{}'. Type: ${cause.javaClass}.",
+                "Uhåndtert feil ved kall til '{}'. Type: ${cause.javaClass}. Har root cause: ${cause.cause != null}.",
                 call.request.local.uri,
                 cause
             )

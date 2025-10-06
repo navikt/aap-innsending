@@ -97,6 +97,7 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                 prefix = call.personident()
             )
 
+            log.info("Leser vedlegg fra request.")
             // Veldig høy maksgrense siden vi sjekker filtype manuelt
             val receiveMultipart =
                 call.receiveMultipart(formFieldLimit = 1000 * CONTENT_LENGHT_LIMIT.toLong())
