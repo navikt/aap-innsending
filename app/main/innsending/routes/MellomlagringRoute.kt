@@ -4,7 +4,6 @@ import innsending.antivirus.ClamAVClient
 import innsending.auth.personident
 import innsending.dto.ErrorRespons
 import innsending.dto.MellomlagringRespons
-import innsending.logger
 import innsending.pdf.PdfGen
 import innsending.prometheus
 import innsending.redis.EnDagSekunder
@@ -31,7 +30,12 @@ private val acceptedContentType =
     listOf(ContentType.Image.JPEG, ContentType.Image.PNG, ContentType.Application.Pdf)
 
 
-fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: PdfGen, maxFileSize: Int) {
+fun Route.mellomlagerRoute(
+    redis: Redis,
+    virusScanClient: ClamAVClient,
+    pdfGen: PdfGen,
+    maxFileSize: Int
+) {
     val CONTENT_LENGHT_LIMIT = maxFileSize * 1024 * 1024 // 75 MB
     route("/mellomlagring/søknad") {
 
@@ -97,10 +101,12 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                 prefix = call.personident()
             )
 
-            log.info("Leser vedlegg fra request.")
+            log.info("Leser vedlegg fra request. Content-Type: ${call.request.contentType()}.")
             // Veldig høy maksgrense siden vi sjekker filtype manuelt
             val receiveMultipart =
                 call.receiveMultipart(formFieldLimit = 1000 * CONTENT_LENGHT_LIMIT.toLong())
+
+            log.info("Fikk til å lese multipart.")
 
             when (val fileItem = receiveMultipart.readPart()) {
                 is PartData.FileItem -> {
@@ -140,7 +146,7 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                     val pdf: ByteArray = when (contentType) {
                         in acceptedContentType -> {
                             if (virusScanClient.hasVirus(fil, contentType)) {
-                                logger.warn("Bruker prøvde å laste opp virus")
+                                log.warn("Bruker prøvde å laste opp virus")
                                 return@post call.respond(
                                     HttpStatusCode.UnprocessableEntity,
                                     ErrorRespons("Fant virus i fil")
@@ -152,7 +158,7 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                                 try {
                                     pdfGen.bildeTilPfd(fil, contentType)
                                 } catch (e: Exception) {
-                                    logger.error("Feil fra PDFgen", e)
+                                    log.error("Feil fra PDFgen", e)
                                     return@post call.respond(
                                         HttpStatusCode.UnprocessableEntity,
                                         ErrorRespons("Feil ved omgjøring til pdf")
@@ -162,7 +168,7 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                         }
 
                         else -> {
-                            logger.warn("Feil filtype ${contentType.contentType}")
+                            log.warn("Feil filtype ${contentType.contentType}")
                             return@post call.respond(
                                 HttpStatusCode.UnprocessableEntity,
                                 ErrorRespons("Filtype ikke støttet")
@@ -171,6 +177,7 @@ fun Route.mellomlagerRoute(redis: Redis, virusScanClient: ClamAVClient, pdfGen: 
                     }
 
                     if (kryptertEllerUgyldigPdf(pdf)) {
+                        log.info("Fikk kryptert eller ugyldig PDF.")
                         return@post call.respond(
                             HttpStatusCode.UnprocessableEntity,
                             ErrorRespons("PDF er kryptert")
@@ -271,7 +278,7 @@ fun kryptertEllerUgyldigPdf(fil: ByteArray): Boolean {
 
 fun sjekkFeilContentType(fil: ByteArray, contentType: ContentType): Boolean {
     val filtype = Tika().detect(fil)
-    logger.debug("sjekker filtype {} == {}", filtype, contentType)
+    log.debug("sjekker filtype {} == {}", filtype, contentType)
 
 
     return filtype != contentType.toString()
