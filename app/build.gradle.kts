@@ -53,7 +53,7 @@ dependencies {
     implementation("org.flywaydb:flyway-database-postgresql:$flywayVersjon")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
     runtimeOnly("net.logstash.logback:logstash-logback-encoder:8.1")
-    runtimeOnly("org.postgresql:postgresql:42.7.7")
+    runtimeOnly("org.postgresql:postgresql:42.7.8")
 
     testImplementation(kotlin("test"))
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
