@@ -255,7 +255,11 @@ private suspend fun PartData.FileItem.readFile(fileSizeLimit: Int): Result<ByteA
             try {
                 buffer[idx++] = provider().readByte()
             } catch (e: EOFException) {
+                log.error("No bytes found in stream", e)
                 throw EmptyStreamException("No bytes found in stream")
+            } catch (e: Exception) {
+                log.error("Feil ved lesing av fil", e)
+                throw e
             }
         }
 
