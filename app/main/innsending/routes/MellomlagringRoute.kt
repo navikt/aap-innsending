@@ -108,7 +108,17 @@ fun Route.mellomlagerRoute(
 
             log.info("Fikk til å lese multipart.")
 
-            when (val fileItem = receiveMultipart.readPart()) {
+            val fileItem = try {
+                receiveMultipart.readPart()
+            } catch (e: Exception) {
+                log.error("Feil ved lesing av multipart", e)
+                return@post call.respond(
+                    HttpStatusCode.InternalServerError,
+                    ErrorRespons("Feil ved lesing av vedlegg.")
+                )
+            }
+
+            when (fileItem) {
                 is PartData.FileItem -> {
                     val fil = fileItem
                         .readFile(CONTENT_LENGHT_LIMIT)
