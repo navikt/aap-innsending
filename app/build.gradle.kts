@@ -2,16 +2,18 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     kotlin("jvm") version "2.2.20"
-    id("io.ktor.plugin") version "3.3.0"
+    id("io.ktor.plugin") version "3.3.1"
     application
 }
 
 val ktorVersion = "3.3.1"
 val komponenterVersjon = "1.0.391"
+val flywayVersjon = "11.13.3"
 
 application {
     mainClass.set("innsending.AppKt")
 }
+
 
 dependencies {
     implementation("no.nav.aap.kelvin:json:$komponenterVersjon")
@@ -47,8 +49,8 @@ dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.0")
     implementation("org.apache.pdfbox:pdfbox:3.0.5")
     implementation("com.zaxxer:HikariCP:7.0.2")
-    implementation("org.flywaydb:flyway-core:11.13.3")
-    implementation("org.flywaydb:flyway-database-postgresql:11.13.3")
+    implementation("org.flywaydb:flyway-core:$flywayVersjon")
+    implementation("org.flywaydb:flyway-database-postgresql:$flywayVersjon")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
     runtimeOnly("net.logstash.logback:logstash-logback-encoder:8.1")
     runtimeOnly("org.postgresql:postgresql:42.7.7")
