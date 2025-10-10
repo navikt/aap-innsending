@@ -17,7 +17,7 @@ updates:
 - package-ecosystem: gradle
   directory: /
   cooldown:
-    default-days: 3d
+    default-days: 3
     exclude:
       - "no.nav.aap.*"
   schedule:
