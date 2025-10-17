@@ -6,6 +6,16 @@ on:
     paths:
       - '.nais/redis-dev.yml'
       - '.nais/redis-prod.yml'
+  workflow_dispatch:
+    inputs:
+      cluster:
+        description: Cluster
+        required: true
+        default: dev-gcp
+        type: choice
+        options:
+          - dev-gcp
+          - prod-gcp
 
 jobs:
   dev:
@@ -19,6 +29,7 @@ jobs:
       manifest: .nais/redis-dev.yml
 
   prod:
+    if: ${{ github.ref == 'refs/heads/main' }}
     needs: dev
     permissions:
       contents: read
