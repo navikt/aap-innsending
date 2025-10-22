@@ -8,7 +8,7 @@ plugins {
 
 val ktorVersion = "3.3.1"
 val komponenterVersjon = "1.0.403"
-val flywayVersjon = "11.14.0"
+val flywayVersjon = "11.14.1"
 
 application {
     mainClass.set("innsending.AppKt")
@@ -47,13 +47,13 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus:1.15.5")
     implementation("ch.qos.logback:logback-classic:1.5.19")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.0")
-    implementation("org.apache.pdfbox:pdfbox:3.0.5")
+    implementation("org.apache.pdfbox:pdfbox:3.0.6")
     implementation("com.zaxxer:HikariCP:7.0.2")
     implementation("org.flywaydb:flyway-core:$flywayVersjon")
     implementation("org.flywaydb:flyway-database-postgresql:$flywayVersjon")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
     runtimeOnly("net.logstash.logback:logstash-logback-encoder:8.1")
-    runtimeOnly("org.postgresql:postgresql:42.7.7")
+    runtimeOnly("org.postgresql:postgresql:42.7.8")
 
     testImplementation(kotlin("test"))
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
