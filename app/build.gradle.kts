@@ -1,14 +1,14 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    kotlin("jvm") version "2.2.20"
+    kotlin("jvm") version "2.2.21"
     id("io.ktor.plugin") version "3.3.1"
     application
 }
 
 val ktorVersion = "3.3.1"
 val komponenterVersjon = "1.0.414"
-val flywayVersjon = "11.14.1"
+val flywayVersjon = "11.15.0"
 
 application {
     mainClass.set("innsending.AppKt")
