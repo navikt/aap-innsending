@@ -9,6 +9,7 @@ plugins {
 val ktorVersion = "3.3.1"
 val komponenterVersjon = "1.0.417"
 val flywayVersjon = "11.15.0"
+val behandlingsflytversjon = "0.0.475"
 
 application {
     mainClass.set("innsending.AppKt")
@@ -22,6 +23,7 @@ dependencies {
     implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:infrastructure:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:motor-api:$komponenterVersjon")
+    implementation("no.nav.aap.behandlingsflyt:kontrakt:$behandlingsflytversjon")
 
     implementation("org.apache.kafka:kafka-clients:4.1.0")
     implementation("no.nav.tms.mikrofrontend.selector:builder:20230704114948-74aa2e9")
@@ -77,6 +79,17 @@ dependencies {
 repositories {
     mavenCentral()
     maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
+    maven {
+        name = "GitHubPackages"
+        url = uri("https://maven.pkg.github.com/navikt/behandlingsflyt")
+        credentials {
+            username = "x-access-token"
+            password = (project.findProperty("githubPassword")
+                ?: System.getenv("GITHUB_PASSWORD")
+                ?: System.getenv("GITHUB_TOKEN")
+                ?: error("")).toString()
+        }
+    }
 }
 
 tasks {

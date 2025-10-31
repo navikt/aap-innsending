@@ -18,7 +18,9 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.core.instrument.MeterRegistry
+import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Søknad
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.motor.FlytJobbRepository
 import no.nav.aap.motor.JobbInput
 import java.time.LocalDateTime
@@ -170,6 +172,10 @@ private suspend fun postInnsending(
         )
     }
 
+    if (innsending.soknad != null) {
+        validerSøknad(innsending.soknad)
+    }
+
     dataSource.transaction { dbconnection ->
         val innsendingRepo = InnsendingRepo(dbconnection)
         val innsendingId = innsendingRepo.lagre(
@@ -210,6 +216,16 @@ private suspend fun postInnsending(
     redis.set(innsendingHash, byteArrayOf(), 60)
 
     call.respond(HttpStatusCode.OK, InnsendingResponse(innsendingId))
+}
+
+
+fun validerSøknad(søknad: Map<String, Any>) {
+    try {
+        DefaultJsonMapper.fromJson<Søknad>(DefaultJsonMapper.toJson(søknad))
+        logger.info("Søknad validerte ok.")
+    } catch (e: Exception) {
+        logger.warn("Feil ved validering av søknad.", e)
+    }
 }
 
 fun Map<String, Any>.toByteArray(): ByteArray {
