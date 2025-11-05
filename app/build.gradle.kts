@@ -48,7 +48,7 @@ dependencies {
     implementation("redis.clients:jedis:7.0.0")
     implementation("io.micrometer:micrometer-registry-prometheus:1.15.5")
     implementation("ch.qos.logback:logback-classic:1.5.20")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.0")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.1")
     implementation("org.apache.pdfbox:pdfbox:3.0.6")
     implementation("com.zaxxer:HikariCP:7.0.2")
     implementation("org.flywaydb:flyway-core:$flywayVersjon")
