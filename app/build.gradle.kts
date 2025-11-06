@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    kotlin("jvm") version "2.2.21"
+    id("aap.conventions")
     id("io.ktor.plugin") version "3.3.1"
     application
 }
@@ -75,41 +75,9 @@ dependencies {
     testImplementation("org.assertj:assertj-core:3.27.6")
 
 }
-
-repositories {
-    mavenCentral()
-    maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
-    maven {
-        name = "GitHubPackages"
-        url = uri("https://maven.pkg.github.com/navikt/behandlingsflyt")
-        credentials {
-            username = "x-access-token"
-            password = (project.findProperty("githubPassword")
-                ?: System.getenv("GITHUB_PASSWORD")
-                ?: System.getenv("GITHUB_TOKEN")
-                ?: error("")).toString()
-        }
-    }
-}
-
 tasks {
-    withType<Test> {
-        useJUnitPlatform()
-    }
     withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
         duplicatesStrategy = DuplicatesStrategy.WARN
         mergeServiceFiles()
     }
 }
-
-kotlin {
-    jvmToolchain(21)
-    compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_21)
-    }
-}
-
-kotlin.sourceSets["main"].kotlin.srcDirs("main")
-kotlin.sourceSets["test"].kotlin.srcDirs("test")
-sourceSets["main"].resources.srcDirs("main")
-sourceSets["test"].resources.srcDirs("test")
