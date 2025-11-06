@@ -2,11 +2,11 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     kotlin("jvm") version "2.2.21"
-    id("io.ktor.plugin") version "3.3.1"
+    id("io.ktor.plugin") version "3.3.2"
     application
 }
 
-val ktorVersion = "3.3.1"
+val ktorVersion = "3.3.2"
 val komponenterVersjon = "1.0.422"
 val flywayVersjon = "11.15.0"
 val behandlingsflytversjon = "0.0.475"
