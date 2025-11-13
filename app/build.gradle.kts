@@ -66,12 +66,8 @@ dependencies {
             because("https://github.com/advisories/GHSA-4g9r-vxhx-9pgx")
         }
     }
-    testImplementation("org.testcontainers:postgresql:1.21.3")
-    constraints {
-        implementation("org.apache.commons:commons-compress:1.28.0") {
-            because("https://github.com/advisories/GHSA-4g9r-vxhx-9pgx")
-        }
-    }
+    testImplementation("org.testcontainers:testcontainers-postgresql:2.0.1")
+
     testImplementation("org.assertj:assertj-core:3.27.6")
 
 }
