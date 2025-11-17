@@ -8,7 +8,7 @@ plugins {
 
 val ktorVersion = "3.3.2"
 val komponenterVersjon = "1.0.435"
-val flywayVersjon = "11.16.0"
+val flywayVersjon = "11.17.0"
 val behandlingsflytversjon = "0.0.484"
 
 application {
@@ -25,7 +25,7 @@ dependencies {
     implementation("no.nav.aap.kelvin:motor-api:$komponenterVersjon")
     implementation("no.nav.aap.behandlingsflyt:kontrakt:$behandlingsflytversjon")
 
-    implementation("org.apache.kafka:kafka-clients:4.1.0")
+    implementation("org.apache.kafka:kafka-clients:4.1.1")
     implementation("no.nav.tms.mikrofrontend.selector:builder:20230704114948-74aa2e9")
 
     implementation("io.ktor:ktor-server-core:$ktorVersion")
@@ -47,7 +47,7 @@ dependencies {
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("redis.clients:jedis:7.0.0")
     implementation("io.micrometer:micrometer-registry-prometheus:1.16.0")
-    implementation("ch.qos.logback:logback-classic:1.5.20")
+    implementation("ch.qos.logback:logback-classic:1.5.21")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.1")
     implementation("org.apache.pdfbox:pdfbox:3.0.6")
     implementation("com.zaxxer:HikariCP:7.0.2")
@@ -66,7 +66,7 @@ dependencies {
             because("https://github.com/advisories/GHSA-4g9r-vxhx-9pgx")
         }
     }
-    testImplementation("org.testcontainers:testcontainers-postgresql:2.0.1")
+    testImplementation("org.testcontainers:testcontainers-postgresql:2.0.2")
 
     testImplementation("org.assertj:assertj-core:3.27.6")
 
