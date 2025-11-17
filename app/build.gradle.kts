@@ -8,7 +8,7 @@ plugins {
 
 val ktorVersion = "3.3.2"
 val komponenterVersjon = "1.0.435"
-val flywayVersjon = "11.16.0"
+val flywayVersjon = "11.17.0"
 val behandlingsflytversjon = "0.0.485"
 
 application {
@@ -66,7 +66,7 @@ dependencies {
             because("https://github.com/advisories/GHSA-4g9r-vxhx-9pgx")
         }
     }
-    testImplementation("org.testcontainers:testcontainers-postgresql:2.0.1")
+    testImplementation("org.testcontainers:testcontainers-postgresql:2.0.2")
 
     testImplementation("org.assertj:assertj-core:3.27.6")
 
