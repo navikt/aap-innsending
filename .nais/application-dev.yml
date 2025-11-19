@@ -34,6 +34,7 @@ spec:
   accessPolicy:
     inbound:
       rules:
+        - application: aap-min-side-microfrontend
         - application: innsyn
         - application: soknad
         - application: tms-utkast
