@@ -15,13 +15,13 @@ jobs:
       id-token: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           path: innsending
           sparse-checkout: |
             FUNKSJONELL.md
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           repository: navikt/aap-intern-sysdok
           ref: refs/heads/main
