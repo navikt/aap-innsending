@@ -8,7 +8,7 @@ plugins {
 
 val ktorVersion = "3.3.2"
 val komponenterVersjon = "1.0.442"
-val flywayVersjon = "11.17.0"
+val flywayVersjon = "11.17.1"
 val behandlingsflytversjon = "0.0.489"
 
 application {
@@ -45,7 +45,7 @@ dependencies {
     implementation("org.apache.tika:tika-core:3.2.3")
 
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
-    implementation("redis.clients:jedis:7.0.0")
+    implementation("redis.clients:jedis:7.1.0")
     implementation("io.micrometer:micrometer-registry-prometheus:1.16.0")
     implementation("ch.qos.logback:logback-classic:1.5.21")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.1")
