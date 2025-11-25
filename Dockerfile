@@ -1,31 +1,16 @@
-# jlink ligger ikke i jre lengere (etter java 21)
-FROM eclipse-temurin:25-jdk-alpine AS jre
+# Bruker Chainguard secure base image, https://sikkerhet.nav.no/docs/sikker-utvikling/baseimages
 
-# --strip-debug uses objcopy from binutils
-RUN apk add binutils
+FROM europe-north1-docker.pkg.dev/cgr-nav/pull-through/nav.no/jdk:openjdk-21
 
-# Build small JRE image
-RUN jlink \
-    --verbose \
-    --module-path $JAVA_HOME/bin/jmods/ \
-    --add-modules java.base,java.desktop,java.management,java.naming,java.net.http,java.security.jgss,java.security.sasl,java.sql,jdk.httpserver,jdk.unsupported,jdk.crypto.ec,java.instrument \
-    --strip-debug \
-    --no-man-pages \
-    --no-header-files \
-    --compress=2 \
-    --output /customjre
+WORKDIR /app
+COPY /app/build/libs/app-all.jar /app/app.jar
 
-
-FROM alpine:3.22.2 AS app
-ENV JAVA_HOME=/jre
 ENV LANG='nb_NO.UTF-8' LANGUAGE='nb_NO:nb' LC_ALL='nb:NO.UTF-8' TZ="Europe/Oslo"
-ENV PATH="${JAVA_HOME}/bin:${PATH}"
+# Kommentar til bruk av XX:ActiveProcessorCount:
+# Dette påvirker kode som har logikk basert på JVM-metoden Runtime.getRuntime().availableProcessors()
+# Uten limit i Kubernetes returnerer den antall CPU i noden, som kan være mye høyere enn det som er tildelt pod'en.
+# Dette kan føre til at applikasjonen prøver å bruke flere tråder enn det som er optimalt for pod'en.
+# Nå returnerer metoden det tallet vi angir istedenfor.
+ENV JDK_JAVA_OPTIONS="-XX:MaxRAMPercentage=75 -XX:ActiveProcessorCount=2"
 
-COPY --from=jre /customjre $JAVA_HOME
-COPY /app/build/libs/app-all.jar app.jar
-
-CMD ["java", "-XX:MaxRAMPercentage=75.0", "-XX:ActiveProcessorCount=2", "-jar", "app.jar"]
-
-# use -XX:+UseParallelGC when 2 CPUs and 4G RAM.
-# use G1GC when using more than 4G RAM and/or more than 2 CPUs
-# use -XX:ActiveProcessorCount=2 if less than 1G RAM.
+CMD ["java", "-jar", "app.jar"]
