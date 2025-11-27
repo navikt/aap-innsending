@@ -53,7 +53,7 @@ class ArkiveringService(
 
     private fun lagSøknadDokument(søknad: ByteArray, original: Journalpost.DokumentVariant?): Journalpost.Dokument {
         return Journalpost.Dokument(
-            tittel = "Søknad om Arbeidsavklaringspenger",
+            tittel = "Søknad om arbeidsavklaringspenger (AAP)",
             brevkode = "NAV 11-13.05",
             dokumentVarianter = listOfNotNull(
                 Journalpost.DokumentVariant(fysiskDokument = Base64.getEncoder().encodeToString(søknad)),
@@ -81,7 +81,7 @@ class ArkiveringService(
         val vedleggDokumenter = lagDokumenter(innsending)
 
         val journalpost = Journalpost(
-            tittel = "Ettersendelse til søknad om arbeidsavklaringspenger",
+            tittel = "Ettersendelse til søknad om arbeidsavklaringspenger (AAP)",
             avsenderMottaker = Journalpost.AvsenderMottaker(
                 id = Journalpost.Fødselsnummer(innsending.personident)
             ),
