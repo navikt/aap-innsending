@@ -2,11 +2,11 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("aap.conventions")
-    id("io.ktor.plugin") version "3.3.2"
+    id("io.ktor.plugin") version "3.3.3"
     application
 }
 
-val ktorVersion = "3.3.2"
+val ktorVersion = "3.3.3"
 val komponenterVersjon = "1.0.449"
 val flywayVersjon = "11.17.1"
 val behandlingsflytversjon = "0.0.493"
