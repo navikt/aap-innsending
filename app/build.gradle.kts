@@ -8,7 +8,7 @@ plugins {
 
 val ktorVersion = "3.3.3"
 val komponenterVersjon = "1.0.450"
-val flywayVersjon = "11.17.1"
+val flywayVersjon = "11.18.0"
 val behandlingsflytversjon = "0.0.494"
 
 application {
