@@ -22,8 +22,6 @@ internal object HttpClientFactory {
             connectTimeoutMillis = 5_000
         }
 
-        install(HttpRequestRetry)
-
         install(Logging) {
             logger = ClientLogger(logLevel)
             level = logLevel
