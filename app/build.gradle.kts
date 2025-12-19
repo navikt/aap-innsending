@@ -66,7 +66,7 @@ dependencies {
             because("https://github.com/advisories/GHSA-4g9r-vxhx-9pgx")
         }
     }
-    testImplementation("org.testcontainers:testcontainers-postgresql:2.0.2")
+    testImplementation("org.testcontainers:testcontainers-postgresql:2.0.3")
 
     testImplementation("org.assertj:assertj-core:3.27.6")
 
