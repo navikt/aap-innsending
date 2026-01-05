@@ -8,7 +8,7 @@ plugins {
 
 val ktorVersion = "3.3.3"
 val komponenterVersjon = "1.0.472"
-val flywayVersjon = "11.19.0"
+val flywayVersjon = "11.20.0"
 val behandlingsflytversjon = "0.0.514"
 
 application {
@@ -45,9 +45,9 @@ dependencies {
     implementation("org.apache.tika:tika-core:3.2.3")
 
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
-    implementation("redis.clients:jedis:7.1.0")
+    implementation("redis.clients:jedis:7.2.0")
     implementation("io.micrometer:micrometer-registry-prometheus:1.16.1")
-    implementation("ch.qos.logback:logback-classic:1.5.22")
+    implementation("ch.qos.logback:logback-classic:1.5.23")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.1")
     implementation("org.apache.pdfbox:pdfbox:3.0.6")
     implementation("com.zaxxer:HikariCP:7.0.2")
@@ -66,7 +66,7 @@ dependencies {
             because("https://github.com/advisories/GHSA-4g9r-vxhx-9pgx")
         }
     }
-    testImplementation("org.testcontainers:testcontainers-postgresql:2.0.2")
+    testImplementation("org.testcontainers:testcontainers-postgresql:2.0.3")
 
     testImplementation("org.assertj:assertj-core:3.27.6")
 
