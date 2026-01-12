@@ -8,7 +8,7 @@ plugins {
 
 val ktorVersion = "3.3.3"
 val komponenterVersjon = "1.0.481"
-val flywayVersjon = "11.20.0"
+val flywayVersjon = "11.20.1"
 val behandlingsflytversjon = "0.0.520"
 
 application {
@@ -47,7 +47,7 @@ dependencies {
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("redis.clients:jedis:7.2.0")
     implementation("io.micrometer:micrometer-registry-prometheus:1.16.1")
-    implementation("ch.qos.logback:logback-classic:1.5.23")
+    implementation("ch.qos.logback:logback-classic:1.5.24")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.1")
     implementation("org.apache.pdfbox:pdfbox:3.0.6")
     implementation("com.zaxxer:HikariCP:7.0.2")
@@ -59,7 +59,7 @@ dependencies {
 
     testImplementation(kotlin("test"))
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
-    testImplementation("com.nimbusds:nimbus-jose-jwt:10.6")
+    testImplementation("com.nimbusds:nimbus-jose-jwt:10.7")
     testImplementation("com.redis:testcontainers-redis:2.2.4")
     constraints {
         implementation("org.apache.commons:commons-compress:1.28.0") {
