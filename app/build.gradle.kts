@@ -2,11 +2,11 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("aap.conventions")
-    id("io.ktor.plugin") version "3.3.3"
+    id("io.ktor.plugin") version "3.4.0"
     application
 }
 
-val ktorVersion = "3.3.3"
+val ktorVersion = "3.4.0"
 val komponenterVersjon = "1.0.937"
 val flywayVersjon = "11.20.1"
 val behandlingsflytversjon = "0.0.547"
@@ -45,17 +45,17 @@ dependencies {
     implementation("org.apache.tika:tika-core:3.2.3")
 
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
-    implementation("redis.clients:jedis:7.2.0")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.16.1")
-    implementation("ch.qos.logback:logback-classic:1.5.24")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.1")
+    implementation("redis.clients:jedis:7.2.1")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.16.3")
+    implementation("ch.qos.logback:logback-classic:1.5.29")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.21.0")
     implementation("org.apache.pdfbox:pdfbox:3.0.6")
     implementation("com.zaxxer:HikariCP:7.0.2")
     implementation("org.flywaydb:flyway-core:$flywayVersjon")
     implementation("org.flywaydb:flyway-database-postgresql:$flywayVersjon")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
     runtimeOnly("net.logstash.logback:logstash-logback-encoder:9.0")
-    runtimeOnly("org.postgresql:postgresql:42.7.8")
+    runtimeOnly("org.postgresql:postgresql:42.7.10")
 
     testImplementation(kotlin("test"))
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
@@ -68,7 +68,7 @@ dependencies {
     }
     testImplementation("org.testcontainers:testcontainers-postgresql:2.0.3")
 
-    testImplementation("org.assertj:assertj-core:3.27.6")
+    testImplementation("org.assertj:assertj-core:3.27.7")
 
 }
 tasks {
