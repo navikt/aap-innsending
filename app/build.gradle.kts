@@ -7,9 +7,9 @@ plugins {
 }
 
 val ktorVersion = "3.4.0"
-val komponenterVersjon = "1.0.937"
+val komponenterVersjon = "2.0.0"
 val flywayVersjon = "11.20.1"
-val behandlingsflytversjon = "0.0.547"
+val behandlingsflytversjon = "0.0.551"
 
 application {
     mainClass.set("innsending.AppKt")
