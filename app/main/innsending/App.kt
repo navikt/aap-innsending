@@ -31,7 +31,7 @@ import io.micrometer.core.instrument.binder.logging.LogbackMetrics
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.json.DefaultJsonMapper
-import no.nav.aap.motor.Jobb
+import no.nav.aap.motor.JobbSpesifikasjon
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.retry.RetryService
 import org.slf4j.Logger
@@ -155,7 +155,7 @@ fun Application.module(
 
 object ProsesseringsJobber {
 
-    fun alle(): List<Jobb> {
+    fun alle(): List<JobbSpesifikasjon> {
         // Legger her alle oppgavene som skal utføres i systemet
         return listOf(
             ArkiverInnsendingJobbUtfører,
