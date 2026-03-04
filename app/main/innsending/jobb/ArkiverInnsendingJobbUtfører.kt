@@ -9,8 +9,8 @@ import innsending.prometheus
 import innsending.prometheus.arkivertTeller
 import io.micrometer.core.instrument.Tag
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.motor.ConnectionJobbSpesifikasjon
 import no.nav.aap.motor.FlytJobbRepository
-import no.nav.aap.motor.Jobb
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 
@@ -46,7 +46,7 @@ class ArkiverInnsendingJobbUtfører(
         prometheus.prometheus.counter("innsending", listOf(Tag.of("resultat", "ok"))).increment()
     }
 
-    companion object : Jobb {
+    companion object : ConnectionJobbSpesifikasjon {
         override fun konstruer(connection: DBConnection): JobbUtfører {
             val innsendingRepo = InnsendingRepo(connection)
 
@@ -60,16 +60,11 @@ class ArkiverInnsendingJobbUtfører(
             )
         }
 
-        override fun type(): String {
-            return "innsending.arkiver"
-        }
+        override val type: String = "innsending.arkiver"
 
-        override fun navn(): String {
-            return "Arkiver innsending"
-        }
+        override val navn: String = "Arkiver innsending"
 
-        override fun beskrivelse(): String {
-            return "Konverterer til PDF hvis behov og arkiverer innsendingen"
-        }
+        override val beskrivelse: String =
+            "Konverterer til PDF hvis behov og arkiverer innsendingen"
     }
 }
