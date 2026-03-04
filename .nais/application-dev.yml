@@ -80,8 +80,6 @@ spec:
       destinations:
         - id: elastic
         - id: loki
-  secureLogs:
-    enabled: true
   env:
     - name: JOARK_BASE_URL
       value: https://dokarkiv-q2.dev-fss-pub.nais.io
