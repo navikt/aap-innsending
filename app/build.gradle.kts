@@ -7,7 +7,7 @@ plugins {
 }
 
 val ktorVersion = "3.4.0"
-val komponenterVersjon = "2.0.15"
+val komponenterVersjon = "2.0.16"
 val flywayVersjon = "12.0.3"
 val behandlingsflytversjon = "0.0.568"
 
