@@ -3,6 +3,7 @@ package innsending
 import innsending.kafka.KafkaConfig
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 import java.net.URI
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.tokenx.TokenxConfig
 
 internal object TestConfig {
 
@@ -37,13 +38,15 @@ internal object TestConfig {
                 tokenEndpoint = URI.create("http://localhost:${fakes.azure.port()}/token"),
                 clientId = "test",
                 clientSecret = "test",
-                jwksUri = "test",
+                jwksUri = URI.create("http://localhost:${fakes.azure.port()}/jwks").toString(),
                 issuer = "test",
             ),
-            tokenx = TokenXConfig(
+            tokenx = TokenxConfig(
+                tokenEndpoint = URI.create("http://localhost:${fakes.tokenx.port()}/token"),
                 clientId = "aap-innsending",
+                clientSecret = "test",
                 issuer = "tokenx",
-                jwks = URI.create("http://localhost:${fakes.tokenx.port()}/jwks")
+                jwksUri = URI.create("http://localhost:${fakes.tokenx.port()}/jwks").toString()
             ),
             kafka = KafkaConfig(
                 brokers = "localhost",
