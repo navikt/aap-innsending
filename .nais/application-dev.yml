@@ -22,6 +22,11 @@ spec:
   azure:
     application:
       enabled: true
+      allowAllUsers: false
+      claims:
+        groups:
+          # 0000-GA-AAP_DRIFT
+          - id: bc89623f-4624-4978-ac54-acd048c0f2a5
   tokenx:
     enabled: true
   kafka:
