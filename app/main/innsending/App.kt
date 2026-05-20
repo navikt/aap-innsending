@@ -12,7 +12,6 @@ import innsending.pdf.PdfGen
 import innsending.postgres.Hikari
 import innsending.redis.Redis
 import innsending.routes.actuator
-import innsending.routes.driftApi
 import innsending.routes.innsendingRoute
 import innsending.routes.mellomlagerRoute
 import io.ktor.http.*
@@ -118,7 +117,6 @@ fun Application.server(
         }
 
         actuator(prometheus, redis)
-        driftApi(redis)
     }
 }
 
