@@ -255,6 +255,7 @@ class EmptyStreamException(msg: String) : RuntimeException(msg)
 
 private suspend fun PartData.FileItem.readFile(fileSizeLimit: Int): Result<ByteArray> =
     runCatching {
+        val channel = provider()
         var buffer = ByteArray(1024)
         var idx = 0
 
@@ -263,10 +264,10 @@ private suspend fun PartData.FileItem.readFile(fileSizeLimit: Int): Result<ByteA
             require(buffer.size <= fileSizeLimit) { "Filen er større enn tillat størrelse på $fileSizeLimit" }
         }
 
-        while (provider().awaitContent()) {
+        while (channel.awaitContent()) {
             if (idx == buffer.size) expandBuffer()
             try {
-                buffer[idx++] = provider().readByte()
+                buffer[idx++] = channel.readByte()
             } catch (e: EOFException) {
                 log.error("No bytes found in stream", e)
                 throw EmptyStreamException("No bytes found in stream")
@@ -275,6 +276,8 @@ private suspend fun PartData.FileItem.readFile(fileSizeLimit: Int): Result<ByteA
                 throw e
             }
         }
+
+        if (idx == 0) throw EmptyStreamException("No bytes found in stream")
 
         buffer.copyOfRange(0, idx)
     }
