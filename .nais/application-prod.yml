@@ -36,6 +36,7 @@ spec:
         - application: aap-min-side-microfrontend
         - application: innsyn
         - application: soknad
+        - application: paw-patrol
         - application: tms-utkast
           namespace: min-side
           cluster: prod-gcp
