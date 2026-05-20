@@ -2,14 +2,14 @@ package innsending.redis
 
 import innsending.RedisConfig
 import innsending.logger
-import org.slf4j.LoggerFactory
+import java.net.URI
+import java.time.LocalDateTime
+import java.util.Base64
 import redis.clients.jedis.DefaultJedisClientConfig
 import redis.clients.jedis.HostAndPort
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.JedisPoolConfig
 import redis.clients.jedis.params.SetParams
-import java.net.URI
-import java.time.LocalDateTime
 
 const val EnDagSekunder: Long = 60 * 60 * 24
 
@@ -18,12 +18,32 @@ data class Key(
     val prefix: String = "",
 ) {
     fun get(): ByteArray = "$prefix:$value".toByteArray()
+
+    companion object {
+        fun of(rawString: String): Key {
+            val parts = rawString.split(":", limit = 2)
+            return if (parts.size == 2) Key(value = parts[1], prefix = parts[0]) else Key(value = rawString)
+        }
+    }
 }
 
-private val logger = LoggerFactory.getLogger("Redis")
+/**
+ * Brukes i DriftApi for å kunne vise nøkler uten å vise identen i klartekst
+ **/
+data class HashedKey(val encoded: String) {
+    companion object {
+        fun of(key: Key): HashedKey = HashedKey(Base64.getUrlEncoder().withoutPadding().encodeToString(key.get()))
+    }
+
+    fun toKey(): Key {
+        val rawKey = String(Base64.getUrlDecoder().decode(encoded))
+        val parts = rawKey.split(":", limit = 2)
+        return if (parts.size == 2) Key(value = parts[1], prefix = parts[0]) else Key(value = rawKey)
+    }
+}
 
 class Redis private constructor(
-    private val pool: JedisPool
+    private val pool: JedisPool,
 ) : AutoCloseable {
     constructor(config: RedisConfig) : this(
         JedisPool(
@@ -107,6 +127,14 @@ class Redis private constructor(
     fun exists(key: Key): Boolean {
         pool.resource.use {
             return it.exists(key.get())
+        }
+    }
+
+    fun getAllKeysWithMemory(): Map<String, Long> {
+        pool.resource.use { jedis ->
+            return jedis.keys("*").associate { key ->
+                HashedKey.of(Key.of(key)).encoded to (jedis.memoryUsage(key) ?: 0L)
+            }
         }
     }
 
