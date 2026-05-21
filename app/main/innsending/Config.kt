@@ -1,8 +1,9 @@
 package innsending
 
 import innsending.kafka.KafkaConfig
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 import java.net.URI
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.tokenx.TokenxConfig
 
 private fun getEnvVar(envar: String) = System.getenv(envar) ?: error("missing envvar $envar")
 
@@ -11,7 +12,7 @@ data class Config(
     val redis: RedisConfig = RedisConfig(),
     val azure: AzureConfig = AzureConfig(),
     val joark: JoarkConfig = JoarkConfig(),
-    val tokenx: TokenXConfig = TokenXConfig(),
+    val tokenx: TokenxConfig = TokenxConfig(),
     val pdfGenHost: String = "http://pdfgen",
     val virusScanHost: String = "http://clamav.nais-system",
     val kafka: KafkaConfig = KafkaConfig(
@@ -32,7 +33,7 @@ data class RedisConfig(
 
 data class OppslagConfig(
     val host: String = "http://oppslag",
-    val scope: String = getEnvVar("OPPSLAG_SCOPE")
+    val scope: String = getEnvVar("OPPSLAG_SCOPE"),
 )
 
 data class PostgresConfig(
@@ -43,17 +44,11 @@ data class PostgresConfig(
     val password: String = getEnvVar("NAIS_DATABASE_INNSENDING_INNSENDING_PASSWORD"),
     val url: String = "jdbc:postgresql://${host}:${port}/${database}",
     val driver: String = "org.postgresql.Driver",
-    )
+)
 
 data class JoarkConfig(
     val baseUrl: String = getEnvVar("JOARK_BASE_URL"),
-    val scope: String = getEnvVar("JOARK_SCOPE")
-)
-
-data class TokenXConfig(
-    val clientId: String = getEnvVar("TOKEN_X_CLIENT_ID"),
-    val issuer: String = getEnvVar("TOKEN_X_ISSUER"),
-    val jwks: URI = URI.create(getEnvVar("TOKEN_X_JWKS_URI"))
+    val scope: String = getEnvVar("JOARK_SCOPE"),
 )
 
 object ProdConfig {
