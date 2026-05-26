@@ -2,13 +2,13 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("aap.conventions")
-    id("io.ktor.plugin") version "3.4.3"
+    id("io.ktor.plugin") version "3.5.0"
     application
 }
 
-val ktorVersion = "3.4.3"
+val ktorVersion = "3.5.0"
 val komponenterVersjon = "2.0.16"
-val flywayVersjon = "12.6.0"
+val flywayVersjon = "12.6.2"
 val behandlingsflytversjon = "0.0.600"
 
 application {
@@ -25,7 +25,7 @@ dependencies {
     implementation("no.nav.aap.kelvin:motor-api:$komponenterVersjon")
     implementation("no.nav.aap.behandlingsflyt:kontrakt:$behandlingsflytversjon")
 
-    implementation("org.apache.kafka:kafka-clients:4.2.0")
+    implementation("org.apache.kafka:kafka-clients:4.3.0")
     implementation("no.nav.tms.mikrofrontend.selector:builder:20230704114948-74aa2e9")
 
     implementation("io.ktor:ktor-server-core:$ktorVersion")
@@ -42,7 +42,7 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-client-jackson:$ktorVersion")
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
-    implementation("org.apache.tika:tika-core:3.3.0")
+    implementation("org.apache.tika:tika-core:3.3.1")
 
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("redis.clients:jedis:7.5.0")
