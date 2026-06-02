@@ -2,13 +2,13 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("aap.conventions")
-    id("io.ktor.plugin") version "3.4.3"
+    id("io.ktor.plugin") version "3.5.0"
     application
 }
 
-val ktorVersion = "3.4.3"
+val ktorVersion = "3.5.0"
 val komponenterVersjon = "2.0.16"
-val flywayVersjon = "12.6.0"
+val flywayVersjon = "12.7.0"
 val behandlingsflytversjon = "0.0.600"
 
 application {
@@ -25,7 +25,7 @@ dependencies {
     implementation("no.nav.aap.kelvin:motor-api:$komponenterVersjon")
     implementation("no.nav.aap.behandlingsflyt:kontrakt:$behandlingsflytversjon")
 
-    implementation("org.apache.kafka:kafka-clients:4.2.0")
+    implementation("org.apache.kafka:kafka-clients:4.3.0")
     implementation("no.nav.tms.mikrofrontend.selector:builder:20230704114948-74aa2e9")
 
     implementation("io.ktor:ktor-server-core:$ktorVersion")
@@ -42,13 +42,13 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-client-jackson:$ktorVersion")
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
-    implementation("org.apache.tika:tika-core:3.3.0")
+    implementation("org.apache.tika:tika-core:3.3.1")
 
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
-    implementation("redis.clients:jedis:7.5.0")
+    implementation("redis.clients:jedis:7.5.2")
     implementation("io.micrometer:micrometer-registry-prometheus:1.16.5")
-    implementation("ch.qos.logback:logback-classic:1.5.32")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.21.3")
+    implementation("ch.qos.logback:logback-classic:1.5.33")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.21.4")
     implementation("org.apache.pdfbox:pdfbox:3.0.7")
     implementation("com.zaxxer:HikariCP:7.0.2")
     implementation("org.flywaydb:flyway-core:$flywayVersjon")
