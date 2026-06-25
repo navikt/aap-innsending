@@ -39,17 +39,13 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.json.DefaultJsonMapper
-import no.nav.aap.motor.FlytJobbRepository
-import no.nav.aap.motor.FlytJobbRepository.Companion.invoke
-import no.nav.aap.motor.Jobb
-import no.nav.aap.motor.JobbInput
+import no.nav.aap.motor.JobbSpesifikasjon
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.retry.RetryService
 import org.slf4j.event.Level
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 import javax.sql.DataSource
-import kotlin.collections.toList
 
 private const val PERSONIDENT = "08486725851"
 fun main() {
@@ -172,7 +168,7 @@ fun Application.module(
 
 object ProsesseringsJobber {
 
-    fun alle(): List<Jobb> {
+    fun alle(): List<JobbSpesifikasjon> {
         // Legger her alle oppgavene som skal utføres i systemet
         return listOf(
             `ArkiverInnsendingJobbUtfører`,
