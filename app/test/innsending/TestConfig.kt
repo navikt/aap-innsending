@@ -17,7 +17,7 @@ internal object TestConfig {
     )
 
     private val redis = RedisConfig(
-        uri = URI.create("http://127.0.0.1:6379"),
+        uri = InitTestRedis.uri,
         username = "test",
         password = "test"
     )
