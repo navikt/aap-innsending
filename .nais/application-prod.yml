@@ -20,6 +20,11 @@ spec:
   azure:
     application:
       enabled: true
+      allowAllUsers: false
+      claims:
+        groups:
+          # 0000-GA-AAP_DRIFT
+          - id: ff9a228b-4aab-47bd-8aee-598d80f0fb4b
   tokenx:
     enabled: true
   kafka:
@@ -36,6 +41,7 @@ spec:
         - application: aap-min-side-microfrontend
         - application: innsyn
         - application: soknad
+        - application: paw-patrol
         - application: tms-utkast
           namespace: min-side
           cluster: prod-gcp
@@ -79,8 +85,6 @@ spec:
       destinations:
         - id: elastic
         - id: loki
-  secureLogs:
-    enabled: true
   env:
     - name: JOARK_BASE_URL
       value: https://dokarkiv.prod-fss-pub.nais.io

@@ -5,7 +5,7 @@ import innsending.kafka.KafkaProducer
 import innsending.kafka.MinSideProducerHolder
 import innsending.postgres.InnsendingType
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.motor.Jobb
+import no.nav.aap.motor.ConnectionJobbSpesifikasjon
 import no.nav.aap.motor.JobbInput
 import no.nav.aap.motor.JobbUtfører
 
@@ -23,7 +23,7 @@ class MinSideNotifyJobbUtfører(
         producer.produce(innsending.personident)
     }
 
-    companion object : Jobb {
+    companion object : ConnectionJobbSpesifikasjon {
         override fun konstruer(connection: DBConnection): JobbUtfører {
             val innsendingRepo = InnsendingRepo(connection)
 
@@ -33,16 +33,11 @@ class MinSideNotifyJobbUtfører(
             )
         }
 
-        override fun type(): String {
-            return "innsending.minside"
-        }
+        override val type: String = "innsending.minside"
 
-        override fun navn(): String {
-            return "Minside notify"
-        }
+        override val navn: String = "Minside notify"
 
-        override fun beskrivelse(): String {
-            return "Sier ifra til min side om at en søknad er sendt inn"
-        }
+        override val beskrivelse: String =
+            "Sier ifra til min side om at en søknad er sendt inn"
     }
 }

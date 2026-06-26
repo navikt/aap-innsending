@@ -15,7 +15,7 @@ data class InnsendingNy(
     val eksternRef: UUID,
     val forrigeInnsendingId: Long?,
     val type: InnsendingType,
-    val journalpost_Id: String?,
+    @Suppress("PropertyName") val journalpost_Id: String?,
     val filer: List<FilNy>
 ) {
     fun kvitteringToMap(): Map<String, Any> {

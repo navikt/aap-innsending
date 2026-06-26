@@ -155,6 +155,7 @@ fun Route.mellomlagerRoute(
 
                     val pdf: ByteArray = when (contentType) {
                         in acceptedContentType -> {
+                            log.info("Scanner vedlegg for virus.")
                             if (virusScanClient.hasVirus(fil, contentType)) {
                                 log.warn("Bruker prøvde å laste opp virus")
                                 return@post call.respond(
@@ -165,6 +166,7 @@ fun Route.mellomlagerRoute(
                             if (contentType == ContentType.Application.Pdf) {
                                 fil
                             } else {
+                                log.info("Fil er ikke PDF. Konverterer til PDF.")
                                 try {
                                     pdfGen.bildeTilPfd(fil, contentType)
                                 } catch (e: Exception) {
@@ -186,6 +188,7 @@ fun Route.mellomlagerRoute(
                         }
                     }
 
+                    log.info("Sjekker om PDF er kryptert eller ugyldig.")
                     if (kryptertEllerUgyldigPdf(pdf)) {
                         log.info("Fikk kryptert eller ugyldig PDF.")
                         return@post call.respond(
@@ -252,6 +255,7 @@ class EmptyStreamException(msg: String) : RuntimeException(msg)
 
 private suspend fun PartData.FileItem.readFile(fileSizeLimit: Int): Result<ByteArray> =
     runCatching {
+        val channel = provider()
         var buffer = ByteArray(1024)
         var idx = 0
 
@@ -260,10 +264,10 @@ private suspend fun PartData.FileItem.readFile(fileSizeLimit: Int): Result<ByteA
             require(buffer.size <= fileSizeLimit) { "Filen er større enn tillat størrelse på $fileSizeLimit" }
         }
 
-        while (provider().awaitContent()) {
+        while (channel.awaitContent()) {
             if (idx == buffer.size) expandBuffer()
             try {
-                buffer[idx++] = provider().readByte()
+                buffer[idx++] = channel.readByte()
             } catch (e: EOFException) {
                 log.error("No bytes found in stream", e)
                 throw EmptyStreamException("No bytes found in stream")
@@ -272,6 +276,8 @@ private suspend fun PartData.FileItem.readFile(fileSizeLimit: Int): Result<ByteA
                 throw e
             }
         }
+
+        if (idx == 0) throw EmptyStreamException("No bytes found in stream")
 
         buffer.copyOfRange(0, idx)
     }
@@ -285,7 +291,7 @@ fun kryptertEllerUgyldigPdf(fil: ByteArray): Boolean {
         }
         return pdf.isEncrypted
     } catch (e: Exception) {
-        log.info("Bruker sendte inn ugyldig pdf.")
+        log.info("Bruker sendte inn ugyldig pdf.", e)
         return true
     }
 }
