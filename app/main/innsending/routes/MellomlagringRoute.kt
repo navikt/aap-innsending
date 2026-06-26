@@ -1,5 +1,12 @@
 package innsending.routes
 
+import com.papsign.ktor.openapigen.annotations.parameters.PathParam
+import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
+import com.papsign.ktor.openapigen.route.path.normal.delete
+import com.papsign.ktor.openapigen.route.path.normal.get
+import com.papsign.ktor.openapigen.route.path.normal.post
+import com.papsign.ktor.openapigen.route.response.respond
+import com.papsign.ktor.openapigen.route.route
 import innsending.antivirus.ClamAVClient
 import innsending.auth.personident
 import innsending.dto.ErrorRespons
@@ -13,7 +20,6 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
-import io.ktor.server.routing.*
 import io.ktor.utils.io.*
 import kotlinx.io.EOFException
 import org.apache.pdfbox.Loader
@@ -29,8 +35,9 @@ private val log = LoggerFactory.getLogger("MellomLagringRoute")
 private val acceptedContentType =
     listOf(ContentType.Image.JPEG, ContentType.Image.PNG, ContentType.Application.Pdf)
 
+data class FilIdParam(@PathParam("filId") val filId: String)
 
-fun Route.mellomlagerRoute(
+fun NormalOpenAPIRoute.mellomlagerRoute(
     redis: Redis,
     virusScanClient: ClamAVClient,
     pdfGen: PdfGen,
@@ -39,72 +46,73 @@ fun Route.mellomlagerRoute(
     val CONTENT_LENGHT_LIMIT = maxFileSize * 1024 * 1024 // 75 MB
     route("/mellomlagring/søknad") {
 
-        post {
-            val key = Key(call.personident())
-            redis.set(key, call.receive(), EnDagSekunder)
-            redis.getKeysByPrefix(call.personident()).forEach { filKey ->
+        post<Unit, Unit, Unit> { _, _ ->
+            val key = Key(pipeline.call.personident())
+            redis.set(key, pipeline.call.receive(), EnDagSekunder)
+            redis.getKeysByPrefix(pipeline.call.personident()).forEach { filKey ->
                 redis.setExpire(filKey, EnDagSekunder)
             }
-            call.respond(HttpStatusCode.OK)
+            pipeline.call.respond(HttpStatusCode.OK)
         }
 
-        get {
-            val key = Key(call.personident())
+        get<Unit, Unit> { _ ->
+            val key = Key(pipeline.call.personident())
             when (val soknad = redis[key]) {
-                null -> call.respond(HttpStatusCode.NoContent, "Fant ikke mellomlagret søknad")
-                else -> call.respond(HttpStatusCode.OK, soknad)
+                null -> pipeline.call.respond(HttpStatusCode.NoContent, "Fant ikke mellomlagret søknad")
+                else -> pipeline.call.respond(HttpStatusCode.OK, soknad)
             }
         }
 
-        get("/finnes") {
-            val personIdent = Key(call.personident())
-            val søknad = redis[personIdent]
-            if (søknad != null) {
-                val createdAt = redis.lastUpdated(personIdent)
-                log.info("søknad created at: {}", createdAt) //TODO: fjern logg
-                call.respond(
-                    HttpStatusCode.OK,
-                    SøknadFinnesRespons(
-                        "Søknad om AAP",
-                        URI("https://www.nav.no/aap/soknad").toURL(),
-                        createdAt
+        route("/finnes") {
+            get<Unit, SøknadFinnesRespons> { _ ->
+                val personIdent = Key(pipeline.call.personident())
+                val søknad = redis[personIdent]
+                if (søknad != null) {
+                    val createdAt = redis.lastUpdated(personIdent)
+                    log.info("søknad created at: {}", createdAt) //TODO: fjern logg
+                    respond(
+                        SøknadFinnesRespons(
+                            "Søknad om AAP",
+                            URI("https://www.nav.no/aap/soknad").toURL(),
+                            createdAt
+                        )
                     )
-                )
-            } else {
-                call.respond(HttpStatusCode.NoContent, SøknadFinnesRespons())
+                } else {
+                    pipeline.call.respond(HttpStatusCode.NoContent, SøknadFinnesRespons())
+                }
             }
         }
 
-        delete {
-            val key = Key(call.personident())
+        delete<Unit, Unit> { _ ->
+            val key = Key(pipeline.call.personident())
             redis.del(key)
-            call.respond(HttpStatusCode.OK)
+            pipeline.call.respond(HttpStatusCode.OK)
         }
     }
+
     route("/mellomlagring/søknad/v2") {
-        post {
-            val key = Key(call.personident())
-            val vedleggString = call.request.headers["vedlegg"]
-            redis.set(key, call.receive(), EnDagSekunder)
+        post<Unit, Unit, Unit> { _, _ ->
+            val key = Key(pipeline.call.personident())
+            val vedleggString = pipeline.call.request.headers["vedlegg"]
+            redis.set(key, pipeline.call.receive(), EnDagSekunder)
 
             vedleggString?.split(",")?.forEach { filId ->
-                redis.setExpire(Key(prefix = call.personident(), value = filId), EnDagSekunder)
+                redis.setExpire(Key(prefix = pipeline.call.personident(), value = filId), EnDagSekunder)
             }
-            call.respond(HttpStatusCode.OK)
+            pipeline.call.respond(HttpStatusCode.OK)
         }
     }
 
     route("/mellomlagring/fil") {
-        post {
+        post<Unit, MellomlagringRespons, Unit> { _, _ ->
             val key = Key(
                 value = UUID.randomUUID().toString(),
-                prefix = call.personident()
+                prefix = pipeline.call.personident()
             )
 
-            log.info("Leser vedlegg fra request. Content-Type: ${call.request.contentType()}.")
-            // Veldig høy maksgrense siden vi sjekker filtype manuelt
+            log.info("Leser vedlegg fra request. Content-Type: ${pipeline.call.request.contentType()}.")
             val receiveMultipart =
-                call.receiveMultipart(formFieldLimit = 1000 * CONTENT_LENGHT_LIMIT.toLong())
+                pipeline.call.receiveMultipart(formFieldLimit = 1000 * CONTENT_LENGHT_LIMIT.toLong())
 
             log.info("Fikk til å lese multipart.")
 
@@ -112,7 +120,7 @@ fun Route.mellomlagerRoute(
                 receiveMultipart.readPart()
             } catch (e: Exception) {
                 log.error("Feil ved lesing av multipart", e)
-                return@post call.respond(
+                return@post pipeline.call.respond(
                     HttpStatusCode.InternalServerError,
                     ErrorRespons("Feil ved lesing av vedlegg.")
                 )
@@ -124,19 +132,18 @@ fun Route.mellomlagerRoute(
                         .readFile(CONTENT_LENGHT_LIMIT)
                         .getOrElse {
                             when (it) {
-                                is EmptyStreamException -> return@post call.respond(
+                                is EmptyStreamException -> return@post pipeline.call.respond(
                                     HttpStatusCode.UnprocessableEntity,
                                     ErrorRespons("Filen er tom")
                                 )
 
                                 else -> {
                                     log.info("Got exc: {}", it.message)
-                                    return@post call.respond(
+                                    return@post pipeline.call.respond(
                                         HttpStatusCode.UnprocessableEntity,
                                         ErrorRespons("Filen ${fileItem.originalFileName} er større enn maksgrense på ${maxFileSize}MB")
                                     )
                                 }
-
                             }
                         }
 
@@ -147,7 +154,7 @@ fun Route.mellomlagerRoute(
                     }
 
                     if (sjekkFeilContentType(fil, contentType)) {
-                        return@post call.respond(
+                        return@post pipeline.call.respond(
                             HttpStatusCode.UnprocessableEntity,
                             ErrorRespons("Filtype ikke støttet")
                         )
@@ -158,7 +165,7 @@ fun Route.mellomlagerRoute(
                             log.info("Scanner vedlegg for virus.")
                             if (virusScanClient.hasVirus(fil, contentType)) {
                                 log.warn("Bruker prøvde å laste opp virus")
-                                return@post call.respond(
+                                return@post pipeline.call.respond(
                                     HttpStatusCode.UnprocessableEntity,
                                     ErrorRespons("Fant virus i fil")
                                 )
@@ -171,7 +178,7 @@ fun Route.mellomlagerRoute(
                                     pdfGen.bildeTilPfd(fil, contentType)
                                 } catch (e: Exception) {
                                     log.error("Feil fra PDFgen", e)
-                                    return@post call.respond(
+                                    return@post pipeline.call.respond(
                                         HttpStatusCode.UnprocessableEntity,
                                         ErrorRespons("Feil ved omgjøring til pdf")
                                     )
@@ -181,7 +188,7 @@ fun Route.mellomlagerRoute(
 
                         else -> {
                             log.warn("Feil filtype ${contentType.contentType}")
-                            return@post call.respond(
+                            return@post pipeline.call.respond(
                                 HttpStatusCode.UnprocessableEntity,
                                 ErrorRespons("Filtype ikke støttet")
                             )
@@ -191,20 +198,19 @@ fun Route.mellomlagerRoute(
                     log.info("Sjekker om PDF er kryptert eller ugyldig.")
                     if (kryptertEllerUgyldigPdf(pdf)) {
                         log.info("Fikk kryptert eller ugyldig PDF.")
-                        return@post call.respond(
+                        return@post pipeline.call.respond(
                             HttpStatusCode.UnprocessableEntity,
                             ErrorRespons("PDF er kryptert")
                         )
                     }
 
-                    // prefikser med innlogget bruker for å hindre at andre brukere kan hente andres filer
                     redis.set(key, pdf, EnDagSekunder)
 
-                    call.respond(status = HttpStatusCode.Created, MellomlagringRespons(key.value))
+                    pipeline.call.respond(HttpStatusCode.Created, MellomlagringRespons(key.value))
                 }
 
                 else -> {
-                    return@post call.respond(
+                    return@post pipeline.call.respond(
                         HttpStatusCode.UnprocessableEntity,
                         ErrorRespons("Filtype ikke støttet")
                     )
@@ -212,41 +218,43 @@ fun Route.mellomlagerRoute(
             }
         }
 
-        get("/{filId}") {
-            val key = Key(
-                value = requireNotNull(call.parameters["filId"]),
-                prefix = call.personident()
-            )
-
-            when (val fil = redis[key]) {
-                null -> call.respond(
-                    HttpStatusCode.NotFound,
-                    ErrorRespons("Fant ikke mellomlagret fil")
+        route("/{filId}") {
+            get<FilIdParam, Unit> { params ->
+                val key = Key(
+                    value = params.filId,
+                    prefix = pipeline.call.personident()
                 )
 
-                else -> {
-                    call.response.header(
-                        HttpHeaders.ContentDisposition,
-                        ContentDisposition.Attachment
-                            .withParameter(
-                                ContentDisposition.Parameters.FileName,
-                                "${key}.pdf" // TODO: tittel kan lagres på egen key:value
-                            )
-                            .toString()
+                when (val fil = redis[key]) {
+                    null -> pipeline.call.respond(
+                        HttpStatusCode.NotFound,
+                        ErrorRespons("Fant ikke mellomlagret fil")
                     )
-                    call.respond(HttpStatusCode.OK, fil)
+
+                    else -> {
+                        pipeline.call.response.header(
+                            HttpHeaders.ContentDisposition,
+                            ContentDisposition.Attachment
+                                .withParameter(
+                                    ContentDisposition.Parameters.FileName,
+                                    "${key}.pdf" // TODO: tittel kan lagres på egen key:value
+                                )
+                                .toString()
+                        )
+                        pipeline.call.respondBytes(fil, ContentType.Application.Pdf)
+                    }
                 }
             }
-        }
 
-        delete("/{filId}") {
-            val key = Key(
-                value = requireNotNull(call.parameters["filId"]),
-                prefix = call.personident(),
-            )
+            delete<FilIdParam, Unit> { params ->
+                val key = Key(
+                    value = params.filId,
+                    prefix = pipeline.call.personident(),
+                )
 
-            redis.del(key)
-            call.respond(HttpStatusCode.NoContent)
+                redis.del(key)
+                pipeline.call.respond(HttpStatusCode.NoContent)
+            }
         }
     }
 }
