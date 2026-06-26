@@ -171,8 +171,8 @@ object ProsesseringsJobber {
     fun alle(): List<JobbSpesifikasjon> {
         // Legger her alle oppgavene som skal utføres i systemet
         return listOf(
-            `ArkiverInnsendingJobbUtfører`,
-            `MinSideNotifyJobbUtfører`
+            ArkiverInnsendingJobbUtfører,
+            MinSideNotifyJobbUtfører
         )
     }
 }
