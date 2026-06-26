@@ -2,7 +2,7 @@ package innsending
 
 import innsending.antivirus.ClamAVClient
 import innsending.auth.TOKENX
-import innsending.auth.configureAuthentication
+import innsending.auth.authentication
 import innsending.db.FilNy
 import innsending.db.InMemoryFilData
 import innsending.db.InnsendingNy
@@ -73,7 +73,7 @@ fun Application.testserver(
         meterBinders += LogbackMetrics()
     }
 
-    configureAuthentication(config.tokenx)
+    authentication(config.tokenx)
 
     install(CallLogging) {
         level = Level.TRACE
