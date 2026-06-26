@@ -73,7 +73,7 @@ fun Application.testserver(
         meterBinders += LogbackMetrics()
     }
 
-    authentication(config.tokenx)
+    authentication(azureConfig = config.azure, tokenxConfig = config.tokenx)
 
     install(CallLogging) {
         level = Level.TRACE
