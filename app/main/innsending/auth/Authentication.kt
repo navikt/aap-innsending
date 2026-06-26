@@ -21,7 +21,7 @@ internal fun ApplicationCall.personident(): String {
         ?: error("pid mangler i tokenx claims")
 }
 
-fun Application.authentication(config: TokenXConfig) {
+fun Application.configureAuthentication(config: TokenXConfig) {
     val idPortenProvider: JwkProvider = JwkProviderBuilder(config.jwks.toURL())
         .cached(10, 24, TimeUnit.HOURS)
         .rateLimited(10, 1, TimeUnit.MINUTES)

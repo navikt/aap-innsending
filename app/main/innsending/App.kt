@@ -2,7 +2,7 @@ package innsending
 
 import innsending.antivirus.ClamAVClient
 import innsending.auth.TOKENX
-import innsending.auth.authentication
+import innsending.auth.configureAuthentication
 import innsending.jobb.ArkiverInnsendingJobbUtfører
 import innsending.jobb.MinSideNotifyJobbUtfører
 import innsending.kafka.KafkaProducer
@@ -71,7 +71,7 @@ fun Application.server(
         meterBinders += LogbackMetrics()
     }
 
-    authentication(config.tokenx)
+    configureAuthentication(config.tokenx)
 
     install(CallLogging) {
         level = Level.TRACE
