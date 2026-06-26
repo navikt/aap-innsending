@@ -1,5 +1,6 @@
 package innsending.routes
 
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import innsending.Fakes
 import innsending.TestConfig
 import innsending.TokenXGen
@@ -7,13 +8,18 @@ import innsending.db.InnsendingNy
 import innsending.db.InnsendingRepo
 import innsending.dto.FilMetadata
 import innsending.dto.Innsending
+import innsending.dto.MineAapSoknadMedEttersendinger
+import innsending.dto.MineAapSoknadMedEttersendingNy
+import innsending.dto.ValiderFiler
 import innsending.postgres.InnsendingType
 import innsending.postgres.PostgresTestBase
 import innsending.redis.Key
 import innsending.server
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
@@ -23,6 +29,7 @@ import io.ktor.serialization.jackson.jackson
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import no.nav.aap.komponenter.dbconnect.transaction
+import org.assertj.core.api.Assertions.assertThat
 import org.json.JSONObject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -302,11 +309,282 @@ class InnsendingTest : PostgresTestBase() {
         }
     }
 
+    @Test
+    fun `kan hente søknader for bruker`() {
+        Fakes().use { fakes ->
+            val config = TestConfig.default(fakes)
+            val tokenx = TokenXGen(config.tokenx)
+            val personIdent = "12345678910"
+            val ref1 = UUID.randomUUID()
+            val ref2 = UUID.randomUUID()
+
+            dataSource.transaction { con ->
+                val repo = InnsendingRepo(con)
+                listOf(ref1, ref2).forEach { ref ->
+                    repo.lagre(
+                        InnsendingNy(
+                            id = null, opprettet = LocalDateTime.now(), personident = personIdent,
+                            soknad = null, data = null, eksternRef = ref,
+                            type = InnsendingType.SOKNAD, forrigeInnsendingId = null,
+                            journalpost_Id = null, filer = emptyList()
+                        )
+                    )
+                }
+            }
+
+            testApplication {
+                application { server(config, fakes.redis, minsideProducer = fakes.kafka, datasource = dataSource) }
+
+                val res = timeAwareClient.get("/innsending/søknader") {
+                    bearerAuth(tokenx.generate(personIdent))
+                }
+
+                assertEquals(HttpStatusCode.OK, res.status)
+                val body = res.body<List<MineAapSoknadMedEttersendingNy>>()
+                assertThat(body).hasSize(2)
+                assertThat(body.map { it.innsendingsId }).containsExactlyInAnyOrder(ref1, ref2)
+            }
+        }
+    }
+
+    @Test
+    fun `kan hente søknadmedettersendinger for bruker`() {
+        Fakes().use { fakes ->
+            val config = TestConfig.default(fakes)
+            val tokenx = TokenXGen(config.tokenx)
+            val personIdent = "12345678910"
+            val søknadRef = UUID.randomUUID()
+
+            dataSource.transaction { con ->
+                val repo = InnsendingRepo(con)
+                val søknadId = repo.lagre(
+                    InnsendingNy(
+                        id = null, opprettet = LocalDateTime.now(), personident = personIdent,
+                        soknad = null, data = null, eksternRef = søknadRef,
+                        type = InnsendingType.SOKNAD, forrigeInnsendingId = null,
+                        journalpost_Id = null, filer = emptyList()
+                    )
+                )
+                repo.lagre(
+                    InnsendingNy(
+                        id = null, opprettet = LocalDateTime.now(), personident = personIdent,
+                        soknad = null, data = null, eksternRef = UUID.randomUUID(),
+                        type = InnsendingType.ETTERSENDING, forrigeInnsendingId = søknadId,
+                        journalpost_Id = null, filer = emptyList()
+                    )
+                )
+            }
+
+            testApplication {
+                application { server(config, fakes.redis, minsideProducer = fakes.kafka, datasource = dataSource) }
+
+                val res = timeAwareClient.get("/innsending/søknadmedettersendinger") {
+                    bearerAuth(tokenx.generate(personIdent))
+                }
+
+                assertEquals(HttpStatusCode.OK, res.status)
+                val body = res.body<List<MineAapSoknadMedEttersendingNy>>()
+                assertThat(body).hasSize(1)
+                assertThat(body.first().innsendingsId).isEqualTo(søknadRef)
+                assertThat(body.first().ettersendinger).hasSize(1)
+            }
+        }
+    }
+
+    @Test
+    fun `kan hente ettersendinger for søknad`() {
+        Fakes().use { fakes ->
+            val config = TestConfig.default(fakes)
+            val tokenx = TokenXGen(config.tokenx)
+            val personIdent = "12345678910"
+            val søknadRef = UUID.randomUUID()
+
+            dataSource.transaction { con ->
+                val repo = InnsendingRepo(con)
+                val søknadId = repo.lagre(
+                    InnsendingNy(
+                        id = null, opprettet = LocalDateTime.now(), personident = personIdent,
+                        soknad = null, data = null, eksternRef = søknadRef,
+                        type = InnsendingType.SOKNAD, forrigeInnsendingId = null,
+                        journalpost_Id = null, filer = emptyList()
+                    )
+                )
+                repo.lagre(
+                    InnsendingNy(
+                        id = null, opprettet = LocalDateTime.now(), personident = personIdent,
+                        soknad = null, data = null, eksternRef = UUID.randomUUID(),
+                        type = InnsendingType.ETTERSENDING, forrigeInnsendingId = søknadId,
+                        journalpost_Id = null, filer = emptyList()
+                    )
+                )
+            }
+
+            testApplication {
+                application { server(config, fakes.redis, minsideProducer = fakes.kafka, datasource = dataSource) }
+
+                val res = timeAwareClient.get("/innsending/søknader/$søknadRef/ettersendinger") {
+                    bearerAuth(tokenx.generate(personIdent))
+                }
+
+                assertEquals(HttpStatusCode.OK, res.status)
+                val body = res.body<MineAapSoknadMedEttersendinger>()
+                assertThat(body.innsendingsId).isEqualTo(søknadRef)
+                assertThat(body.ettersendinger).hasSize(1)
+            }
+        }
+    }
+
+    @Test
+    fun `returnerer 404 for ukjent søknad referanse`() {
+        Fakes().use { fakes ->
+            val config = TestConfig.default(fakes)
+            val tokenx = TokenXGen(config.tokenx)
+
+            testApplication {
+                application { server(config, fakes.redis, minsideProducer = fakes.kafka, datasource = dataSource) }
+
+                val res = client.get("/innsending/søknader/${UUID.randomUUID()}/ettersendinger") {
+                    bearerAuth(tokenx.generate("12345678910"))
+                }
+
+                assertEquals(HttpStatusCode.NotFound, res.status)
+            }
+        }
+    }
+
+    @Test
+    fun `valider-filer returnerer tom liste når alle filer finnes`() {
+        Fakes().use { fakes ->
+            val config = TestConfig.default(fakes)
+            val tokenx = TokenXGen(config.tokenx)
+            val personIdent = "12345678910"
+            val filId1 = UUID.randomUUID().toString()
+            val filId2 = UUID.randomUUID().toString()
+
+            fakes.redis.set(Key(value = filId1, prefix = personIdent), byteArrayOf(1), 60)
+            fakes.redis.set(Key(value = filId2, prefix = personIdent), byteArrayOf(1), 60)
+
+            testApplication {
+                application { server(config, fakes.redis, minsideProducer = fakes.kafka, datasource = dataSource) }
+
+                val res = jsonHttpClient.post("/innsending/valider-filer") {
+                    bearerAuth(tokenx.generate(personIdent))
+                    contentType(ContentType.Application.Json)
+                    setBody(ValiderFiler(filer = listOf(
+                        FilMetadata(id = filId1, tittel = "fil1"),
+                        FilMetadata(id = filId2, tittel = "fil2")
+                    )))
+                }
+
+                assertEquals(HttpStatusCode.OK, res.status)
+                assertThat(res.body<List<FilMetadata>>()).isEmpty()
+            }
+        }
+    }
+
+    @Test
+    fun `valider-filer returnerer manglende filer`() {
+        Fakes().use { fakes ->
+            val config = TestConfig.default(fakes)
+            val tokenx = TokenXGen(config.tokenx)
+            val personIdent = "12345678910"
+            val filIdFinnes = UUID.randomUUID().toString()
+            val filIdMangler = UUID.randomUUID().toString()
+
+            fakes.redis.set(Key(value = filIdFinnes, prefix = personIdent), byteArrayOf(1), 60)
+
+            testApplication {
+                application { server(config, fakes.redis, minsideProducer = fakes.kafka, datasource = dataSource) }
+
+                val res = jsonHttpClient.post("/innsending/valider-filer") {
+                    bearerAuth(tokenx.generate(personIdent))
+                    contentType(ContentType.Application.Json)
+                    setBody(ValiderFiler(filer = listOf(
+                        FilMetadata(id = filIdFinnes, tittel = "fin1"),
+                        FilMetadata(id = filIdMangler, tittel = "fin2")
+                    )))
+                }
+
+                assertEquals(HttpStatusCode.OK, res.status)
+                val manglende = res.body<List<FilMetadata>>()
+                assertThat(manglende).hasSize(1)
+                assertThat(manglende.first().id).isEqualTo(filIdMangler)
+            }
+        }
+    }
+
+    @Test
+    fun `duplikat innsending returnerer 409`() {
+        Fakes().use { fakes ->
+            val config = TestConfig.default(fakes)
+            val tokenx = TokenXGen(config.tokenx)
+            val personIdent = "12345678910"
+            val filId = Key(value = UUID.randomUUID().toString(), prefix = personIdent)
+            fakes.redis.set(filId, byteArrayOf(), 60)
+
+            val innsending = Innsending(filer = listOf(FilMetadata(id = filId.value, tittel = "vedlegg")))
+
+            testApplication {
+                application { server(config, fakes.redis, minsideProducer = fakes.kafka, datasource = dataSource) }
+
+                val res1 = jsonHttpClient.post("/innsending") {
+                    bearerAuth(tokenx.generate(personIdent))
+                    contentType(ContentType.Application.Json)
+                    setBody(innsending)
+                }
+                assertEquals(HttpStatusCode.OK, res1.status)
+
+                // Hash er nå lagret i Redis — samme body skal gi 409
+                val res2 = jsonHttpClient.post("/innsending") {
+                    bearerAuth(tokenx.generate(personIdent))
+                    contentType(ContentType.Application.Json)
+                    setBody(innsending)
+                }
+                assertEquals(HttpStatusCode.Conflict, res2.status)
+            }
+        }
+    }
+
+    @Test
+    fun `total filstørrelse over maks returnerer 412`() {
+        Fakes().use { fakes ->
+            val config = TestConfig.default(fakes).copy(maxFileSize = 1) // 1 MB grense
+            val tokenx = TokenXGen(config.tokenx)
+            val personIdent = "12345678910"
+            val filId1 = Key(value = UUID.randomUUID().toString(), prefix = personIdent)
+            val filId2 = Key(value = UUID.randomUUID().toString(), prefix = personIdent)
+            val stor600KB = ByteArray(600 * 1024)
+            fakes.redis.set(filId1, stor600KB, 60)
+            fakes.redis.set(filId2, stor600KB, 60)
+
+            testApplication {
+                application { server(config, fakes.redis, minsideProducer = fakes.kafka, datasource = dataSource) }
+
+                val res = jsonHttpClient.post("/innsending") {
+                    bearerAuth(tokenx.generate(personIdent))
+                    contentType(ContentType.Application.Json)
+                    setBody(Innsending(
+                        filer = listOf(
+                            FilMetadata(id = filId1.value, tittel = "fil1"),
+                            FilMetadata(id = filId2.value, tittel = "fil2")
+                        )
+                    ))
+                }
+
+                assertEquals(HttpStatusCode.PreconditionFailed, res.status)
+            }
+        }
+    }
+
     private val ApplicationTestBuilder.jsonHttpClient: HttpClient
         get() =
             createClient {
                 install(ContentNegotiation) { jackson() }
             }
 
-
+    private val ApplicationTestBuilder.timeAwareClient: HttpClient
+        get() =
+            createClient {
+                install(ContentNegotiation) { jackson { registerModule(JavaTimeModule()) } }
+            }
 }

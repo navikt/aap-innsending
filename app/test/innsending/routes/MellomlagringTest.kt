@@ -1,5 +1,6 @@
 package innsending.routes
 
+import innsending.VirusFoundFake
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import innsending.Fakes
 import innsending.Resource
@@ -19,6 +20,7 @@ import io.ktor.client.request.delete
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -402,6 +404,100 @@ class MellomlagringTest : PostgresTestBase() {
 
                 assertThat(resFørOpprettelse.status).isEqualTo(HttpStatusCode.NoContent)
                 assertThat(resEtterOpprettelse.status).isEqualTo(HttpStatusCode.OK)
+            }
+        }
+    }
+
+    @Test
+    fun `kan mellomlagre søknad via v2-endepunkt`() {
+        Fakes().use { fakes ->
+            val config = TestConfig.default(fakes)
+            val jwkGen = TokenXGen(config.tokenx)
+            val personIdent = "12345678910"
+            val filId = UUID.randomUUID().toString()
+            fakes.redis.set(Key(value = filId, prefix = personIdent), byteArrayOf(1), 50)
+
+            testApplication {
+                application { server(config, fakes.redis, minsideProducer = fakes.kafka, datasource = dataSource) }
+
+                val res = client.post("/mellomlagring/søknad/v2") {
+                    contentType(ContentType.Application.Json)
+                    bearerAuth(jwkGen.generate(personIdent))
+                    header("vedlegg", filId)
+                    setBody("""{"soknadId":"1234"}""")
+                }
+
+                assertEquals(HttpStatusCode.OK, res.status)
+                assertEquals("""{"soknadId":"1234"}""", String(fakes.redis[Key(personIdent)]!!))
+                assertThat(fakes.redis.expiresIn(Key(value = filId, prefix = personIdent))).isGreaterThan(50)
+            }
+        }
+    }
+
+    @Test
+    fun `kan slette mellomlagret fil`() {
+        Fakes().use { fakes ->
+            val config = TestConfig.default(fakes)
+            val tokenx = TokenXGen(config.tokenx)
+            val filId = UUID.randomUUID()
+
+            testApplication {
+                application { server(config, fakes.redis, minsideProducer = fakes.kafka, datasource = dataSource) }
+                val key = Key(value = filId.toString(), prefix = "12345678910")
+                fakes.redis.set(key, byteArrayOf(1), 60)
+
+                val res = client.delete("/mellomlagring/fil/$filId") {
+                    bearerAuth(tokenx.generate("12345678910"))
+                }
+
+                assertEquals(HttpStatusCode.NoContent, res.status)
+                assertNull(fakes.redis[key])
+            }
+        }
+    }
+
+    @Test
+    fun `returnerer 404 for ukjent mellomlagret fil`() {
+        Fakes().use { fakes ->
+            val config = TestConfig.default(fakes)
+            val tokenx = TokenXGen(config.tokenx)
+
+            testApplication {
+                application { server(config, fakes.redis, minsideProducer = fakes.kafka, datasource = dataSource) }
+
+                val res = client.get("/mellomlagring/fil/${UUID.randomUUID()}") {
+                    bearerAuth(tokenx.generate("12345678910"))
+                }
+
+                assertEquals(HttpStatusCode.NotFound, res.status)
+            }
+        }
+    }
+
+    @Test
+    fun `virus i fil gir 422`() {
+        VirusFoundFake().use { virusFake ->
+            Fakes().use { fakes ->
+                val config = TestConfig.default(fakes).copy(virusScanHost = "http://localhost:${virusFake.port()}")
+                val jwkGen = TokenXGen(config.tokenx)
+                testApplication {
+                    val client = createClient { install(ContentNegotiation) { jackson() } }
+                    application { server(config, fakes.redis, minsideProducer = fakes.kafka, datasource = dataSource) }
+
+                    val res = client.submitFormWithBinaryData(
+                        url = "/mellomlagring/fil",
+                        formData = formData {
+                            append("document", Resource.read("/resources/images/bilde.jpg"), Headers.build {
+                                append(HttpHeaders.ContentDisposition, "filename=bilde.jpg")
+                                append(HttpHeaders.ContentType, "image/jpeg")
+                            })
+                        },
+                        block = { bearerAuth(jwkGen.generate("12345678910")) }
+                    )
+
+                    assertEquals(HttpStatusCode.UnprocessableEntity, res.status)
+                    assertEquals(ErrorRespons("Fant virus i fil"), res.body())
+                }
             }
         }
     }
