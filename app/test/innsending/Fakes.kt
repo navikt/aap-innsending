@@ -149,6 +149,21 @@ object Resource {
         requireNotNull(this::class.java.getResource(path)).readBytes()
 }
 
+class VirusFoundFake : AutoCloseable {
+    private val server = embeddedServer(Netty, port = 0) {
+        install(ContentNegotiation) { jackson() }
+        routing {
+            put("/scan") {
+                call.respondText("""[{"Result": "FOUND"}]""", ContentType.Application.Json)
+            }
+        }
+    }.apply { start() }
+
+    fun port(): Int = server.port()
+
+    override fun close() = server.stop(0L, 0L)
+}
+
 fun EmbeddedServer<*, *>.port(): Int =
     runBlocking { this@port.engine.resolvedConnectors() }
         .first { it.type == ConnectorType.HTTP }
