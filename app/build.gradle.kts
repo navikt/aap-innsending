@@ -24,7 +24,7 @@ dependencies {
     implementation("no.nav.aap.kelvin:infrastructure:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:motor-api:$komponenterVersjon")
     implementation("no.nav.aap.behandlingsflyt:kontrakt:$behandlingsflytversjon")
-
+    implementation("no.nav.aap.kelvin:ktor-openapi-generator:$komponenterVersjon")
     implementation("org.apache.kafka:kafka-clients:4.2.0")
     implementation("no.nav.tms.mikrofrontend.selector:builder:20230704114948-74aa2e9")
 

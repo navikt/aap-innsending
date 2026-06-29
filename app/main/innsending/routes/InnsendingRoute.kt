@@ -1,6 +1,12 @@
 package innsending.routes
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.papsign.ktor.openapigen.annotations.parameters.PathParam
+import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
+import com.papsign.ktor.openapigen.route.path.normal.get
+import com.papsign.ktor.openapigen.route.path.normal.post
+import com.papsign.ktor.openapigen.route.response.respond
+import com.papsign.ktor.openapigen.route.route
 import innsending.auth.personident
 import innsending.db.FilNy
 import innsending.db.InMemoryFilData
@@ -14,9 +20,7 @@ import innsending.redis.Key
 import innsending.redis.Redis
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.request.*
 import io.ktor.server.response.*
-import io.ktor.server.routing.*
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.aap.behandlingsflyt.kontrakt.hendelse.dokumenter.Søknad
 import no.nav.aap.komponenter.dbconnect.transaction
@@ -27,84 +31,84 @@ import java.time.LocalDateTime
 import java.util.*
 import javax.sql.DataSource
 
-fun Route.innsendingRoute(dataSource: DataSource, redis: Redis, promethius: MeterRegistry, maxFileSize: Int) {
+data class RefParam(@PathParam("ref") val ref: UUID)
+
+fun NormalOpenAPIRoute.innsendingRoute(dataSource: DataSource, redis: Redis, prometheus: MeterRegistry, maxFileSize: Int) {
     route("/innsending") {
 
-        get("/søknadmedettersendinger") {
-            val personIdent = call.personident()
-            val res = dataSource.transaction(readOnly = true) { dbconnection ->
-                val innsendingRepo = InnsendingRepo(dbconnection)
-                innsendingRepo.hentAlleSøknader(personIdent)
+        route("/søknadmedettersendinger") {
+            get<Unit, List<MineAapSoknadMedEttersendingNy>> { _ ->
+                val personIdent = pipeline.call.personident()
+                val res = dataSource.transaction(readOnly = true) { dbconnection ->
+                    InnsendingRepo(dbconnection).hentAlleSøknader(personIdent)
+                }
+                respond(res)
             }
-            call.respond(res)
         }
 
-        get("/søknader") {
-            val personIdent = call.personident()
-            val res = dataSource.transaction(readOnly = true) { dbconnection ->
-                val innsendingRepo = InnsendingRepo(dbconnection)
-                innsendingRepo.hentAlleSøknader(personIdent)
-            }
-            call.respond(res)
-        }
-
-        get("/søknader/{ref}/ettersendinger") {
-            val innsendingsRef = call.parameters["ref"]?.let(UUID::fromString) ?: return@get call.respond(
-                HttpStatusCode.BadRequest,
-                "Mangler innsendingsId"
-            )
-
-            val søknadMedEttersendinger = dataSource.transaction(readOnly = true) { dbconnection ->
-                val innsendingRepo = InnsendingRepo(dbconnection)
-                innsendingRepo.hentSøknadMedReferanse(innsendingsRef)
+        route("/søknader") {
+            get<Unit, List<MineAapSoknadMedEttersendingNy>> { _ ->
+                val personIdent = pipeline.call.personident()
+                val res = dataSource.transaction(readOnly = true) { dbconnection ->
+                    InnsendingRepo(dbconnection).hentAlleSøknader(personIdent)
+                }
+                respond(res)
             }
 
-            if (søknadMedEttersendinger == null) {
-                call.respond(HttpStatusCode.NotFound, "Fant ikke søknad for angitt referanse")
-            } else {
-                val response = MineAapSoknadMedEttersendinger(
-                    mottattDato = søknadMedEttersendinger.mottattDato,
-                    journalpostId = søknadMedEttersendinger.journalpostId,
-                    innsendingsId = innsendingsRef,
-                    ettersendinger = søknadMedEttersendinger.ettersendinger.map { ny ->
-                        MineAapEttersending(
-                            mottattDato = ny.mottattDato,
-                            journalpostId = ny.journalpostId,
-                            innsendingsId = ny.innsendingsId
+            route("/{ref}/ettersendinger") {
+                get<RefParam, MineAapSoknadMedEttersendinger> { params ->
+                    val søknadMedEttersendinger = dataSource.transaction(readOnly = true) { dbconnection ->
+                        InnsendingRepo(dbconnection).hentSøknadMedReferanse(params.ref)
+                    }
+
+                    if (søknadMedEttersendinger == null) {
+                        pipeline.call.respond(HttpStatusCode.NotFound, "Fant ikke søknad for angitt referanse")
+                    } else {
+                        respond(
+                            MineAapSoknadMedEttersendinger(
+                                mottattDato = søknadMedEttersendinger.mottattDato,
+                                journalpostId = søknadMedEttersendinger.journalpostId,
+                                innsendingsId = params.ref,
+                                ettersendinger = søknadMedEttersendinger.ettersendinger.map { ny ->
+                                    MineAapEttersending(
+                                        mottattDato = ny.mottattDato,
+                                        journalpostId = ny.journalpostId,
+                                        innsendingsId = ny.innsendingsId
+                                    )
+                                }
+                            )
                         )
-                    })
-                call.respond(response)
+                    }
+                }
             }
         }
 
-        post("/{ref}") {
-            val innsendingsRef = UUID.fromString(call.parameters["ref"]) ?: return@post call.respond(
-                HttpStatusCode.BadRequest,
-                "Mangler innsendingsId"
-            )
-
-            postInnsending(dataSource, redis, call, innsendingsRef, promethius, maxFileSize)
+        post<Unit, InnsendingResponse, Innsending> { _, innsending ->
+            postInnsending(dataSource, redis, pipeline.call, null, prometheus, maxFileSize, innsending)
         }
 
-        post("/valider-filer") {
-            val personIdent = call.personident()
-            val innsending = call.receive<ValiderFiler>()
+        route("/valider-filer") {
+            post<Unit, List<FilMetadata>, ValiderFiler> { _, innhold ->
+                val personIdent = pipeline.call.personident()
 
-            innsending.filer.forEach { fil ->
-                redis.setExpire(Key(value = fil.id, prefix = personIdent), EnDagSekunder)
+                innhold.filer.forEach { fil ->
+                    redis.setExpire(Key(value = fil.id, prefix = personIdent), EnDagSekunder)
+                }
+
+                val filerMedInnhold = innhold.filer.associateWith { fil ->
+                    redis[Key(value = fil.id, prefix = personIdent)]
+                }.toList()
+
+                val manglendeFiler = filerMedInnhold.filter { it.second == null }.map { it.first }
+
+                respond(manglendeFiler)
             }
-
-            val filerMedInnhold = innsending.filer.associateWith { fil ->
-                redis[Key(value = fil.id, prefix = personIdent)]
-            }.toList()
-
-            val manglendeFiler = filerMedInnhold.filter { it.second == null }.map { it.first }
-
-            call.respond(HttpStatusCode.OK, manglendeFiler)
         }
 
-        post {
-            postInnsending(dataSource, redis, call, null, promethius, maxFileSize)
+        route("/{ref}") {
+            post<RefParam, InnsendingResponse, Innsending> { params, innsending ->
+                postInnsending(dataSource, redis, pipeline.call, params.ref, prometheus, maxFileSize, innsending)
+            }
         }
     }
 }
@@ -115,11 +119,11 @@ private suspend fun postInnsending(
     call: ApplicationCall,
     innsendingsRef: UUID? = null,
     prometheus: MeterRegistry,
-    maxFileSize: Int
+    maxFileSize: Int,
+    innsending: Innsending,
 ) {
     val CONTENT_LENGHT_LIMIT = maxFileSize * 1024 * 1024
     val personIdent = call.personident()
-    val innsending = call.receive<Innsending>()
 
     // Avoid duplicates
     val innsendingHash = Key(innsending.hashCode().toString())

@@ -1,5 +1,8 @@
 package innsending
 
+import com.papsign.ktor.openapigen.OpenAPIGen
+import com.papsign.ktor.openapigen.model.info.InfoModel
+import com.papsign.ktor.openapigen.route.apiRouting
 import innsending.antivirus.ClamAVClient
 import innsending.auth.TOKENX
 import innsending.auth.authentication
@@ -110,6 +113,12 @@ fun Application.testserver(
         )
     }
 
+    install(OpenAPIGen) {
+        serveOpenApiJson = true
+        serveSwaggerUi = false
+        api.info = InfoModel(title = "AAP - Innsending")
+    }
+
     module(datasource, minsideProducer, redis, prometheus)
 
     routing {
@@ -121,8 +130,10 @@ fun Application.testserver(
         }
 
         authenticate(TOKENX) {
-            innsendingRoute(datasource, redis, prometheus, config.maxFileSize)
-            mellomlagerRoute(redis, antivirus, pdfGen, config.maxFileSize)
+            apiRouting {
+                innsendingRoute(datasource, redis, prometheus, config.maxFileSize)
+                mellomlagerRoute(redis, antivirus, pdfGen, config.maxFileSize)
+            }
         }
 
         actuator(prometheus, redis)

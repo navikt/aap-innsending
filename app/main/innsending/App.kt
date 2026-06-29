@@ -130,8 +130,10 @@ fun Application.server(
 
     routing {
         authenticate(TOKENX) {
-            innsendingRoute(datasource, redis, prometheus, config.maxFileSize)
-            mellomlagerRoute(redis, antivirus, pdfGen, config.maxFileSize)
+            apiRouting {
+                innsendingRoute(datasource, redis, prometheus, config.maxFileSize)
+                mellomlagerRoute(redis, antivirus, pdfGen, config.maxFileSize)
+            }
         }
 
         authenticate(AZURE) {
