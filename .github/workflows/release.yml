@@ -39,8 +39,6 @@ jobs:
         with:
           gradle-version: wrapper
       - name: Bygg & test
-        env:
-          GITHUB_PASSWORD: ${{ secrets.READER_TOKEN }}
         run: ./gradlew test buildFatJar --continue --configuration-cache --stacktrace --info
 
       - uses: nais/docker-build-push@v0
