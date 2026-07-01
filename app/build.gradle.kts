@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
     id("aap.conventions")
     id("io.ktor.plugin") version "3.5.1"
