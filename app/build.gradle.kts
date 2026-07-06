@@ -6,7 +6,7 @@ plugins {
 
 val ktorVersion = "3.5.1"
 val komponenterVersjon = "2.0.90"
-val flywayVersjon = "12.9.0"
+val flywayVersjon = "12.10.0"
 val behandlingsflytversjon = "0.0.630"
 
 application {
@@ -43,7 +43,7 @@ dependencies {
     implementation("org.apache.tika:tika-core:3.3.1")
 
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
-    implementation("redis.clients:jedis:7.5.2")
+    implementation("redis.clients:jedis:7.5.3")
     implementation("io.micrometer:micrometer-registry-prometheus:1.17.0")
     implementation("ch.qos.logback:logback-classic:1.5.37")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.22.0")
@@ -53,7 +53,7 @@ dependencies {
     implementation("org.flywaydb:flyway-database-postgresql:$flywayVersjon")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
     runtimeOnly("net.logstash.logback:logstash-logback-encoder:9.0")
-    runtimeOnly("org.postgresql:postgresql:42.7.11")
+    runtimeOnly("org.postgresql:postgresql:42.7.12")
 
     testImplementation(kotlin("test"))
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
