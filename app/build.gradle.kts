@@ -6,7 +6,7 @@ plugins {
 
 val ktorVersion = "3.5.1"
 val komponenterVersjon = "2.0.94"
-val flywayVersjon = "12.10.0"
+val flywayVersjon = "12.11.0"
 val behandlingsflytversjon = "0.0.632"
 
 application {
@@ -45,8 +45,8 @@ dependencies {
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("redis.clients:jedis:7.5.3")
     implementation("io.micrometer:micrometer-registry-prometheus:1.17.0")
-    implementation("ch.qos.logback:logback-classic:1.5.37")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.22.0")
+    implementation("ch.qos.logback:logback-classic:1.5.38")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.22.1")
     implementation("org.apache.pdfbox:pdfbox:3.0.7")
     implementation("com.zaxxer:HikariCP:7.1.0")
     implementation("org.flywaydb:flyway-core:$flywayVersjon")
