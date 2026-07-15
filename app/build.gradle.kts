@@ -47,7 +47,7 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus:1.17.0")
     implementation("ch.qos.logback:logback-classic:1.5.38")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.22.1")
-    implementation("org.apache.pdfbox:pdfbox:3.0.7")
+    implementation("org.apache.pdfbox:pdfbox:3.0.8")
     implementation("com.zaxxer:HikariCP:7.1.0")
     implementation("org.flywaydb:flyway-core:$flywayVersjon")
     implementation("org.flywaydb:flyway-database-postgresql:$flywayVersjon")
