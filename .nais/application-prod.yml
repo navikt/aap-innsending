@@ -23,8 +23,8 @@ spec:
       allowAllUsers: false
       claims:
         groups:
-          # 0000-GA-AAP_DRIFT
-          - id: ff9a228b-4aab-47bd-8aee-598d80f0fb4b
+          - id: ff9a228b-4aab-47bd-8aee-598d80f0fb4b # 0000-GA-AAP_DRIFT
+          - id: ee2a0374-97a6-462e-9a05-3cb7be3d8fc5 # NAIS_TEAM_AAP
   tokenx:
     enabled: true
   kafka:
@@ -94,3 +94,5 @@ spec:
       value: api://prod-gcp.aap.oppslag/.default
     - name: MAX_FILE_SIZE
       value: "75"
+    - name: NAIS_TEAM_AAP
+      value: ee2a0374-97a6-462e-9a05-3cb7be3d8fc5

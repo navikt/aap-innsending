@@ -23,6 +23,7 @@ data class Config(
     ),
     val oppslag: OppslagConfig = OppslagConfig(),
     val maxFileSize: Int = getEnvVar("MAX_FILE_SIZE").toInt(),
+    val teamAapRolle: String = getEnvVar("NAIS_TEAM_AAP"),
 )
 
 data class RedisConfig(

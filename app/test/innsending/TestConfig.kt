@@ -58,6 +58,7 @@ internal object TestConfig {
                 host = "http://localhost:${fakes.oppslag.port()}",
                 scope = "api://dev-gcp.aap.oppslag/.default"
             ),
+            teamAapRolle = "nais-team-aap"
         )
     }
 }

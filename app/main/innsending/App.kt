@@ -42,6 +42,7 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import javax.sql.DataSource
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.json.DefaultJsonMapper
+import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.motor.JobbSpesifikasjon
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.api.motorApi
@@ -128,6 +129,8 @@ fun Application.server(
 
     module(datasource, minsideProducer, redis, prometheus)
 
+    val godkjenteRollerMotor = if (Miljø.erProd()) listOf(config.teamAapRolle) else emptyList()
+
     routing {
         authenticate(TOKENX) {
             apiRouting {
@@ -138,7 +141,7 @@ fun Application.server(
 
         authenticate(AZURE) {
             apiRouting {
-                motorApi(datasource)
+                motorApi(datasource, godkjenteRollerMotor)
             }
         }
 
