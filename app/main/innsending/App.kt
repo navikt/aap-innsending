@@ -39,7 +39,6 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.routing
 import io.micrometer.core.instrument.binder.logging.LogbackMetrics
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
-import no.nav.aap.komponenter.config.requiredConfigForKey
 import javax.sql.DataSource
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.json.DefaultJsonMapper
@@ -130,7 +129,7 @@ fun Application.server(
 
     module(datasource, minsideProducer, redis, prometheus)
 
-    val godkjenteRollerMotor = if (Miljø.erProd()) listOf(requiredConfigForKey("NAIS_TEAM_AAP")) else emptyList()
+    val godkjenteRollerMotor = if (Miljø.erProd()) listOf(config.teamAapRolle) else emptyList()
 
     routing {
         authenticate(TOKENX) {
