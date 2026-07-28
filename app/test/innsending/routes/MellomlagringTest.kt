@@ -44,7 +44,7 @@ class MellomlagringTest : PostgresTestBase() {
     fun `kan mellomlagre søknad`() {
         Fakes().use { fakes ->
             val config = TestConfig.default(fakes)
-            val jwkGen = TokenXGen(config.tokenx)
+            val jwkGen = TokenXGen()
 
             testApplication {
                 application { server(
@@ -68,7 +68,7 @@ class MellomlagringTest : PostgresTestBase() {
     fun `kan hente mellomlagring søknad`() {
         Fakes().use { fakes ->
             val config = TestConfig.default(fakes)
-            val jwkGen = TokenXGen(config.tokenx)
+            val jwkGen = TokenXGen()
 
             testApplication {
                 application { server(
@@ -94,7 +94,7 @@ class MellomlagringTest : PostgresTestBase() {
     fun `kan slette mellomlagret søknad`() {
         Fakes().use { fakes ->
             val config = TestConfig.default(fakes)
-            val jwkGen = TokenXGen(config.tokenx)
+            val jwkGen = TokenXGen()
 
             testApplication {
                 application { server(
@@ -120,7 +120,7 @@ class MellomlagringTest : PostgresTestBase() {
     fun `ingen mellomlagring returnerer 404`() {
         Fakes().use { fakes ->
             val config = TestConfig.default(fakes)
-            val jwkGen = TokenXGen(config.tokenx)
+            val jwkGen = TokenXGen()
 
             testApplication {
                 application { server(
@@ -144,7 +144,7 @@ class MellomlagringTest : PostgresTestBase() {
     fun `kan mellomlagre fil`() {
         Fakes().use { fakes ->
             val config = TestConfig.default(fakes)
-            val jwkGen = TokenXGen(config.tokenx)
+            val jwkGen = TokenXGen()
             testApplication {
                 val client = createClient {
                     install(ContentNegotiation) { jackson() }
@@ -178,7 +178,7 @@ class MellomlagringTest : PostgresTestBase() {
     fun `kan ikke mellomlagre stor fil`() {
         Fakes().use { fakes ->
             val config = TestConfig.default(fakes)
-            val jwkGen = TokenXGen(config.tokenx)
+            val jwkGen = TokenXGen()
             testApplication {
                 val client = createClient {
                     install(ContentNegotiation) { jackson() }
@@ -210,7 +210,7 @@ class MellomlagringTest : PostgresTestBase() {
     fun `kan ikke mellomlagre tom pdf`() {
         Fakes().use { fakes ->
             val config = TestConfig.default(fakes)
-            val jwkGen = TokenXGen(config.tokenx)
+            val jwkGen = TokenXGen()
             testApplication {
                 val client = createClient {
                     install(ContentNegotiation) { jackson() }
@@ -241,7 +241,7 @@ class MellomlagringTest : PostgresTestBase() {
     fun `kan ikke mellomlagre tom png`() {
         Fakes().use { fakes ->
             val config = TestConfig.default(fakes)
-            val jwkGen = TokenXGen(config.tokenx)
+            val jwkGen = TokenXGen()
             testApplication {
                 val client = createClient {
                     install(ContentNegotiation) { jackson() }
@@ -272,7 +272,7 @@ class MellomlagringTest : PostgresTestBase() {
     fun `kan hente mellomlagret fil`() {
         Fakes().use { fakes ->
             val config = TestConfig.default(fakes)
-            val tokenx = TokenXGen(config.tokenx)
+            val tokenx = TokenXGen()
             val id = UUID.randomUUID()
             testApplication {
                 application { server(
@@ -298,7 +298,7 @@ class MellomlagringTest : PostgresTestBase() {
     fun `kan mellomlagre og hente fil`() {
         Fakes().use { fakes ->
             val config = TestConfig.default(fakes)
-            val tokenx = TokenXGen(config.tokenx)
+            val tokenx = TokenXGen()
             testApplication {
                 val client = createClient {
                     install(ContentNegotiation) { jackson() }
@@ -340,7 +340,7 @@ class MellomlagringTest : PostgresTestBase() {
         Fakes().use { fakes ->
             val jedis = fakes.redis
             val config = TestConfig.default(fakes)
-            val jwkGen = TokenXGen(config.tokenx)
+            val jwkGen = TokenXGen()
             val filId = UUID.randomUUID()
             val filId2 = UUID.randomUUID()
 
@@ -376,7 +376,7 @@ class MellomlagringTest : PostgresTestBase() {
         Fakes().use { fakes ->
             val jedis = fakes.redis
             val config = TestConfig.default(fakes)
-            val jwkGen = TokenXGen(config.tokenx)
+            val jwkGen = TokenXGen()
 
             testApplication {
                 val client = createClient {
@@ -412,7 +412,7 @@ class MellomlagringTest : PostgresTestBase() {
     fun `kan mellomlagre søknad via v2-endepunkt`() {
         Fakes().use { fakes ->
             val config = TestConfig.default(fakes)
-            val jwkGen = TokenXGen(config.tokenx)
+            val jwkGen = TokenXGen()
             val personIdent = "12345678910"
             val filId = UUID.randomUUID().toString()
             fakes.redis.set(Key(value = filId, prefix = personIdent), byteArrayOf(1), 50)
@@ -438,7 +438,7 @@ class MellomlagringTest : PostgresTestBase() {
     fun `kan slette mellomlagret fil`() {
         Fakes().use { fakes ->
             val config = TestConfig.default(fakes)
-            val tokenx = TokenXGen(config.tokenx)
+            val tokenx = TokenXGen()
             val filId = UUID.randomUUID()
 
             testApplication {
@@ -460,7 +460,7 @@ class MellomlagringTest : PostgresTestBase() {
     fun `returnerer 404 for ukjent mellomlagret fil`() {
         Fakes().use { fakes ->
             val config = TestConfig.default(fakes)
-            val tokenx = TokenXGen(config.tokenx)
+            val tokenx = TokenXGen()
 
             testApplication {
                 application { server(config, fakes.redis, minsideProducer = fakes.kafka, datasource = dataSource) }
@@ -479,7 +479,7 @@ class MellomlagringTest : PostgresTestBase() {
         VirusFoundFake().use { virusFake ->
             Fakes().use { fakes ->
                 val config = TestConfig.default(fakes).copy(virusScanHost = "http://localhost:${virusFake.port()}")
-                val jwkGen = TokenXGen(config.tokenx)
+                val jwkGen = TokenXGen()
                 testApplication {
                     val client = createClient { install(ContentNegotiation) { jackson() } }
                     application { server(config, fakes.redis, minsideProducer = fakes.kafka, datasource = dataSource) }

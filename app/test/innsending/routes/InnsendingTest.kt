@@ -51,7 +51,7 @@ class InnsendingTest : PostgresTestBase() {
     fun `kan sende inn søknad med 1 fil`() {
         Fakes().use { fakes ->
             val config = TestConfig.default(fakes)
-            val tokenx = TokenXGen(config.tokenx)
+            val tokenx = TokenXGen()
             val filId1 = Key(value = UUID.randomUUID().toString(), prefix = "12345678910")
             val filId2 = Key(value = UUID.randomUUID().toString(), prefix = "12345678910")
 
@@ -99,7 +99,7 @@ class InnsendingTest : PostgresTestBase() {
     fun `feiler ved manglende filer`() {
         Fakes().use { fakes ->
             val config = TestConfig.default(fakes)
-            val jwkGen = TokenXGen(config.tokenx)
+            val jwkGen = TokenXGen()
             println(JSONObject({ "søknad" }))
             testApplication {
                 application { server(
@@ -137,7 +137,7 @@ class InnsendingTest : PostgresTestBase() {
     fun `kan sende inn ettersending`() {
         Fakes().use { fakes ->
             val config = TestConfig.default(fakes)
-            val tokenx = TokenXGen(config.tokenx)
+            val tokenx = TokenXGen()
             val filId1 = Key(UUID.randomUUID().toString(), prefix = "12345678910")
             val filId2 = Key(UUID.randomUUID().toString(), prefix = "12345678910")
 
@@ -183,7 +183,7 @@ class InnsendingTest : PostgresTestBase() {
     fun `kan sende inn ettersending med soknadRef hvor soknad ikke er journalført`() {
         Fakes().use { fakes ->
             val config = TestConfig.default(fakes)
-            val tokenx = TokenXGen(config.tokenx)
+            val tokenx = TokenXGen()
             val filId1 = Key(UUID.randomUUID().toString(), prefix = "12345678910")
             val filId2 = Key(UUID.randomUUID().toString(), prefix = "12345678910")
 
@@ -248,7 +248,7 @@ class InnsendingTest : PostgresTestBase() {
     fun `kan sende inn ettersending med soknadRef hvor soknad er journalført`() {
         Fakes().use { fakes ->
             val config = TestConfig.default(fakes)
-            val tokenx = TokenXGen(config.tokenx)
+            val tokenx = TokenXGen()
             val soknadRef = UUID.randomUUID()
             val filId1 = Key(UUID.randomUUID().toString(), prefix = "12345678910")
             val filId2 = Key(UUID.randomUUID().toString(), prefix = "12345678910")
@@ -313,7 +313,7 @@ class InnsendingTest : PostgresTestBase() {
     fun `kan hente søknader for bruker`() {
         Fakes().use { fakes ->
             val config = TestConfig.default(fakes)
-            val tokenx = TokenXGen(config.tokenx)
+            val tokenx = TokenXGen()
             val personIdent = "12345678910"
             val ref1 = UUID.randomUUID()
             val ref2 = UUID.randomUUID()
@@ -351,7 +351,7 @@ class InnsendingTest : PostgresTestBase() {
     fun `kan hente søknadmedettersendinger for bruker`() {
         Fakes().use { fakes ->
             val config = TestConfig.default(fakes)
-            val tokenx = TokenXGen(config.tokenx)
+            val tokenx = TokenXGen()
             val personIdent = "12345678910"
             val søknadRef = UUID.randomUUID()
 
@@ -395,7 +395,7 @@ class InnsendingTest : PostgresTestBase() {
     fun `kan hente ettersendinger for søknad`() {
         Fakes().use { fakes ->
             val config = TestConfig.default(fakes)
-            val tokenx = TokenXGen(config.tokenx)
+            val tokenx = TokenXGen()
             val personIdent = "12345678910"
             val søknadRef = UUID.randomUUID()
 
@@ -438,7 +438,7 @@ class InnsendingTest : PostgresTestBase() {
     fun `returnerer 404 for ukjent søknad referanse`() {
         Fakes().use { fakes ->
             val config = TestConfig.default(fakes)
-            val tokenx = TokenXGen(config.tokenx)
+            val tokenx = TokenXGen()
 
             testApplication {
                 application { server(config, fakes.redis, minsideProducer = fakes.kafka, datasource = dataSource) }
@@ -456,7 +456,7 @@ class InnsendingTest : PostgresTestBase() {
     fun `valider-filer returnerer tom liste når alle filer finnes`() {
         Fakes().use { fakes ->
             val config = TestConfig.default(fakes)
-            val tokenx = TokenXGen(config.tokenx)
+            val tokenx = TokenXGen()
             val personIdent = "12345678910"
             val filId1 = UUID.randomUUID().toString()
             val filId2 = UUID.randomUUID().toString()
@@ -486,7 +486,7 @@ class InnsendingTest : PostgresTestBase() {
     fun `valider-filer returnerer manglende filer`() {
         Fakes().use { fakes ->
             val config = TestConfig.default(fakes)
-            val tokenx = TokenXGen(config.tokenx)
+            val tokenx = TokenXGen()
             val personIdent = "12345678910"
             val filIdFinnes = UUID.randomUUID().toString()
             val filIdMangler = UUID.randomUUID().toString()
@@ -517,7 +517,7 @@ class InnsendingTest : PostgresTestBase() {
     fun `duplikat innsending returnerer 409`() {
         Fakes().use { fakes ->
             val config = TestConfig.default(fakes)
-            val tokenx = TokenXGen(config.tokenx)
+            val tokenx = TokenXGen()
             val personIdent = "12345678910"
             val filId = Key(value = UUID.randomUUID().toString(), prefix = personIdent)
             fakes.redis.set(filId, byteArrayOf(), 60)
@@ -549,7 +549,7 @@ class InnsendingTest : PostgresTestBase() {
     fun `total filstørrelse over maks returnerer 412`() {
         Fakes().use { fakes ->
             val config = TestConfig.default(fakes).copy(maxFileSize = 1) // 1 MB grense
-            val tokenx = TokenXGen(config.tokenx)
+            val tokenx = TokenXGen()
             val personIdent = "12345678910"
             val filId1 = Key(value = UUID.randomUUID().toString(), prefix = personIdent)
             val filId2 = Key(value = UUID.randomUUID().toString(), prefix = personIdent)

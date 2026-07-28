@@ -1,6 +1,6 @@
 [versions]
 ktor = "3.5.1"
-kelvin = "2.0.118"
+kelvin = "2.0.115-b9d8422"
 flyway = "13.0.0"
 
 [libraries]
@@ -8,6 +8,7 @@ flyway = "13.0.0"
 kelvin-json = { module = "no.nav.aap.kelvin:json", version.ref = "kelvin" }
 kelvin-httpklient = { module = "no.nav.aap.kelvin:httpklient", version.ref = "kelvin" }
 kelvin-motor = { module = "no.nav.aap.kelvin:motor", version.ref = "kelvin" }
+kelvin-server = { module = "no.nav.aap.kelvin:server", version.ref = "kelvin" }
 kelvin-dbconnect = { module = "no.nav.aap.kelvin:dbconnect", version.ref = "kelvin" }
 kelvin-infrastructure = { module = "no.nav.aap.kelvin:infrastructure", version.ref = "kelvin" }
 kelvin-motor-api = { module = "no.nav.aap.kelvin:motor-api", version.ref = "kelvin" }

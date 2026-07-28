@@ -12,6 +12,7 @@ dependencies {
     implementation(libs.kelvin.json)
     implementation(libs.kelvin.httpklient)
     implementation(libs.kelvin.motor)
+    implementation(libs.kelvin.server)
     implementation(libs.kelvin.dbconnect)
     implementation(libs.kelvin.infrastructure)
     implementation(libs.kelvin.motor.api)
