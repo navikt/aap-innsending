@@ -21,16 +21,6 @@ dependencies {
     implementation(libs.kafka.clients)
     implementation(libs.tms.mikrofrontend.builder)
 
-    implementation(libs.ktor.server.core)
-    implementation(libs.ktor.server.netty)
-    implementation(libs.ktor.server.metrics.micrometer)
-    implementation(libs.ktor.server.call.logging)
-    implementation(libs.ktor.server.status.pages)
-    implementation(libs.ktor.server.content.negotiation)
-    implementation(libs.ktor.server.auth)
-    implementation(libs.ktor.server.auth.jwt)
-
-    implementation(libs.ktor.client.auth)
     implementation(libs.ktor.client.cio)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.client.jackson)
