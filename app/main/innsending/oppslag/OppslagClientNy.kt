@@ -1,18 +1,19 @@
 package innsending.oppslag
 
 import innsending.ProdConfig
+import java.net.URI
+import java.util.UUID
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.Header
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.request.GetRequest
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureM2MTokenProvider
 import no.nav.aap.komponenter.json.DefaultJsonMapper
-import java.net.URI
-import java.util.UUID
 
 class OppslagClientNy {
     private val httpClient = RestClient.withDefaultResponseHandler(
-        config = ClientConfig(ProdConfig.config.oppslag.scope), ClientCredentialsTokenProvider
+        config = ClientConfig(ProdConfig.config.oppslag.scope),
+        tokenProvider = AzureM2MTokenProvider
     )
 
     fun hentNavn(personident: String): Navn {
