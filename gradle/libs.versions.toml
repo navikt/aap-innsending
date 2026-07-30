@@ -1,6 +1,6 @@
 [versions]
 ktor = "3.5.1"
-kelvin = "2.0.119"
+kelvin = "2.0.121"
 flyway = "13.0.0"
 
 [libraries]
