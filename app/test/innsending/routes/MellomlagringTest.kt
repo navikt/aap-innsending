@@ -1,13 +1,13 @@
 package innsending.routes
 
-import innsending.VirusFoundFake
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import innsending.Fakes
 import innsending.Resource
+import innsending.TestConfig
 import innsending.TokenXGen
+import innsending.VirusFoundFake
 import innsending.dto.ErrorRespons
 import innsending.dto.MellomlagringRespons
-import innsending.TestConfig
 import innsending.postgres.PostgresTestBase
 import innsending.redis.EnDagSekunder
 import innsending.redis.Key
@@ -32,37 +32,13 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.serialization.jackson.jackson
 import io.ktor.server.testing.testApplication
-import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Test
 import java.util.UUID
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Test
 
 class MellomlagringTest : PostgresTestBase() {
-
-    @Test
-    fun `kan mellomlagre søknad`() {
-        Fakes().use { fakes ->
-            val config = TestConfig.default(fakes)
-            val jwkGen = TokenXGen()
-
-            testApplication {
-                application { server(
-                    config,
-                    fakes.redis,
-                    minsideProducer = fakes.kafka,
-                    datasource = dataSource
-                ) }
-                val res = client.post("/mellomlagring/søknad") {
-                    contentType(ContentType.Application.Json)
-                    bearerAuth(jwkGen.generate("12345678910"))
-                    setBody("""{"soknadId":"1234"}""")
-                }
-                assertEquals(HttpStatusCode.OK, res.status)
-                assertEquals("""{"soknadId":"1234"}""", String(fakes.redis[Key("12345678910")]!!))
-            }
-        }
-    }
 
     @Test
     fun `kan hente mellomlagring søknad`() {
@@ -362,6 +338,7 @@ class MellomlagringTest : PostgresTestBase() {
                 client.post("/mellomlagring/søknad") {
                     contentType(ContentType.Application.Json)
                     bearerAuth(jwkGen.generate("12345678910"))
+                    header("vedlegg", filId.toString())
                     setBody("""{"soknadId":"1234"}""")
                 }
 
@@ -409,7 +386,7 @@ class MellomlagringTest : PostgresTestBase() {
     }
 
     @Test
-    fun `kan mellomlagre søknad via v2-endepunkt`() {
+    fun `kan mellomlagre søknad`() {
         Fakes().use { fakes ->
             val config = TestConfig.default(fakes)
             val jwkGen = TokenXGen()
