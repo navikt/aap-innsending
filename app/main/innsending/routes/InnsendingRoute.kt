@@ -18,6 +18,7 @@ import innsending.logger
 import innsending.redis.EnDagSekunder
 import innsending.redis.Key
 import innsending.redis.Redis
+import innsending.teamLogs
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
@@ -178,6 +179,7 @@ private suspend fun postInnsending(
 
     if (innsending.soknad != null) {
         validerSøknad(innsending.soknad)
+            .also { teamLogs.info("Validerte innsendt søknad (validert=$it, identifikator=${personIdent})") }
     }
 
     dataSource.transaction { dbconnection ->
@@ -223,12 +225,14 @@ private suspend fun postInnsending(
 }
 
 
-fun validerSøknad(søknad: Map<String, Any>) {
-    try {
+private fun validerSøknad(søknad: Map<String, Any>): Boolean {
+    return try {
         DefaultJsonMapper.fromJson<Søknad>(DefaultJsonMapper.toJson(søknad))
         logger.info("Søknad validerte ok.")
+        true
     } catch (e: Exception) {
         logger.warn("Feil ved validering av søknad.", e)
+        false
     }
 }
 

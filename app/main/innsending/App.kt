@@ -23,7 +23,6 @@ import io.ktor.server.application.ApplicationStarted
 import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.application.install
 import io.ktor.server.auth.authenticate
-import io.ktor.server.auth.authentication
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.metrics.micrometer.MicrometerMetrics
 import io.ktor.server.netty.Netty
@@ -31,7 +30,6 @@ import io.ktor.server.plugins.callid.callIdMdc
 import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.statuspages.StatusPages
-import io.ktor.server.request.header
 import io.ktor.server.request.httpMethod
 import io.ktor.server.request.path
 import io.ktor.server.response.respondText
@@ -51,9 +49,10 @@ import no.nav.aap.motor.api.motorApi
 import no.nav.aap.motor.retry.RetryService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.slf4j.event.Level
 
 val logger: Logger = LoggerFactory.getLogger("App")
+
+val teamLogs = LoggerFactory.getLogger("team-logs")
 
 fun main() {
     Thread.currentThread().setUncaughtExceptionHandler { _, e ->

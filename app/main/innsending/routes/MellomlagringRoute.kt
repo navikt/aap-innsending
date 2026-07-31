@@ -17,6 +17,7 @@ import innsending.prometheus
 import innsending.redis.EnDagSekunder
 import innsending.redis.Key
 import innsending.redis.Redis
+import innsending.teamLogs
 import io.ktor.http.ContentDisposition
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
@@ -55,12 +56,17 @@ fun NormalOpenAPIRoute.mellomlagerRoute(
     route("/mellomlagring/søknad") {
 
         post<Unit, Unit, Unit> { _, _ ->
-            val key = Key(pipeline.call.personident())
+            val personident = pipeline.call.personident()
+
+            val key = Key(personident)
             val vedleggString = pipeline.call.request.headers["vedlegg"]
+            if (redis[key] == null) {
+                teamLogs.info("Bruker har startet søknad (identifikator=${key.value})")
+            }
             redis.set(key, pipeline.call.receive(), EnDagSekunder)
 
             vedleggString?.split(",")?.forEach { filId ->
-                redis.setExpire(Key(prefix = pipeline.call.personident(), value = filId), EnDagSekunder)
+                redis.setExpire(Key(prefix = personident, value = filId), EnDagSekunder)
             }
             pipeline.call.respond(HttpStatusCode.OK)
         }
