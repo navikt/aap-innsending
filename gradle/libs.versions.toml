@@ -1,6 +1,6 @@
 [versions]
 ktor = "3.5.1"
-kelvin = "2.0.121"
+kelvin = "2.0.128"
 flyway = "13.0.0"
 
 [libraries]
@@ -13,7 +13,7 @@ kelvin-dbconnect = { module = "no.nav.aap.kelvin:dbconnect", version.ref = "kelv
 kelvin-infrastructure = { module = "no.nav.aap.kelvin:infrastructure", version.ref = "kelvin" }
 kelvin-motor-api = { module = "no.nav.aap.kelvin:motor-api", version.ref = "kelvin" }
 kelvin-ktor-openapi-generator = { module = "no.nav.aap.kelvin:ktor-openapi-generator", version.ref = "kelvin" }
-behandlingsflyt-kontrakt = { module = "no.nav.aap.behandlingsflyt:kontrakt", version = "0.0.642" }
+behandlingsflyt-kontrakt = { module = "no.nav.aap.behandlingsflyt:kontrakt", version = "0.0.643" }
 kafka-clients = { module = "org.apache.kafka:kafka-clients", version = "4.3.1" }
 tms-mikrofrontend-builder = { module = "no.nav.tms.mikrofrontend.selector:builder", version = "20230704114948-74aa2e9" }
 
