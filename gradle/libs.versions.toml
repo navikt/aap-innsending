@@ -1,5 +1,5 @@
 [versions]
-ktor = "3.5.1"
+ktor = "3.5.2"
 kelvin = "2.0.129"
 flyway = "13.1.0"
 
