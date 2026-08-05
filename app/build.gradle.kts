@@ -1,73 +1,56 @@
 plugins {
     id("aap.conventions")
-    id("io.ktor.plugin") version "3.5.1"
+    alias(libs.plugins.ktor)
     application
 }
-
-val ktorVersion = "3.5.1"
-val komponenterVersjon = "2.0.90"
-val flywayVersjon = "12.9.0"
-val behandlingsflytversjon = "0.0.630"
 
 application {
     mainClass.set("innsending.AppKt")
 }
 
-
 dependencies {
-    implementation("no.nav.aap.kelvin:json:$komponenterVersjon")
-    implementation("no.nav.aap.kelvin:httpklient:$komponenterVersjon")
-    implementation("no.nav.aap.kelvin:motor:$komponenterVersjon")
-    implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")
-    implementation("no.nav.aap.kelvin:infrastructure:$komponenterVersjon")
-    implementation("no.nav.aap.kelvin:motor-api:$komponenterVersjon")
-    implementation("no.nav.aap.behandlingsflyt:kontrakt:$behandlingsflytversjon")
-    implementation("no.nav.aap.kelvin:ktor-openapi-generator:$komponenterVersjon")
-    implementation("org.apache.kafka:kafka-clients:4.3.1")
-    implementation("no.nav.tms.mikrofrontend.selector:builder:20230704114948-74aa2e9")
+    implementation(libs.kelvin.json)
+    implementation(libs.kelvin.httpklient)
+    implementation(libs.kelvin.motor)
+    implementation(libs.kelvin.server)
+    implementation(libs.kelvin.dbconnect)
+    implementation(libs.kelvin.infrastructure)
+    implementation(libs.kelvin.motor.api)
+    implementation(libs.kelvin.ktor.openapi.generator)
+    implementation(libs.behandlingsflyt.kontrakt)
+    implementation(libs.kafka.clients)
+    implementation(libs.tms.mikrofrontend.builder)
 
-    implementation("io.ktor:ktor-server-core:$ktorVersion")
-    implementation("io.ktor:ktor-server-netty:$ktorVersion")
-    implementation("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
-    implementation("io.ktor:ktor-server-call-logging:$ktorVersion")
-    implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
-    implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
-    implementation("io.ktor:ktor-server-auth:$ktorVersion")
-    implementation("io.ktor:ktor-server-auth-jwt:$ktorVersion")
+    implementation(libs.ktor.client.cio)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.client.jackson)
+    implementation(libs.ktor.client.logging)
+    implementation(libs.tika.core)
 
-    implementation("io.ktor:ktor-client-auth:$ktorVersion")
-    implementation("io.ktor:ktor-client-cio:$ktorVersion")
-    implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
-    implementation("io.ktor:ktor-client-jackson:$ktorVersion")
-    implementation("io.ktor:ktor-client-logging:$ktorVersion")
-    implementation("org.apache.tika:tika-core:3.3.1")
-
-    implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
-    implementation("redis.clients:jedis:7.5.2")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.17.0")
-    implementation("ch.qos.logback:logback-classic:1.5.37")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.22.0")
-    implementation("org.apache.pdfbox:pdfbox:3.0.7")
-    implementation("com.zaxxer:HikariCP:7.1.0")
-    implementation("org.flywaydb:flyway-core:$flywayVersjon")
-    implementation("org.flywaydb:flyway-database-postgresql:$flywayVersjon")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
-    runtimeOnly("net.logstash.logback:logstash-logback-encoder:9.0")
-    runtimeOnly("org.postgresql:postgresql:42.7.11")
+    implementation(libs.ktor.serialization.jackson)
+    implementation(libs.jedis)
+    implementation(libs.micrometer.registry.prometheus)
+    implementation(libs.logback.classic)
+    implementation(libs.jackson.datatype.jsr310)
+    implementation(libs.pdfbox)
+    implementation(libs.hikaricp)
+    implementation(libs.flyway.core)
+    implementation(libs.flyway.database.postgresql)
+    implementation(libs.kotlinx.coroutines.core)
+    runtimeOnly(libs.logstash.logback.encoder)
+    runtimeOnly(libs.postgresql)
 
     testImplementation(kotlin("test"))
-    testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
-    testImplementation("com.nimbusds:nimbus-jose-jwt:10.9.1")
-    testImplementation("com.redis:testcontainers-redis:2.2.4")
+    testImplementation(libs.ktor.server.test.host)
+    testImplementation(libs.nimbus.jose.jwt)
+    testImplementation(libs.testcontainers.redis)
     constraints {
-        implementation("org.apache.commons:commons-compress:1.28.0") {
+        implementation(libs.commons.compress) {
             because("https://github.com/advisories/GHSA-4g9r-vxhx-9pgx")
         }
     }
-    testImplementation("org.testcontainers:testcontainers-postgresql:2.0.5")
-
-    testImplementation("org.assertj:assertj-core:3.27.7")
-
+    testImplementation(libs.testcontainers.postgresql)
+    testImplementation(libs.assertj.core)
 }
 tasks {
     withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {

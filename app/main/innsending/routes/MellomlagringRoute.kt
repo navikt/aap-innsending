@@ -1,6 +1,7 @@
 package innsending.routes
 
 import com.papsign.ktor.openapigen.annotations.parameters.PathParam
+import com.papsign.ktor.openapigen.route.info
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.delete
 import com.papsign.ktor.openapigen.route.path.normal.get
@@ -17,20 +18,27 @@ import innsending.prometheus
 import innsending.redis.EnDagSekunder
 import innsending.redis.Key
 import innsending.redis.Redis
-import io.ktor.http.*
-import io.ktor.http.content.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.utils.io.*
+import io.ktor.http.ContentDisposition
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.content.PartData
+import io.ktor.server.request.contentType
+import io.ktor.server.request.receive
+import io.ktor.server.request.receiveMultipart
+import io.ktor.server.response.header
+import io.ktor.server.response.respond
+import io.ktor.server.response.respondBytes
+import io.ktor.utils.io.readByte
+import java.net.URI
+import java.net.URL
+import java.time.LocalDateTime
+import java.util.UUID
 import kotlinx.io.EOFException
 import no.nav.aap.komponenter.miljo.Miljø
 import org.apache.pdfbox.Loader
 import org.apache.tika.Tika
 import org.slf4j.LoggerFactory
-import java.net.URI
-import java.net.URL
-import java.time.LocalDateTime
-import java.util.*
 import kotlin.time.measureTimedValue
 
 private val log = LoggerFactory.getLogger("MellomLagringRoute")
@@ -52,9 +60,11 @@ fun NormalOpenAPIRoute.mellomlagerRoute(
 
         post<Unit, Unit, Unit> { _, _ ->
             val key = Key(pipeline.call.personident())
+            val vedleggString = pipeline.call.request.headers["vedlegg"]
             redis.set(key, pipeline.call.receive(), EnDagSekunder)
-            redis.getKeysByPrefix(pipeline.call.personident()).forEach { filKey ->
-                redis.setExpire(filKey, EnDagSekunder)
+
+            vedleggString?.split(",")?.forEach { filId ->
+                redis.setExpire(Key(prefix = pipeline.call.personident(), value = filId), EnDagSekunder)
             }
             pipeline.call.respond(HttpStatusCode.OK)
         }
@@ -67,6 +77,9 @@ fun NormalOpenAPIRoute.mellomlagerRoute(
             }
         }
 
+        /**
+         * Endepunktet brukes av tms-utkast (min-side) for å sjekke om bruker har en søknad
+         */
         route("/finnes") {
             get<Unit, SøknadFinnesRespons> { _ ->
                 val personIdent = Key(pipeline.call.personident())
@@ -94,8 +107,9 @@ fun NormalOpenAPIRoute.mellomlagerRoute(
         }
     }
 
+    // Deprecated: Kan fjernes når aap-soknad går mot /mellomlagring/søknad¨
     route("/mellomlagring/søknad/v2") {
-        post<Unit, Unit, Unit> { _, _ ->
+        post<Unit, Unit, Unit>(modules = arrayOf(info(deprecated = true))) { _, _ ->
             val key = Key(pipeline.call.personident())
             val vedleggString = pipeline.call.request.headers["vedlegg"]
             redis.set(key, pipeline.call.receive(), EnDagSekunder)
@@ -324,5 +338,5 @@ fun sjekkFeilContentType(fil: ByteArray, contentType: ContentType): Boolean {
 data class SøknadFinnesRespons(
     val tittel: String? = null,
     val link: URL? = null,
-    val sistEndret: LocalDateTime? = null
+    val sistEndret: LocalDateTime? = null,
 )

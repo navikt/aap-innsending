@@ -4,19 +4,19 @@ import innsending.ProdConfig
 import innsending.arkiv.ArkivResponse
 import innsending.arkiv.Journalpost
 import innsending.prometheus
+import java.net.URI
+import java.time.Duration
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureM2MTokenProvider
 import no.nav.aap.komponenter.json.DefaultJsonMapper
-import java.net.URI
-import java.time.Duration
 
 class JoarkClient {
     private val joarkConfig = ProdConfig.config.joark
     private val httpClient = RestClient.withDefaultResponseHandler(
         config = ClientConfig(joarkConfig.scope),
-        tokenProvider = ClientCredentialsTokenProvider,
+        tokenProvider = AzureM2MTokenProvider,
         prometheus = prometheus.prometheus
     )
 

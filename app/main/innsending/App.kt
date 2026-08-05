@@ -4,9 +4,6 @@ import com.papsign.ktor.openapigen.OpenAPIGen
 import com.papsign.ktor.openapigen.model.info.InfoModel
 import com.papsign.ktor.openapigen.route.apiRouting
 import innsending.antivirus.ClamAVClient
-import innsending.auth.AZURE
-import innsending.auth.TOKENX
-import innsending.auth.authentication
 import innsending.jobb.ArkiverInnsendingJobbUtfører
 import innsending.jobb.MinSideNotifyJobbUtfører
 import innsending.kafka.KafkaProducer
@@ -27,9 +24,11 @@ import io.ktor.server.application.ApplicationStarted
 import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.application.install
 import io.ktor.server.auth.authenticate
+import io.ktor.server.auth.authentication
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.metrics.micrometer.MicrometerMetrics
 import io.ktor.server.netty.Netty
+import io.ktor.server.plugins.callid.callIdMdc
 import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.statuspages.StatusPages
@@ -43,6 +42,10 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import javax.sql.DataSource
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.json.DefaultJsonMapper
+import no.nav.aap.komponenter.miljo.Miljø
+import no.nav.aap.komponenter.server.auth.IdentityProvider
+import no.nav.aap.komponenter.server.authentication
+import no.nav.aap.komponenter.server.common.MdcKeys
 import no.nav.aap.motor.JobbSpesifikasjon
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.api.motorApi
@@ -84,19 +87,14 @@ fun Application.server(
         meterBinders += LogbackMetrics()
     }
 
-    authentication(azureConfig = config.azure, tokenxConfig = config.tokenx)
+    authentication(listOf(IdentityProvider.ENTRA_ID, IdentityProvider.TOKENX))
 
     install(CallLogging) {
-        level = Level.TRACE
-        format { call ->
-            """
-                URL:            ${call.request.local.uri}
-                Status:         ${call.response.status()}
-                Method:         ${call.request.httpMethod.value}
-                User-agent:     ${call.request.headers["User-Agent"]}
-                CallId:         ${call.request.header("x-callId") ?: call.request.header("nav-callId")}
-            """.trimIndent()
-        }
+        disableDefaultColors() // Nødvendig for å rare tegn (fargekoder) i loggene
+
+        callIdMdc(MdcKeys.CallId)
+        mdc(MdcKeys.Method) { call -> call.request.httpMethod.value }
+        mdc(MdcKeys.InboundUri) { call -> call.request.path() }
         filter { call -> call.request.path().startsWith("/actuator").not() }
     }
 
@@ -130,17 +128,19 @@ fun Application.server(
 
     module(datasource, minsideProducer, redis, prometheus)
 
+    val godkjenteRollerMotor = if (Miljø.erProd()) listOf(config.teamAapRolle) else emptyList()
+
     routing {
-        authenticate(TOKENX) {
+        authenticate(IdentityProvider.TOKENX.value) {
             apiRouting {
                 innsendingRoute(datasource, redis, prometheus, config.maxFileSize)
                 mellomlagerRoute(redis, antivirus, pdfGen, config.maxFileSize, pdfGeneratorGateway)
             }
         }
 
-        authenticate(AZURE) {
+        authenticate(IdentityProvider.ENTRA_ID.value) {
             apiRouting {
-                motorApi(datasource)
+                motorApi(datasource, godkjenteRollerMotor)
             }
         }
 

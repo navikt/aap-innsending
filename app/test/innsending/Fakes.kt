@@ -1,7 +1,9 @@
 package innsending
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.nimbusds.jwt.JWTParser
 import innsending.arkiv.ArkivResponse
 import innsending.arkiv.Journalpost
 import innsending.kafka.KafkaFake
@@ -19,8 +21,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 
 class Fakes : AutoCloseable {
-    val azure = embeddedServer(Netty, port = 0, module = Application::azure).apply { start() }
-    val tokenx = embeddedServer(Netty, port = 0, module = Application::tokenx).apply { start() }
+    val texas = embeddedServer(Netty, port = 0, module = Application::texas).apply { start() }
     val pdfGen = embeddedServer(Netty, port = 0, module = Application::pdfGen).apply { start() }
     val oppslag = embeddedServer(Netty, port = 0, module = Application::oppslag).apply { start() }
     val virusScan =
@@ -29,24 +30,21 @@ class Fakes : AutoCloseable {
     val redis = Redis(InitTestRedis.uri)
     val kafka = KafkaFake()
 
+    init {
+        // Texas
+        System.setProperty("NAIS_TOKEN_ENDPOINT", "http://localhost:${texas.port()}/token")
+        System.setProperty("NAIS_TOKEN_EXCHANGE_ENDPOINT", "http://localhost:${texas.port()}/token/exchange")
+        System.setProperty("NAIS_TOKEN_INTROSPECTION_ENDPOINT", "http://localhost:${texas.port()}/introspect")
+    }
+
     override fun close() {
-        azure.stop(0L, 0L)
-        tokenx.stop(0L, 0L)
+        texas.stop(0L, 0L)
         pdfGen.stop(0L, 0L)
         oppslag.stop(0L, 0L)
         virusScan.stop(0L, 0L)
         joark.close()
         redis.close()
         kafka.close()
-    }
-}
-
-fun Application.tokenx() {
-    install(ContentNegotiation) { jackson() }
-    routing {
-        get("/jwks") {
-            call.respondText(TOKEN_X_JWKS)
-        }
     }
 }
 
@@ -75,31 +73,20 @@ class JoarkFake : AutoCloseable {
     override fun close() = server.stop(0, 0)
 }
 
-fun Application.azure() {
+fun Application.texas() {
     install(ContentNegotiation) { jackson() }
     routing {
         post("/token") {
-            val scopes = listOf(
-                "api://dev-fss.teamdokumenthandtering.dokarkiv/.default",
-                "api://dev-gcp.aap.oppslag/.default"
-            )
+            TODO()
+        }
 
-            val request = call.receiveText()
+        post("/token/exchange") {
+            val token = TokenXGen().generate("1234567890")
+            call.respond(Token(expires_in = 3600, access_token = token))
+        }
 
-            require(
-                scopes
-                    .map { "client_id=test&client_secret=test&scope=$it&grant_type=client_credentials" }
-                    .any { it == request }
-            ) {
-                "Ukjent token request $request"
-            }
-
-            call.respond(
-                Token(
-                    expires_in = 3599,
-                    access_token = "very.secure.token"
-                )
-            )
+        post("/introspect") {
+            call.respond(mapOf("active" to true))
         }
     }
 }

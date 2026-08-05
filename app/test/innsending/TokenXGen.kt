@@ -9,10 +9,9 @@ import com.nimbusds.jose.jwk.RSAKey
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
 import java.util.Date
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.tokenx.TokenxConfig
 import org.intellij.lang.annotations.Language
 
-internal class TokenXGen(private val config: TokenxConfig) {
+internal class TokenXGen {
     private val rsaKey: RSAKey get() = JWKSet.parse(TOKEN_X_JWKS).getKeyByKeyId("localhost-signer") as RSAKey
 
     private fun signed(claims: JWTClaimsSet): SignedJWT {
@@ -23,8 +22,8 @@ internal class TokenXGen(private val config: TokenxConfig) {
 
     private fun claims(personident: String = "12345678910") = JWTClaimsSet
         .Builder()
-        .issuer(config.issuer)
-        .audience(config.clientId)
+        .issuer("test-issuer")
+        .audience("test-client-id")
         .expirationTime(Date(Date().time + 60 * 60 * 3600))
         .claim("pid", personident)
         .build()

@@ -2,17 +2,13 @@ package innsending
 
 import innsending.kafka.KafkaConfig
 import java.net.URI
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.tokenx.TokenxConfig
 
 private fun getEnvVar(envar: String) = System.getenv(envar) ?: error("missing envvar $envar")
 
 data class Config(
     val postgres: PostgresConfig = PostgresConfig(),
     val redis: RedisConfig = RedisConfig(),
-    val azure: AzureConfig = AzureConfig(),
     val joark: JoarkConfig = JoarkConfig(),
-    val tokenx: TokenxConfig = TokenxConfig(),
     val pdfGenHost: String = "http://pdfgen",
     val pdfGeneratorHost: String = "http://pdfgenerator",
     val virusScanHost: String = "http://clamav.nais-system",
@@ -24,6 +20,7 @@ data class Config(
     ),
     val oppslag: OppslagConfig = OppslagConfig(),
     val maxFileSize: Int = getEnvVar("MAX_FILE_SIZE").toInt(),
+    val teamAapRolle: String = getEnvVar("NAIS_TEAM_AAP"),
 )
 
 data class RedisConfig(

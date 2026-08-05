@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <appender name="json" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <decorator class="net.logstash.logback.mask.MaskingJsonGeneratorDecorator">
+                <valueMask>
+                    <value>\b(\d{6})\d{5}\b</value>
+                    <mask>$1*****</mask>
+                </valueMask>
+            </decorator>
+        </encoder>
     </appender>
 
     <root level="INFO">
@@ -9,6 +16,19 @@
     </root>
 
     <logger name="org.apache.pdfbox.pdfparser.COSParser" level="ERROR" />
-    <logger name="no.nav.aap.komponenter.httpklient.httpclient.tokenprovider" level="WARN"/>
 
+    <appender name="team-logs" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+        <destination>team-logs.nais-system:5170</destination>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <customFields>
+                {"google_cloud_project":"${GOOGLE_CLOUD_PROJECT}","nais_namespace_name":"${NAIS_NAMESPACE}","nais_pod_name":"${NAIS_POD_NAME}","nais_container_name":"${NAIS_APP_NAME}"}
+            </customFields>
+            <includeContext>false</includeContext>
+        </encoder>
+    </appender>
+
+    <!-- additivity=false gjør at loggene ikke blir sendt til andre loggappendere -->
+    <logger name="team-logs" level="INFO" additivity="false">
+        <appender-ref ref="team-logs"/>
+    </logger>
 </configuration>

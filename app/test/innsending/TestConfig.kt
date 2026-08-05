@@ -1,9 +1,6 @@
 package innsending
 
 import innsending.kafka.KafkaConfig
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
-import java.net.URI
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.tokenx.TokenxConfig
 
 internal object TestConfig {
 
@@ -34,20 +31,6 @@ internal object TestConfig {
             ),
             pdfGenHost = "http://localhost:${fakes.pdfGen.port()}",
             virusScanHost = "http://localhost:${fakes.virusScan.port()}",
-            azure = AzureConfig(
-                tokenEndpoint = URI.create("http://localhost:${fakes.azure.port()}/token"),
-                clientId = "test",
-                clientSecret = "test",
-                jwksUri = URI.create("http://localhost:${fakes.azure.port()}/jwks").toString(),
-                issuer = "test",
-            ),
-            tokenx = TokenxConfig(
-                tokenEndpoint = URI.create("http://localhost:${fakes.tokenx.port()}/token"),
-                clientId = "aap-innsending",
-                clientSecret = "test",
-                issuer = "tokenx",
-                jwksUri = URI.create("http://localhost:${fakes.tokenx.port()}/jwks").toString()
-            ),
             kafka = KafkaConfig(
                 brokers = "localhost",
                 truststorePath = "test",
@@ -58,6 +41,7 @@ internal object TestConfig {
                 host = "http://localhost:${fakes.oppslag.port()}",
                 scope = "api://dev-gcp.aap.oppslag/.default"
             ),
+            teamAapRolle = "nais-team-aap"
         )
     }
 }

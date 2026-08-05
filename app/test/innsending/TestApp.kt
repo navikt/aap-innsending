@@ -4,8 +4,6 @@ import com.papsign.ktor.openapigen.OpenAPIGen
 import com.papsign.ktor.openapigen.model.info.InfoModel
 import com.papsign.ktor.openapigen.route.apiRouting
 import innsending.antivirus.ClamAVClient
-import innsending.auth.TOKENX
-import innsending.auth.authentication
 import innsending.db.FilNy
 import innsending.db.InMemoryFilData
 import innsending.db.InnsendingNy
@@ -39,16 +37,18 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.core.instrument.binder.logging.LogbackMetrics
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import java.time.LocalDateTime
+import java.util.*
+import javax.sql.DataSource
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.json.DefaultJsonMapper
+import no.nav.aap.komponenter.server.auth.IdentityProvider
+import no.nav.aap.komponenter.server.authentication
 import no.nav.aap.motor.JobbSpesifikasjon
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.retry.RetryService
 import org.slf4j.event.Level
-import java.time.LocalDateTime
-import java.util.*
-import javax.sql.DataSource
 
 private const val PERSONIDENT = "08486725851"
 fun main() {
@@ -56,12 +56,13 @@ fun main() {
     // Starter server
     embeddedServer(Netty, port = 8080, module = Application::testserver).start(wait = true)
 }
+
 fun Application.testserver(
     config: Config = TestConfig.default(Fakes()),
     redis: Redis = Redis(config.redis.uri),
     minsideProducer: KafkaProducer = Fakes().kafka,
     datasource: DataSource = Hikari.createAndMigrate(
-                InitTestDatabase.hikariConfig,
+        InitTestDatabase.hikariConfig,
         arrayOf("classpath:db/migration")
     ),
 ) {
@@ -76,7 +77,7 @@ fun Application.testserver(
         meterBinders += LogbackMetrics()
     }
 
-    authentication(azureConfig = config.azure, tokenxConfig = config.tokenx)
+    authentication(listOf(IdentityProvider.ENTRA_ID, IdentityProvider.TOKENX))
 
     install(CallLogging) {
         level = Level.TRACE
@@ -124,12 +125,12 @@ fun Application.testserver(
     routing {
         route("/test/local-token") {
             get {
-                val token = TokenXGen(config.tokenx).generate(PERSONIDENT)
+                val token = TokenXGen().generate(PERSONIDENT)
                 call.respond(token)
             }
         }
 
-        authenticate(TOKENX) {
+        authenticate(IdentityProvider.TOKENX.value) {
             apiRouting {
                 innsendingRoute(datasource, redis, prometheus, config.maxFileSize)
                 mellomlagerRoute(redis, antivirus, pdfGen, config.maxFileSize)
@@ -148,7 +149,7 @@ fun Application.module(
     dataSource: DataSource,
     minsideProducer: KafkaProducer,
     redis: Redis,
-    prometheus: PrometheusMeterRegistry
+    prometheus: PrometheusMeterRegistry,
 ): Motor {
     val motor = Motor(
         dataSource = dataSource,
@@ -187,9 +188,10 @@ object ProsesseringsJobber {
         )
     }
 }
-private fun opprettSøknadInnsendingMedFil(connection: DBConnection){
+
+private fun opprettSøknadInnsendingMedFil(connection: DBConnection) {
     val randomId = UUID.randomUUID()
-    val filId1 = Key(value = UUID.randomUUID().toString(), prefix = PERSONIDENT )
+    val filId1 = Key(value = UUID.randomUUID().toString(), prefix = PERSONIDENT)
     val innsending = Innsending(
         kvittering = mapOf("kvittering" to "kvittering"),
         soknad = mapOf("søknad" to "søknad"),
@@ -200,9 +202,12 @@ private fun opprettSøknadInnsendingMedFil(connection: DBConnection){
             )
         )
     )
-    val filerMedInnhold = listOf<Pair<FilMetadata, ByteArray>>(Pair(FilMetadata("asdfasdf", "vedlegg"),
-        "vedlegg".encodeToByteArray()
-    ))
+    val filerMedInnhold = listOf<Pair<FilMetadata, ByteArray>>(
+        Pair(
+            FilMetadata("asdfasdf", "vedlegg"),
+            "vedlegg".encodeToByteArray()
+        )
+    )
     val innsendingRepo = InnsendingRepo(connection)
     innsendingRepo.lagre(
         InnsendingNy(
