@@ -4,18 +4,26 @@ import innsending.arkiv.ArkivResponse
 import innsending.arkiv.Journalpost
 import innsending.db.InnsendingNy
 import innsending.logger
+import kotlin.time.measureTimedValue
 import innsending.pdf.PdfGenClient
+import innsending.pdf.PdfGeneratorGateway
 import innsending.postgres.InnsendingType
 import java.util.Base64
 
 class ArkiveringService(
     val joarkClient: JoarkClient,
-    val pdfGen: PdfGenClient
+    val pdfGen: PdfGenClient,
+    val pdfGeneratorGateway: PdfGeneratorGateway,
 ) {
     fun arkiverSøknadInnsending(innsending: InnsendingNy): ArkivResponse {
         require(innsending.type == InnsendingType.SOKNAD)
 
-        val pdf = pdfGen.søknadTilPdf(innsending)
+        val (pdf, tidBruktPdfGen) = measureTimedValue { pdfGen.søknadTilPdf(innsending) }
+        //TODO: Feature toggle
+        if (true) {
+            val (_, tidBruktPdfGeneratorGateway) = measureTimedValue { pdfGeneratorGateway.søknadTilPdf(innsending) }
+            logger.info("SøknadTilPdf - PdfGen: $tidBruktPdfGen, PdfGeneratorGateway: $tidBruktPdfGeneratorGateway")
+        }
 
         val journalpost = Journalpost(
             tittel = "Søknad AAP",

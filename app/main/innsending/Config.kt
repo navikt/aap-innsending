@@ -14,6 +14,7 @@ data class Config(
     val joark: JoarkConfig = JoarkConfig(),
     val tokenx: TokenxConfig = TokenxConfig(),
     val pdfGenHost: String = "http://pdfgen",
+    val pdfGeneratorHost: String = "http://pdfgenerator",
     val virusScanHost: String = "http://clamav.nais-system",
     val kafka: KafkaConfig = KafkaConfig(
         brokers = getEnvVar("KAFKA_BROKERS"),

@@ -12,6 +12,7 @@ import innsending.auth.personident
 import innsending.dto.ErrorRespons
 import innsending.dto.MellomlagringRespons
 import innsending.pdf.PdfGen
+import innsending.pdf.PdfGeneratorGateway
 import innsending.prometheus
 import innsending.redis.EnDagSekunder
 import innsending.redis.Key
@@ -22,6 +23,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.utils.io.*
 import kotlinx.io.EOFException
+import no.nav.aap.komponenter.miljo.Miljø
 import org.apache.pdfbox.Loader
 import org.apache.tika.Tika
 import org.slf4j.LoggerFactory
@@ -29,6 +31,7 @@ import java.net.URI
 import java.net.URL
 import java.time.LocalDateTime
 import java.util.*
+import kotlin.time.measureTimedValue
 
 private val log = LoggerFactory.getLogger("MellomLagringRoute")
 
@@ -41,7 +44,8 @@ fun NormalOpenAPIRoute.mellomlagerRoute(
     redis: Redis,
     virusScanClient: ClamAVClient,
     pdfGen: PdfGen,
-    maxFileSize: Int
+    maxFileSize: Int,
+    pdfGeneratorGateway: PdfGeneratorGateway,
 ) {
     val CONTENT_LENGHT_LIMIT = maxFileSize * 1024 * 1024 // 75 MB
     route("/mellomlagring/søknad") {
@@ -175,7 +179,12 @@ fun NormalOpenAPIRoute.mellomlagerRoute(
                             } else {
                                 log.info("Fil er ikke PDF. Konverterer til PDF.")
                                 try {
-                                    pdfGen.bildeTilPfd(fil, contentType)
+                                    val (generertPdf, tidBruktPdfGen) = measureTimedValue { pdfGen.bildeTilPfd(fil, contentType) }
+                                    if (Miljø.erDev()) {
+                                        val (_, tidBruktPdfGeneratorGateway) = measureTimedValue { pdfGeneratorGateway.bildeTilPfd(fil, contentType) }
+                                        log.info("SøknadTilPdf - PdfGen: $tidBruktPdfGen, PdfGeneratorGateway: $tidBruktPdfGeneratorGateway")
+                                    }
+                                    generertPdf
                                 } catch (e: Exception) {
                                     log.error("Feil fra PDFgen", e)
                                     return@post pipeline.call.respond(
