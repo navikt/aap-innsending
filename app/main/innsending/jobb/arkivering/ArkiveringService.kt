@@ -8,6 +8,7 @@ import kotlin.time.measureTimedValue
 import innsending.pdf.PdfGenClient
 import innsending.pdf.PdfGeneratorGateway
 import innsending.postgres.InnsendingType
+import no.nav.aap.komponenter.miljo.Miljø
 import java.util.Base64
 
 class ArkiveringService(
@@ -19,8 +20,7 @@ class ArkiveringService(
         require(innsending.type == InnsendingType.SOKNAD)
 
         val (pdf, tidBruktPdfGen) = measureTimedValue { pdfGen.søknadTilPdf(innsending) }
-        //TODO: Feature toggle
-        if (true) {
+        if (Miljø.erDev()) {
             val (_, tidBruktPdfGeneratorGateway) = measureTimedValue { pdfGeneratorGateway.søknadTilPdf(innsending) }
             logger.info("SøknadTilPdf - PdfGen: $tidBruktPdfGen, PdfGeneratorGateway: $tidBruktPdfGeneratorGateway")
         }
