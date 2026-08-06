@@ -3,9 +3,10 @@ package innsending.jobb
 import innsending.db.InnsendingRepo
 import innsending.jobb.arkivering.ArkiveringService
 import innsending.jobb.arkivering.JoarkClient
+import innsending.oppslag.OppslagClientNy
 import innsending.pdf.PdfGenClient
 import innsending.pdf.PdfGeneratorGateway
-import innsending.oppslag.OppslagClientNy
+import innsending.ProdConfig
 import innsending.postgres.InnsendingType
 import innsending.prometheus
 import innsending.prometheus.arkivertTeller
@@ -57,7 +58,7 @@ class ArkiverInnsendingJobbUtfører(
                 ArkiveringService(
                     pdfGen = PdfGenClient(),
                     joarkClient = JoarkClient(),
-                    pdfGeneratorGateway = PdfGeneratorGateway(),
+                    pdfGeneratorGateway = PdfGeneratorGateway(ProdConfig.config.pdfGeneratorHost),
                     oppslagClientNy = OppslagClientNy(),
                 ),
                 FlytJobbRepository(connection)

@@ -104,6 +104,14 @@ fun Application.pdfGen() {
             val res = Resource.read("/resources/pdf/minimal.pdf")
             call.respond(res)
         }
+        post("/api/v1/genpdf/innbygger/soknad") {
+            val res = Resource.read("/resources/pdf/minimal.pdf")
+            call.respond(res)
+        }
+        post("/api/v1/genpdf/image/innbygger") {
+            val res = Resource.read("/resources/pdf/minimal.pdf")
+            call.respond(res)
+        }
     }
 }
 

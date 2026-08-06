@@ -1,6 +1,5 @@
 package innsending.pdf
 
-import innsending.ProdConfig
 import innsending.db.InnsendingNy
 import innsending.prometheus
 import io.ktor.http.*
@@ -11,7 +10,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.NoTokenTokenProvider
 import java.net.URI
 
-class PdfGeneratorGateway {
+class PdfGeneratorGateway(private val pdfGeneratorHost: String) {
     private val httpClient = RestClient.withDefaultResponseHandler(
         ClientConfig(),
         NoTokenTokenProvider(),
@@ -29,7 +28,7 @@ class PdfGeneratorGateway {
 
         return requireNotNull(
             httpClient.post(
-                uri = URI.create(ProdConfig.config.pdfGeneratorHost + "/api/v1/genpdf/innbygger/soknad"),
+                uri = URI.create(pdfGeneratorHost + "/api/v1/genpdf/innbygger/soknad"),
                 request = httpPostRequest,
                 mapper = { body, _ -> body.readAllBytes() }
             )
@@ -46,7 +45,7 @@ class PdfGeneratorGateway {
         )
         return requireNotNull(
             httpClient.post(
-                uri = URI.create(ProdConfig.config.pdfGeneratorHost + "/api/v1/genpdf/image/innbygger"),
+                uri = URI.create(pdfGeneratorHost + "/api/v1/genpdf/image/innbygger"),
                 request = postRequest,
                 mapper = { body, _ -> body.readAllBytes() }
             )

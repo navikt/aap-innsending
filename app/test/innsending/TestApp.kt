@@ -70,7 +70,7 @@ fun Application.testserver(
     val prometheus = prometheus.prometheus
     val antivirus = ClamAVClient(config.virusScanHost)
     val pdfGen = PdfGen(config)
-    val pdfGeneratorGateway = PdfGeneratorGateway()
+    val pdfGeneratorGateway = PdfGeneratorGateway(config.pdfGeneratorHost)
 
     MinSideProducerHolder.setProducer(minsideProducer)
 
