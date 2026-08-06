@@ -2,7 +2,6 @@ package innsending.pdf
 
 import innsending.ProdConfig
 import innsending.db.InnsendingNy
-import innsending.oppslag.OppslagClientNy
 import innsending.prometheus
 import io.ktor.http.*
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
@@ -18,17 +17,8 @@ class PdfGeneratorGateway {
         NoTokenTokenProvider(),
         prometheus = prometheus.prometheus
     )
-    private val oppslagClientNy = OppslagClientNy()
 
-    fun søknadTilPdf(innsending: InnsendingNy): ByteArray {
-        val navn = oppslagClientNy.hentNavn(innsending.personident).let { navn ->
-            SøkerPdfGen.Navn(
-                fornavn = navn.fornavn,
-                mellomnavn = navn.mellomnavn,
-                etternavn = navn.etternavn,
-            )
-        }
-
+    fun søknadTilPdf(innsending: InnsendingNy, navn: SøkerPdfGen.Navn): ByteArray {
         val kvittering =
             innsending.kvitteringToMap() + mapOf("mottattdato" to innsending.opprettet.toString())
         val data = SøknadPdfGen(SøkerPdfGen(navn = navn), kvittering)
@@ -42,8 +32,10 @@ class PdfGeneratorGateway {
                 uri = URI.create(ProdConfig.config.pdfGeneratorHost + "/api/v1/genpdf/innbygger/soknad"),
                 request = httpPostRequest,
                 mapper = { body, _ -> body.readAllBytes() }
-            )) { "SøknadTilPdf - Ingen respons fra pdfgenerator" }
+            )
+        ) { "SøknadTilPdf - Ingen respons fra pdfgenerator" }
     }
+
     fun bildeTilPfd(bildeFil: ByteArray, contentType: ContentType): ByteArray {
         val postRequest = PostRequest(
             body = bildeFil,
@@ -52,11 +44,12 @@ class PdfGeneratorGateway {
                 Header("Content-Type", contentType.toString())
             )
         )
-        return requireNotNull(httpClient.post(
-            uri = URI.create(ProdConfig.config.pdfGeneratorHost + "/api/v1/genpdf/image/innbygger"),
-            request = postRequest,
-            mapper = { body, _ -> body.readAllBytes() }
-        )) { "BildeTilPdf - Ingen respons fra pdfgenerator" }
-
+        return requireNotNull(
+            httpClient.post(
+                uri = URI.create(ProdConfig.config.pdfGeneratorHost + "/api/v1/genpdf/image/innbygger"),
+                request = postRequest,
+                mapper = { body, _ -> body.readAllBytes() }
+            )
+        ) { "BildeTilPdf - Ingen respons fra pdfgenerator" }
     }
 }

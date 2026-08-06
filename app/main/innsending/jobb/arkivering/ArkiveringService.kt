@@ -4,24 +4,30 @@ import innsending.arkiv.ArkivResponse
 import innsending.arkiv.Journalpost
 import innsending.db.InnsendingNy
 import innsending.logger
-import kotlin.time.measureTimedValue
+import innsending.oppslag.OppslagClientNy
 import innsending.pdf.PdfGenClient
 import innsending.pdf.PdfGeneratorGateway
+import innsending.pdf.SøkerPdfGen
 import innsending.postgres.InnsendingType
 import no.nav.aap.komponenter.miljo.Miljø
 import java.util.Base64
+import kotlin.time.measureTimedValue
 
 class ArkiveringService(
     val joarkClient: JoarkClient,
     val pdfGen: PdfGenClient,
     val pdfGeneratorGateway: PdfGeneratorGateway,
+    val oppslagClientNy: OppslagClientNy,
 ) {
     fun arkiverSøknadInnsending(innsending: InnsendingNy): ArkivResponse {
         require(innsending.type == InnsendingType.SOKNAD)
 
         val (pdf, tidBruktPdfGen) = measureTimedValue { pdfGen.søknadTilPdf(innsending) }
         if (Miljø.erDev()) {
-            val (_, tidBruktPdfGeneratorGateway) = measureTimedValue { pdfGeneratorGateway.søknadTilPdf(innsending) }
+            val navn = oppslagClientNy.hentNavn(innsending.personident).let {
+                SøkerPdfGen.Navn(fornavn = it.fornavn, mellomnavn = it.mellomnavn, etternavn = it.etternavn)
+            }
+            val (_, tidBruktPdfGeneratorGateway) = measureTimedValue { pdfGeneratorGateway.søknadTilPdf(innsending, navn) }
             logger.info("SøknadTilPdf - PdfGen: $tidBruktPdfGen, PdfGeneratorGateway: $tidBruktPdfGeneratorGateway")
         }
 
