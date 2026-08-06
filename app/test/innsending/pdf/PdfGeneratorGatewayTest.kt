@@ -6,6 +6,7 @@ import innsending.db.InnsendingNy
 import innsending.port
 import innsending.postgres.InnsendingType
 import io.ktor.http.ContentType
+import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
@@ -31,7 +32,7 @@ class PdfGeneratorGatewayTest {
             val gateway = PdfGeneratorGateway("http://localhost:${fakes.pdfGen.port()}")
             val jpeg = Resource.read("/resources/images/bilde.jpg")
 
-            val result = gateway.bildeTilPfd(jpeg, ContentType.Image.JPEG)
+            val result = runBlocking { gateway.bildeTilPfd(jpeg, ContentType.Image.JPEG) }
 
             assertThat(result).isNotEmpty()
         }
@@ -43,7 +44,7 @@ class PdfGeneratorGatewayTest {
             val gateway = PdfGeneratorGateway("http://localhost:${fakes.pdfGen.port()}")
             val png = Resource.read("/resources/images/bilde.png")
 
-            val result = gateway.bildeTilPfd(png, ContentType.Image.PNG)
+            val result = runBlocking { gateway.bildeTilPfd(png, ContentType.Image.PNG) }
 
             assertThat(result).isNotEmpty()
         }
