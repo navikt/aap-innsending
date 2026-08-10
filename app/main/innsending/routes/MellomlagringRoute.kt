@@ -196,7 +196,7 @@ fun NormalOpenAPIRoute.mellomlagerRoute(
                                     val (generertPdf, tidBruktPdfGen) = measureTimedValue { pdfGen.bildeTilPfd(fil, contentType) }
                                     if (Miljø.erDev()) {
                                         try {
-                                            val (_, tidBruktPdfGeneratorGateway) = measureTimedValue { pdfGeneratorGateway.bildeTilPfd(fil, contentType) }
+                                            val (_, tidBruktPdfGeneratorGateway) = measureTimedValue { pdfGeneratorGateway.bildeTilPdf(fil, contentType) }
                                             log.info("BildeTilPdf - PdfGen: $tidBruktPdfGen, PdfGeneratorGateway: $tidBruktPdfGeneratorGateway")
                                         } catch (e: Exception) {
                                             log.warn("BildeTilPdf error - ${e.message}")

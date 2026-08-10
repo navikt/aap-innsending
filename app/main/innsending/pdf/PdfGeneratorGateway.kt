@@ -41,7 +41,7 @@ class PdfGeneratorGateway(private val pdfGeneratorHost: String) {
         ) { "SøknadTilPdf - Ingen respons fra pdfgenerator" }
     }
 
-    suspend fun bildeTilPfd(bildeFil: ByteArray, contentType: ContentType): ByteArray {
+    suspend fun bildeTilPdf(bildeFil: ByteArray, contentType: ContentType): ByteArray {
         val res = httpClient.post("$pdfGeneratorHost/api/v1/genpdf/image/innbygger") {
             contentType(contentType)
             accept(ContentType.Application.Pdf)

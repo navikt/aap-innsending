@@ -32,7 +32,7 @@ class PdfGeneratorGatewayTest {
             val gateway = PdfGeneratorGateway("http://localhost:${fakes.pdfGen.port()}")
             val jpeg = Resource.read("/resources/images/bilde.jpg")
 
-            val result = runBlocking { gateway.bildeTilPfd(jpeg, ContentType.Image.JPEG) }
+            val result = runBlocking { gateway.bildeTilPdf(jpeg, ContentType.Image.JPEG) }
 
             assertThat(result).isNotEmpty()
         }
@@ -44,7 +44,7 @@ class PdfGeneratorGatewayTest {
             val gateway = PdfGeneratorGateway("http://localhost:${fakes.pdfGen.port()}")
             val png = Resource.read("/resources/images/bilde.png")
 
-            val result = runBlocking { gateway.bildeTilPfd(png, ContentType.Image.PNG) }
+            val result = runBlocking { gateway.bildeTilPdf(png, ContentType.Image.PNG) }
 
             assertThat(result).isNotEmpty()
         }
