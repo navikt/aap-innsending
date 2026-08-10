@@ -2,12 +2,14 @@ package innsending.pdf
 
 import innsending.db.InnsendingNy
 import innsending.http.HttpClientFactory
+import innsending.logger
 import innsending.prometheus
 import io.ktor.client.request.accept
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.readRawBytes
 import io.ktor.http.*
+import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.Header
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
@@ -27,6 +29,7 @@ class PdfGeneratorGateway(private val pdfGeneratorHost: String) {
         val kvittering =
             innsending.kvitteringToMap() + mapOf("mottattdato" to innsending.opprettet.toString())
         val data = SøknadPdfGen(SøkerPdfGen(navn = navn), kvittering)
+        logger.info(ObjectMapper().writeValueAsString(data))
         val httpPostRequest = PostRequest(
             body = data,
             additionalHeaders = listOf(Header("accept", "application/pdf"))
