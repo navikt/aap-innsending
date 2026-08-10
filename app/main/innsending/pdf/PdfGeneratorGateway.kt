@@ -2,45 +2,24 @@ package innsending.pdf
 
 import innsending.db.InnsendingNy
 import innsending.http.HttpClientFactory
-import innsending.logger
-import innsending.prometheus
-import io.ktor.client.request.accept
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.readRawBytes
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
-import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
-import no.nav.aap.komponenter.json.DefaultJsonMapper
-import no.nav.aap.komponenter.httpklient.httpclient.Header
-import no.nav.aap.komponenter.httpklient.httpclient.RestClient
-import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.NoTokenTokenProvider
-import java.net.URI
 
 class PdfGeneratorGateway(private val pdfGeneratorHost: String) {
-    private val restClient = RestClient.withDefaultResponseHandler(
-        ClientConfig(),
-        NoTokenTokenProvider(),
-        prometheus = prometheus.prometheus
-    )
     private val httpClient = HttpClientFactory.create()
 
-    fun søknadTilPdf(innsending: InnsendingNy, navn: SøkerPdfGen.Navn): ByteArray {
+    suspend fun søknadTilPdf(innsending: InnsendingNy, navn: SøkerPdfGen.Navn): ByteArray {
         val kvittering =
             innsending.kvitteringToMap() + mapOf("mottattdato" to innsending.opprettet.toString())
         val data = SøknadPdfGen(SøkerPdfGen(navn = navn), kvittering)
-        logger.info(DefaultJsonMapper.toJson(data))
-        val httpPostRequest = PostRequest(
-            body = data,
-            additionalHeaders = listOf(Header("accept", "application/pdf"))
-        )
 
         return requireNotNull(
-            restClient.post(
-                uri = URI.create(pdfGeneratorHost + "/api/v1/genpdf/innbygger/soknad"),
-                request = httpPostRequest,
-                mapper = { body, _ -> body.readAllBytes() }
-            )
+  httpClient.post("$pdfGeneratorHost/api/v1/genpdf/innbygger/soknad") {
+            contentType(ContentType.Application.Json)
+            accept(ContentType.Application.Pdf)
+            setBody(data)
+        }.readRawBytes()
         ) { "SøknadTilPdf - Ingen respons fra pdfgenerator" }
     }
 
