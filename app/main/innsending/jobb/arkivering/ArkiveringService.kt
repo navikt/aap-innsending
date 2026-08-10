@@ -24,11 +24,15 @@ class ArkiveringService(
 
         val (pdf, tidBruktPdfGen) = measureTimedValue { pdfGen.søknadTilPdf(innsending) }
         if (Miljø.erDev()) {
-            val navn = oppslagClientNy.hentNavn(innsending.personident).let {
-                SøkerPdfGen.Navn(fornavn = it.fornavn, mellomnavn = it.mellomnavn, etternavn = it.etternavn)
+            try {
+                val navn = oppslagClientNy.hentNavn(innsending.personident).let {
+                    SøkerPdfGen.Navn(fornavn = it.fornavn, mellomnavn = it.mellomnavn, etternavn = it.etternavn)
+                }
+                val (_, tidBruktPdfGeneratorGateway) = measureTimedValue { pdfGeneratorGateway.søknadTilPdf(innsending, navn) }
+                logger.info("SøknadTilPdf - PdfGen: $tidBruktPdfGen, PdfGeneratorGateway: $tidBruktPdfGeneratorGateway")
+            } catch (e: Exception) {
+                logger.warn("SøknadTilPdf error - ${e.message}")
             }
-            val (_, tidBruktPdfGeneratorGateway) = measureTimedValue { pdfGeneratorGateway.søknadTilPdf(innsending, navn) }
-            logger.info("SøknadTilPdf - PdfGen: $tidBruktPdfGen, PdfGeneratorGateway: $tidBruktPdfGeneratorGateway")
         }
 
         val journalpost = Journalpost(
