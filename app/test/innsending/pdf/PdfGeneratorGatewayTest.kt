@@ -20,7 +20,7 @@ class PdfGeneratorGatewayTest {
             val gateway = PdfGeneratorGateway("http://localhost:${fakes.pdfGen.port()}")
             val navn = SøkerPdfGen.Navn(fornavn = "Ola", mellomnavn = null, etternavn = "Nordmann")
 
-            val result = gateway.søknadTilPdf(enInnsending(), navn)
+            val result = runBlocking { gateway.søknadTilPdf(enInnsending(), navn) }
 
             assertThat(result).isNotEmpty()
         }

@@ -9,6 +9,7 @@ import innsending.pdf.PdfGenClient
 import innsending.pdf.PdfGeneratorGateway
 import innsending.pdf.SøkerPdfGen
 import innsending.postgres.InnsendingType
+import kotlinx.coroutines.runBlocking
 import no.nav.aap.komponenter.miljo.Miljø
 import java.util.Base64
 import kotlin.time.measureTimedValue
@@ -28,7 +29,9 @@ class ArkiveringService(
                 val navn = oppslagClientNy.hentNavn(innsending.personident).let {
                     SøkerPdfGen.Navn(fornavn = it.fornavn, mellomnavn = it.mellomnavn, etternavn = it.etternavn)
                 }
-                val (_, tidBruktPdfGeneratorGateway) = measureTimedValue { pdfGeneratorGateway.søknadTilPdf(innsending, navn) }
+                val (_, tidBruktPdfGeneratorGateway) = measureTimedValue {
+                    runBlocking { pdfGeneratorGateway.søknadTilPdf(innsending, navn) }
+                }
                 logger.info("SøknadTilPdf - PdfGen: $tidBruktPdfGen, PdfGeneratorGateway: $tidBruktPdfGeneratorGateway")
             } catch (e: Exception) {
                 logger.warn("SøknadTilPdf error - ${e.message}")
