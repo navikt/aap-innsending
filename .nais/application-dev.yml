@@ -50,6 +50,7 @@ spec:
       external:
         - host: dokarkiv.dev-fss-pub.nais.io
       rules:
+        - application: pdfgenerator
         - application: pdfgen
         - application: oppslag
         - application: clamav
