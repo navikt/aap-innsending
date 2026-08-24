@@ -19,6 +19,7 @@ data class Config(
         credstorePsw = getEnvVar("KAFKA_CREDSTORE_PASSWORD"),
     ),
     val oppslag: OppslagConfig = OppslagConfig(),
+    val unleash: UnleashConfig = UnleashConfig(),
     val maxFileSize: Int = getEnvVar("MAX_FILE_SIZE").toInt(),
     val teamAapRolle: String = getEnvVar("NAIS_TEAM_AAP"),
 )
@@ -47,6 +48,12 @@ data class PostgresConfig(
 data class JoarkConfig(
     val baseUrl: String = getEnvVar("JOARK_BASE_URL"),
     val scope: String = getEnvVar("JOARK_SCOPE"),
+)
+
+data class UnleashConfig(
+    val apiUrl: String = getEnvVar("UNLEASH_SERVER_API_URL"),
+    val apiToken: String = getEnvVar("UNLEASH_SERVER_API_TOKEN"),
+    val environment: String = getEnvVar("UNLEASH_SERVER_API_ENV"),
 )
 
 object ProdConfig {

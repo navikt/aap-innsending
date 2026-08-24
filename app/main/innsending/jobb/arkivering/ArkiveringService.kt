@@ -9,33 +9,29 @@ import innsending.pdf.PdfGenClient
 import innsending.pdf.PdfGeneratorGateway
 import innsending.pdf.SøkerPdfGen
 import innsending.postgres.InnsendingType
+import innsending.unleash.InnsendingFeature
+import innsending.unleash.UnleashGateway
 import kotlinx.coroutines.runBlocking
-import no.nav.aap.komponenter.miljo.Miljø
 import java.util.Base64
-import kotlin.time.measureTimedValue
 
 class ArkiveringService(
     val joarkClient: JoarkClient,
     val pdfGen: PdfGenClient,
     val pdfGeneratorGateway: PdfGeneratorGateway,
     val oppslagClientNy: OppslagClientNy,
+    val unleash: UnleashGateway,
 ) {
     fun arkiverSøknadInnsending(innsending: InnsendingNy): ArkivResponse {
         require(innsending.type == InnsendingType.SOKNAD)
 
-        val pdf = pdfGen.søknadTilPdf(innsending)
-        val nySoknadPdf = if (Miljø.erDev()) {
-            try {
-                val navn = oppslagClientNy.hentNavn(innsending.personident).let {
-                    SøkerPdfGen.Navn(fornavn = it.fornavn, mellomnavn = it.mellomnavn, etternavn = it.etternavn)
-                }
-                runBlocking { pdfGeneratorGateway.søknadTilPdf(innsending, navn) }
-
-            } catch (e: Exception) {
-                logger.warn("SøknadTilPdf error - ${e.message}")
-                null
+        val pdf = if (unleash.isEnabled(InnsendingFeature.InnsendingNySoknadPdf)) {
+            val navn = oppslagClientNy.hentNavn(innsending.personident).let {
+                SøkerPdfGen.Navn(fornavn = it.fornavn, mellomnavn = it.mellomnavn, etternavn = it.etternavn)
             }
-        } else null
+            runBlocking { pdfGeneratorGateway.søknadTilPdf(innsending, navn) }
+        } else {
+            pdfGen.søknadTilPdf(innsending)
+        }
 
         val journalpost = Journalpost(
             tittel = "Søknad AAP",
@@ -45,7 +41,7 @@ class ArkiveringService(
             bruker = Journalpost.Bruker(
                 id = Journalpost.Fødselsnummer(innsending.personident)
             ),
-            dokumenter = dokumenter(innsending, pdf, nySoknadPdf),
+            dokumenter = dokumenter(innsending, pdf),
             eksternReferanseId = innsending.eksternRef.toString(),
             // Denne kan være null
             // https://nav-it.slack.com/archives/C6W9E5GPJ/p1743070812137639?thread_ts=1743061165.686699&cid=C6W9E5GPJ
@@ -61,23 +57,14 @@ class ArkiveringService(
         return arkivResponse
     }
 
-    fun dokumenter(innsending: InnsendingNy, soknadSomPdf: ByteArray, nySoknadPdf: ByteArray?): List<Journalpost.Dokument> {
+    fun dokumenter(innsending: InnsendingNy, soknadSomPdf: ByteArray): List<Journalpost.Dokument> {
         val orginalSøknadDokument = innsending.soknad?.let {
             val encoded = Base64.getEncoder().encodeToString(it)
             Journalpost.DokumentVariant("JSON", encoded, "ORIGINAL")
         }
         val søknadDokument = lagSøknadDokument(soknadSomPdf, orginalSøknadDokument)
         val vedleggDokumenter = lagDokumenter(innsending)
-        val nySoknadDokumentliste = if(nySoknadPdf != null) {
-            listOf(Journalpost.Dokument(
-                tittel = "Søknad om arbeidsavklaringspenger (AAP) [testversjon]",
-                brevkode = "",
-                dokumentVarianter = listOf(
-                    Journalpost.DokumentVariant(fysiskDokument = Base64.getEncoder().encodeToString(nySoknadPdf)),
-                )
-            ))
-        } else emptyList()
-        return listOf(søknadDokument) + vedleggDokumenter + nySoknadDokumentliste
+        return listOf(søknadDokument) + vedleggDokumenter
     }
 
     private fun lagSøknadDokument(søknad: ByteArray, original: Journalpost.DokumentVariant?): Journalpost.Dokument {

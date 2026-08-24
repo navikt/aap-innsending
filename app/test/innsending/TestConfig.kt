@@ -42,6 +42,11 @@ internal object TestConfig {
                 host = "http://localhost:${fakes.oppslag.port()}",
                 scope = "api://dev-gcp.aap.oppslag/.default"
             ),
+            unleash = UnleashConfig(
+                apiUrl = "http://localhost",
+                apiToken = "test",
+                environment = "test"
+            ),
             teamAapRolle = "nais-team-aap"
         )
     }

@@ -8,6 +8,7 @@ import innsending.pdf.PdfGenClient
 import innsending.pdf.PdfGeneratorGateway
 import innsending.ProdConfig
 import innsending.postgres.InnsendingType
+import innsending.unleash.UnleashGatewayImpl
 import innsending.prometheus
 import innsending.prometheus.arkivertTeller
 import io.micrometer.core.instrument.Tag
@@ -60,6 +61,7 @@ class ArkiverInnsendingJobbUtfører(
                     joarkClient = JoarkClient(),
                     pdfGeneratorGateway = PdfGeneratorGateway(ProdConfig.config.pdfGeneratorHost),
                     oppslagClientNy = OppslagClientNy(),
+                    unleash = UnleashGatewayImpl,
                 ),
                 FlytJobbRepository(connection)
             )
