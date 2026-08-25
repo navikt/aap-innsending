@@ -2,6 +2,7 @@
 ktor = "3.5.2"
 kelvin = "2.0.144"
 flyway = "13.3.0"
+unleash = "10.2.2"
 
 [libraries]
 
@@ -41,6 +42,7 @@ testcontainers-redis = { module = "com.redis:testcontainers-redis", version = "2
 testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql", version = "2.0.5" }
 assertj-core = { module = "org.assertj:assertj-core", version = "3.27.7" }
 commons-compress = { module = "org.apache.commons:commons-compress", version = "1.28.0" }
+unleash-client-java = { module = "io.getunleash:unleash-client-java", version.ref = "unleash" }
 
 [plugins]
 ktor = { id = "io.ktor.plugin", version.ref = "ktor" }

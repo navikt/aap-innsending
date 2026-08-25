@@ -20,6 +20,7 @@ dependencies {
     implementation(libs.behandlingsflyt.kontrakt)
     implementation(libs.kafka.clients)
     implementation(libs.tms.mikrofrontend.builder)
+    implementation(libs.unleash.client.java)
 
     implementation(libs.ktor.client.cio)
     implementation(libs.ktor.client.content.negotiation)
