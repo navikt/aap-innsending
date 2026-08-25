@@ -16,6 +16,8 @@ import innsending.redis.Redis
 import innsending.routes.actuator
 import innsending.routes.innsendingRoute
 import innsending.routes.mellomlagerRoute
+import innsending.unleash.UnleashGateway
+import innsending.unleash.UnleashGatewayImpl
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.jackson.JacksonConverter
@@ -73,6 +75,7 @@ fun Application.server(
         config.postgres,
         meterRegistry = prometheus.prometheus
     ),
+    unleash: UnleashGateway = UnleashGatewayImpl,
 ) {
     val prometheus = prometheus.prometheus
     val antivirus = ClamAVClient(config.virusScanHost)
@@ -133,7 +136,7 @@ fun Application.server(
         authenticate(IdentityProvider.TOKENX.value) {
             apiRouting {
                 innsendingRoute(datasource, redis, prometheus, config.maxFileSize)
-                mellomlagerRoute(redis, antivirus, pdfGen, config.maxFileSize, pdfGeneratorGateway)
+                mellomlagerRoute(redis, antivirus, pdfGen, config.maxFileSize, pdfGeneratorGateway, unleash)
             }
         }
 
