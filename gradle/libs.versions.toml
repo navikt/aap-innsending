@@ -2,7 +2,7 @@
 ktor = "3.5.2"
 kelvin = "2.0.146"
 flyway = "13.3.0"
-unleash = "10.2.2"
+unleash = "12.2.3"
 
 [libraries]
 
