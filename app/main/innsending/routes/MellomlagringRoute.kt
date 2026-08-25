@@ -19,6 +19,8 @@ import innsending.redis.EnDagSekunder
 import innsending.redis.Key
 import innsending.redis.Redis
 import innsending.teamLogs
+import innsending.unleash.InnsendingFeature
+import innsending.unleash.UnleashGateway
 import io.ktor.http.ContentDisposition
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
@@ -36,11 +38,9 @@ import java.net.URL
 import java.time.LocalDateTime
 import java.util.UUID
 import kotlinx.io.EOFException
-import no.nav.aap.komponenter.miljo.Miljø
 import org.apache.pdfbox.Loader
 import org.apache.tika.Tika
 import org.slf4j.LoggerFactory
-import kotlin.time.measureTimedValue
 
 private val log = LoggerFactory.getLogger("MellomLagringRoute")
 
@@ -55,6 +55,7 @@ fun NormalOpenAPIRoute.mellomlagerRoute(
     pdfGen: PdfGen,
     maxFileSize: Int,
     pdfGeneratorGateway: PdfGeneratorGateway,
+    unleash: UnleashGateway,
 ) {
     val CONTENT_LENGHT_LIMIT = maxFileSize * 1024 * 1024 // 75 MB
     route("/mellomlagring/søknad") {
@@ -204,16 +205,11 @@ fun NormalOpenAPIRoute.mellomlagerRoute(
                             } else {
                                 log.info("Fil er ikke PDF. Konverterer til PDF.")
                                 try {
-                                    val (generertPdf, tidBruktPdfGen) = measureTimedValue { pdfGen.bildeTilPfd(fil, contentType) }
-                                    if (Miljø.erDev()) {
-                                        try {
-                                            val (_, tidBruktPdfGeneratorGateway) = measureTimedValue { pdfGeneratorGateway.bildeTilPdf(fil, contentType) }
-                                            log.info("BildeTilPdf - PdfGen: $tidBruktPdfGen, PdfGeneratorGateway: $tidBruktPdfGeneratorGateway")
-                                        } catch (e: Exception) {
-                                            log.warn("BildeTilPdf error - ${e.message}")
-                                        }
+                                    if (unleash.isEnabled(InnsendingFeature.InnsendingNyBildekonvertering)) {
+                                        pdfGeneratorGateway.bildeTilPdf(fil, contentType)
+                                    } else {
+                                        pdfGen.bildeTilPfd(fil, contentType)
                                     }
-                                    generertPdf
                                 } catch (e: Exception) {
                                     log.error("Feil fra PDFgen", e)
                                     return@post pipeline.call.respond(

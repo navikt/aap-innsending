@@ -23,6 +23,8 @@ import innsending.routes.actuator
 import innsending.routes.innsendingRoute
 import innsending.routes.mellomlagerRoute
 import innsending.routes.toByteArray
+import innsending.unleash.FakeUnleashGateway
+import innsending.unleash.UnleashGateway
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
@@ -66,6 +68,7 @@ fun Application.testserver(
         InitTestDatabase.hikariConfig,
         arrayOf("classpath:db/migration")
     ),
+    unleash: UnleashGateway = FakeUnleashGateway(),
 ) {
     val prometheus = prometheus.prometheus
     val antivirus = ClamAVClient(config.virusScanHost)
@@ -135,7 +138,7 @@ fun Application.testserver(
         authenticate(IdentityProvider.TOKENX.value) {
             apiRouting {
                 innsendingRoute(datasource, redis, prometheus, config.maxFileSize)
-                mellomlagerRoute(redis, antivirus, pdfGen, config.maxFileSize, pdfGeneratorGateway)
+                mellomlagerRoute(redis, antivirus, pdfGen, config.maxFileSize, pdfGeneratorGateway, unleash)
             }
         }
 

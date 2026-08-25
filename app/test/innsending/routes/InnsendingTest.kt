@@ -15,6 +15,7 @@ import innsending.postgres.InnsendingType
 import innsending.postgres.PostgresTestBase
 import innsending.redis.Key
 import innsending.server
+import innsending.unleash.FakeUnleashGateway
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -60,7 +61,8 @@ class InnsendingTest : PostgresTestBase() {
                     config,
                     fakes.redis,
                     minsideProducer = fakes.kafka,
-                    datasource = dataSource
+                    datasource = dataSource,
+                    unleash = FakeUnleashGateway()
                 ) }
                 fakes.redis.set(filId1, byteArrayOf(), 60)
                 fakes.redis.set(filId2, byteArrayOf(), 60)
@@ -106,7 +108,8 @@ class InnsendingTest : PostgresTestBase() {
                     config,
                     fakes.redis,
                     minsideProducer = fakes.kafka,
-                    datasource = dataSource
+                    datasource = dataSource,
+                    unleash = FakeUnleashGateway()
                 ) }
 
                 val res = jsonHttpClient.post("/innsending") {
@@ -146,7 +149,8 @@ class InnsendingTest : PostgresTestBase() {
                     config,
                     fakes.redis,
                     minsideProducer = fakes.kafka,
-                    datasource = dataSource
+                    datasource = dataSource,
+                    unleash = FakeUnleashGateway()
                 ) }
                 fakes.redis.set(filId1, byteArrayOf(), 60)
                 fakes.redis.set(filId2, byteArrayOf(), 60)
@@ -193,7 +197,8 @@ class InnsendingTest : PostgresTestBase() {
                     config,
                     fakes.redis,
                     minsideProducer = fakes.kafka,
-                    datasource = dataSource
+                    datasource = dataSource,
+                    unleash = FakeUnleashGateway()
                 ) }
                 fakes.redis.set(filId1, byteArrayOf(), 60)
                 fakes.redis.set(filId2, byteArrayOf(), 60)
@@ -258,7 +263,8 @@ class InnsendingTest : PostgresTestBase() {
                     config,
                     fakes.redis,
                     minsideProducer = fakes.kafka,
-                    datasource = dataSource
+                    datasource = dataSource,
+                    unleash = FakeUnleashGateway()
                 ) }
                 fakes.redis.set(filId1, byteArrayOf(), 60)
                 fakes.redis.set(filId2, byteArrayOf(), 60)
@@ -333,7 +339,7 @@ class InnsendingTest : PostgresTestBase() {
             }
 
             testApplication {
-                application { server(config, fakes.redis, minsideProducer = fakes.kafka, datasource = dataSource) }
+                application { server(config, fakes.redis, minsideProducer = fakes.kafka, datasource = dataSource, unleash = FakeUnleashGateway()) }
 
                 val res = timeAwareClient.get("/innsending/søknader") {
                     bearerAuth(tokenx.generate(personIdent))
@@ -376,7 +382,7 @@ class InnsendingTest : PostgresTestBase() {
             }
 
             testApplication {
-                application { server(config, fakes.redis, minsideProducer = fakes.kafka, datasource = dataSource) }
+                application { server(config, fakes.redis, minsideProducer = fakes.kafka, datasource = dataSource, unleash = FakeUnleashGateway()) }
 
                 val res = timeAwareClient.get("/innsending/søknadmedettersendinger") {
                     bearerAuth(tokenx.generate(personIdent))
@@ -420,7 +426,7 @@ class InnsendingTest : PostgresTestBase() {
             }
 
             testApplication {
-                application { server(config, fakes.redis, minsideProducer = fakes.kafka, datasource = dataSource) }
+                application { server(config, fakes.redis, minsideProducer = fakes.kafka, datasource = dataSource, unleash = FakeUnleashGateway()) }
 
                 val res = timeAwareClient.get("/innsending/søknader/$søknadRef/ettersendinger") {
                     bearerAuth(tokenx.generate(personIdent))
@@ -441,7 +447,7 @@ class InnsendingTest : PostgresTestBase() {
             val tokenx = TokenXGen()
 
             testApplication {
-                application { server(config, fakes.redis, minsideProducer = fakes.kafka, datasource = dataSource) }
+                application { server(config, fakes.redis, minsideProducer = fakes.kafka, datasource = dataSource, unleash = FakeUnleashGateway()) }
 
                 val res = client.get("/innsending/søknader/${UUID.randomUUID()}/ettersendinger") {
                     bearerAuth(tokenx.generate("12345678910"))
@@ -465,7 +471,7 @@ class InnsendingTest : PostgresTestBase() {
             fakes.redis.set(Key(value = filId2, prefix = personIdent), byteArrayOf(1), 60)
 
             testApplication {
-                application { server(config, fakes.redis, minsideProducer = fakes.kafka, datasource = dataSource) }
+                application { server(config, fakes.redis, minsideProducer = fakes.kafka, datasource = dataSource, unleash = FakeUnleashGateway()) }
 
                 val res = jsonHttpClient.post("/innsending/valider-filer") {
                     bearerAuth(tokenx.generate(personIdent))
@@ -494,7 +500,7 @@ class InnsendingTest : PostgresTestBase() {
             fakes.redis.set(Key(value = filIdFinnes, prefix = personIdent), byteArrayOf(1), 60)
 
             testApplication {
-                application { server(config, fakes.redis, minsideProducer = fakes.kafka, datasource = dataSource) }
+                application { server(config, fakes.redis, minsideProducer = fakes.kafka, datasource = dataSource, unleash = FakeUnleashGateway()) }
 
                 val res = jsonHttpClient.post("/innsending/valider-filer") {
                     bearerAuth(tokenx.generate(personIdent))
@@ -525,7 +531,7 @@ class InnsendingTest : PostgresTestBase() {
             val innsending = Innsending(filer = listOf(FilMetadata(id = filId.value, tittel = "vedlegg")))
 
             testApplication {
-                application { server(config, fakes.redis, minsideProducer = fakes.kafka, datasource = dataSource) }
+                application { server(config, fakes.redis, minsideProducer = fakes.kafka, datasource = dataSource, unleash = FakeUnleashGateway()) }
 
                 val res1 = jsonHttpClient.post("/innsending") {
                     bearerAuth(tokenx.generate(personIdent))
@@ -558,7 +564,7 @@ class InnsendingTest : PostgresTestBase() {
             fakes.redis.set(filId2, stor600KB, 60)
 
             testApplication {
-                application { server(config, fakes.redis, minsideProducer = fakes.kafka, datasource = dataSource) }
+                application { server(config, fakes.redis, minsideProducer = fakes.kafka, datasource = dataSource, unleash = FakeUnleashGateway()) }
 
                 val res = jsonHttpClient.post("/innsending") {
                     bearerAuth(tokenx.generate(personIdent))
