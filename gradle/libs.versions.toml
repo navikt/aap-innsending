@@ -25,7 +25,7 @@ ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "k
 ktor-serialization-jackson = { module = "io.ktor:ktor-serialization-jackson", version.ref = "ktor" }
 ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
 
-tika-core = { module = "org.apache.tika:tika-core", version = "3.3.2" }
+tika-core = { module = "org.apache.tika:tika-core", version = "4.0.0" }
 jedis = { module = "redis.clients:jedis", version = "8.0.0" }
 micrometer-registry-prometheus = { module = "io.micrometer:micrometer-registry-prometheus", version = "1.17.1" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version = "1.6.3" }
