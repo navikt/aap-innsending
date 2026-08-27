@@ -14,13 +14,17 @@ class PdfGeneratorGateway(private val pdfGeneratorHost: String) {
             innsending.kvitteringToMap() + mapOf("mottattdato" to innsending.opprettet.toString())
         val data = SøknadPdfGen(SøkerPdfGen(navn = navn), kvittering)
 
-        return requireNotNull(
-  httpClient.post("$pdfGeneratorHost/api/v1/genpdf/innbygger/soknad") {
+        val res = httpClient.post("$pdfGeneratorHost/api/v1/genpdf/innbygger/soknad") {
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Pdf)
             setBody(data)
-        }.readRawBytes()
-        ) { "SøknadTilPdf - Ingen respons fra pdfgenerator" }
+        }
+
+        if (!res.status.isSuccess()) {
+            throw Exception("SøknadTilPdf - Fikk status ${res.status} fra pdfgenerator")
+        }
+
+        return res.readRawBytes()
     }
 
     suspend fun bildeTilPdf(bildeFil: ByteArray, contentType: ContentType): ByteArray {
@@ -29,6 +33,11 @@ class PdfGeneratorGateway(private val pdfGeneratorHost: String) {
             accept(ContentType.Application.Pdf)
             setBody(bildeFil)
         }
+
+        if (!res.status.isSuccess()) {
+            throw Exception("BildeTilPdf - Fikk status ${res.status} fra pdfgenerator")
+        }
+
         return res.readRawBytes()
     }
 }
