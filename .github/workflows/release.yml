@@ -39,7 +39,7 @@ jobs:
         with:
           gradle-version: wrapper
       - name: Bygg & test
-        run: ./gradlew test buildFatJar --continue --configuration-cache --stacktrace --info
+        run: ./gradlew test buildFatJar --continue --stacktrace --info
 
       - uses: nais/docker-build-push@v0
         id: docker-push

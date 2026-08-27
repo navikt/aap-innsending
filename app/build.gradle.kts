@@ -57,5 +57,8 @@ tasks {
     withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
         duplicatesStrategy = DuplicatesStrategy.WARN
         mergeServiceFiles()
+        // Sikrer at jar-en er byte-for-byte reproduserbar på tvers av maskiner/kjøringer
+        isPreserveFileTimestamps = false
+        isReproducibleFileOrder = true
     }
 }
