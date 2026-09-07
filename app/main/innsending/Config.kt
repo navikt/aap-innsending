@@ -9,7 +9,6 @@ data class Config(
     val postgres: PostgresConfig = PostgresConfig(),
     val redis: RedisConfig = RedisConfig(),
     val joark: JoarkConfig = JoarkConfig(),
-    val pdfGenHost: String = "http://pdfgen",
     val pdfGeneratorHost: String = "http://pdfgenerator",
     val virusScanHost: String = "http://clamav.nais-system",
     val kafka: KafkaConfig = KafkaConfig(

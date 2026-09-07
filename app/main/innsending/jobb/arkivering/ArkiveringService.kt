@@ -5,33 +5,24 @@ import innsending.arkiv.Journalpost
 import innsending.db.InnsendingNy
 import innsending.logger
 import innsending.oppslag.OppslagClientNy
-import innsending.pdf.PdfGenClient
 import innsending.pdf.PdfGeneratorGateway
 import innsending.pdf.SøkerPdfGen
 import innsending.postgres.InnsendingType
-import innsending.unleash.InnsendingFeature
-import innsending.unleash.UnleashGateway
 import kotlinx.coroutines.runBlocking
-import java.util.Base64
+import java.util.*
 
 class ArkiveringService(
     val joarkClient: JoarkClient,
-    val pdfGen: PdfGenClient,
     val pdfGeneratorGateway: PdfGeneratorGateway,
     val oppslagClientNy: OppslagClientNy,
-    val unleash: UnleashGateway,
 ) {
     fun arkiverSøknadInnsending(innsending: InnsendingNy): ArkivResponse {
         require(innsending.type == InnsendingType.SOKNAD)
 
-        val pdf = if (unleash.isEnabled(InnsendingFeature.InnsendingNySoknadPdf)) {
-            val navn = oppslagClientNy.hentNavn(innsending.personident).let {
-                SøkerPdfGen.Navn(fornavn = it.fornavn, mellomnavn = it.mellomnavn, etternavn = it.etternavn)
-            }
-            runBlocking { pdfGeneratorGateway.søknadTilPdf(innsending, navn) }
-        } else {
-            pdfGen.søknadTilPdf(innsending)
+        val navn = oppslagClientNy.hentNavn(innsending.personident).let {
+            SøkerPdfGen.Navn(fornavn = it.fornavn, mellomnavn = it.mellomnavn, etternavn = it.etternavn)
         }
+        val pdf = runBlocking { pdfGeneratorGateway.søknadTilPdf(innsending, navn) }
 
         val journalpost = Journalpost(
             tittel = "Søknad AAP",

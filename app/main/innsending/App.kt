@@ -9,7 +9,6 @@ import innsending.jobb.MinSideNotifyJobbUtfører
 import innsending.kafka.KafkaProducer
 import innsending.kafka.MinSideKafkaProducer
 import innsending.kafka.MinSideProducerHolder
-import innsending.pdf.PdfGen
 import innsending.pdf.PdfGeneratorGateway
 import innsending.postgres.Hikari
 import innsending.redis.Redis
@@ -79,7 +78,6 @@ fun Application.server(
 ) {
     val prometheus = prometheus.prometheus
     val antivirus = ClamAVClient(config.virusScanHost)
-    val pdfGen = PdfGen(config)
     val pdfGeneratorGateway = PdfGeneratorGateway(config.pdfGeneratorHost)
 
     MinSideProducerHolder.setProducer(minsideProducer)
@@ -136,7 +134,7 @@ fun Application.server(
         authenticate(IdentityProvider.TOKENX.value) {
             apiRouting {
                 innsendingRoute(datasource, redis, prometheus, config.maxFileSize)
-                mellomlagerRoute(redis, antivirus, pdfGen, config.maxFileSize, pdfGeneratorGateway, unleash)
+                mellomlagerRoute(redis, antivirus, config.maxFileSize, pdfGeneratorGateway)
             }
         }
 

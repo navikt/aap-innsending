@@ -55,7 +55,6 @@ spec:
         - host: aap-unleash-api.nav.cloud.nais.io
       rules:
         - application: pdfgenerator
-        - application: pdfgen
         - application: oppslag
         - application: clamav
           namespace: nais-system

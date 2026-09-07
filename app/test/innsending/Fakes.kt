@@ -22,7 +22,7 @@ import kotlinx.coroutines.runBlocking
 
 class Fakes : AutoCloseable {
     val texas = embeddedServer(Netty, port = 0, module = Application::texas).apply { start() }
-    val pdfGen = embeddedServer(Netty, port = 0, module = Application::pdfGen).apply { start() }
+    val pdfGenerator = embeddedServer(Netty, port = 0, module = Application::pdfGenerator).apply { start() }
     val oppslag = embeddedServer(Netty, port = 0, module = Application::oppslag).apply { start() }
     val virusScan =
         embeddedServer(Netty, port = 0, module = Application::virusScan).apply { start() }
@@ -39,7 +39,7 @@ class Fakes : AutoCloseable {
 
     override fun close() {
         texas.stop(0L, 0L)
-        pdfGen.stop(0L, 0L)
+        pdfGenerator.stop(0L, 0L)
         oppslag.stop(0L, 0L)
         virusScan.stop(0L, 0L)
         joark.close()
@@ -93,17 +93,9 @@ fun Application.texas() {
 
 data class Token(val expires_in: Long, val access_token: String)
 
-fun Application.pdfGen() {
+fun Application.pdfGenerator() {
     install(ContentNegotiation) { jackson() }
     routing {
-        post("/api/v1/genpdf/image/aap-pdfgen") {
-            val res = Resource.read("/resources/pdf/minimal.pdf")
-            call.respond(res)
-        }
-        post("/api/v1/genpdf/aap-pdfgen/soknad") {
-            val res = Resource.read("/resources/pdf/minimal.pdf")
-            call.respond(res)
-        }
         post("/api/v1/genpdf/innbygger/soknad") {
             val res = Resource.read("/resources/pdf/minimal.pdf")
             call.respond(res)

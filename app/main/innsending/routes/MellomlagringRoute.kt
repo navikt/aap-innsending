@@ -12,35 +12,25 @@ import innsending.antivirus.ClamAVClient
 import innsending.auth.personident
 import innsending.dto.ErrorRespons
 import innsending.dto.MellomlagringRespons
-import innsending.pdf.PdfGen
 import innsending.pdf.PdfGeneratorGateway
 import innsending.prometheus
 import innsending.redis.EnDagSekunder
 import innsending.redis.Key
 import innsending.redis.Redis
 import innsending.teamLogs
-import innsending.unleash.InnsendingFeature
-import innsending.unleash.UnleashGateway
-import io.ktor.http.ContentDisposition
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.content.PartData
-import io.ktor.server.request.contentType
-import io.ktor.server.request.receive
-import io.ktor.server.request.receiveMultipart
-import io.ktor.server.response.header
-import io.ktor.server.response.respond
-import io.ktor.server.response.respondBytes
-import io.ktor.utils.io.readByte
-import java.net.URI
-import java.net.URL
-import java.time.LocalDateTime
-import java.util.UUID
+import io.ktor.http.*
+import io.ktor.http.content.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.utils.io.*
 import kotlinx.io.EOFException
 import org.apache.pdfbox.Loader
 import org.apache.tika.Tika
 import org.slf4j.LoggerFactory
+import java.net.URI
+import java.net.URL
+import java.time.LocalDateTime
+import java.util.*
 
 private val log = LoggerFactory.getLogger("MellomLagringRoute")
 
@@ -52,10 +42,8 @@ data class FilIdParam(@PathParam("filId") val filId: String)
 fun NormalOpenAPIRoute.mellomlagerRoute(
     redis: Redis,
     virusScanClient: ClamAVClient,
-    pdfGen: PdfGen,
     maxFileSize: Int,
     pdfGeneratorGateway: PdfGeneratorGateway,
-    unleash: UnleashGateway,
 ) {
     val CONTENT_LENGHT_LIMIT = maxFileSize * 1024 * 1024 // 75 MB
     route("/mellomlagring/søknad") {
@@ -205,11 +193,7 @@ fun NormalOpenAPIRoute.mellomlagerRoute(
                             } else {
                                 log.info("Fil er ikke PDF. Konverterer til PDF.")
                                 try {
-                                    if (unleash.isEnabled(InnsendingFeature.InnsendingNyBildekonvertering)) {
-                                        pdfGeneratorGateway.bildeTilPdf(fil, contentType)
-                                    } else {
-                                        pdfGen.bildeTilPfd(fil, contentType)
-                                    }
+                                    pdfGeneratorGateway.bildeTilPdf(fil, contentType)
                                 } catch (e: Exception) {
                                     log.error("Feil fra PDFgen", e)
                                     return@post pipeline.call.respond(
