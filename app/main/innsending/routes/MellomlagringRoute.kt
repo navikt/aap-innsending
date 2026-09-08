@@ -18,11 +18,18 @@ import innsending.redis.EnDagSekunder
 import innsending.redis.Key
 import innsending.redis.Redis
 import innsending.teamLogs
-import io.ktor.http.*
-import io.ktor.http.content.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.utils.io.*
+import io.ktor.http.ContentDisposition
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.content.PartData
+import io.ktor.server.request.contentType
+import io.ktor.server.request.receive
+import io.ktor.server.request.receiveMultipart
+import io.ktor.server.response.header
+import io.ktor.server.response.respond
+import io.ktor.server.response.respondBytes
+import io.ktor.utils.io.readByte
 import kotlinx.io.EOFException
 import org.apache.pdfbox.Loader
 import org.apache.tika.Tika
@@ -30,7 +37,7 @@ import org.slf4j.LoggerFactory
 import java.net.URI
 import java.net.URL
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 private val log = LoggerFactory.getLogger("MellomLagringRoute")
 

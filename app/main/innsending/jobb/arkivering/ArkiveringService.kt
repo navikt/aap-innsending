@@ -9,7 +9,7 @@ import innsending.pdf.PdfGeneratorGateway
 import innsending.pdf.SøkerPdfGen
 import innsending.postgres.InnsendingType
 import kotlinx.coroutines.runBlocking
-import java.util.*
+import java.util.Base64
 
 class ArkiveringService(
     val joarkClient: JoarkClient,
