@@ -14,7 +14,6 @@ import innsending.jobb.ArkiverInnsendingJobbUtfører
 import innsending.jobb.MinSideNotifyJobbUtfører
 import innsending.kafka.KafkaProducer
 import innsending.kafka.MinSideProducerHolder
-import innsending.pdf.PdfGen
 import innsending.pdf.PdfGeneratorGateway
 import innsending.postgres.Hikari
 import innsending.redis.Key
@@ -40,9 +39,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.core.instrument.binder.logging.LogbackMetrics
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
-import java.time.LocalDateTime
-import java.util.*
-import javax.sql.DataSource
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.json.DefaultJsonMapper
@@ -52,6 +48,9 @@ import no.nav.aap.motor.JobbSpesifikasjon
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.retry.RetryService
 import org.slf4j.event.Level
+import java.time.LocalDateTime
+import java.util.*
+import javax.sql.DataSource
 
 private const val PERSONIDENT = "08486725851"
 fun main() {
@@ -72,7 +71,6 @@ fun Application.testserver(
 ) {
     val prometheus = prometheus.prometheus
     val antivirus = ClamAVClient(config.virusScanHost)
-    val pdfGen = PdfGen(config)
     val pdfGeneratorGateway = PdfGeneratorGateway(config.pdfGeneratorHost)
 
     MinSideProducerHolder.setProducer(minsideProducer)
@@ -138,7 +136,7 @@ fun Application.testserver(
         authenticate(IdentityProvider.TOKENX.value) {
             apiRouting {
                 innsendingRoute(datasource, redis, prometheus, config.maxFileSize)
-                mellomlagerRoute(redis, antivirus, pdfGen, config.maxFileSize, pdfGeneratorGateway, unleash)
+                mellomlagerRoute(redis, antivirus, config.maxFileSize, pdfGeneratorGateway)
             }
         }
 

@@ -17,7 +17,7 @@ class PdfGeneratorGatewayTest {
     @Test
     fun `søknadTilPdf returnerer pdf-bytes`() {
         Fakes().use { fakes ->
-            val gateway = PdfGeneratorGateway("http://localhost:${fakes.pdfGen.port()}")
+            val gateway = PdfGeneratorGateway("http://localhost:${fakes.pdfGenerator.port()}")
             val navn = SøkerPdfGen.Navn(fornavn = "Ola", mellomnavn = null, etternavn = "Nordmann")
 
             val result = runBlocking { gateway.søknadTilPdf(enInnsending(), navn) }
@@ -29,7 +29,7 @@ class PdfGeneratorGatewayTest {
     @Test
     fun `bildeTilPfd returnerer pdf-bytes for JPEG`() {
         Fakes().use { fakes ->
-            val gateway = PdfGeneratorGateway("http://localhost:${fakes.pdfGen.port()}")
+            val gateway = PdfGeneratorGateway("http://localhost:${fakes.pdfGenerator.port()}")
             val jpeg = Resource.read("/resources/images/bilde.jpg")
 
             val result = runBlocking { gateway.bildeTilPdf(jpeg, ContentType.Image.JPEG) }
@@ -41,7 +41,7 @@ class PdfGeneratorGatewayTest {
     @Test
     fun `bildeTilPfd returnerer pdf-bytes for PNG`() {
         Fakes().use { fakes ->
-            val gateway = PdfGeneratorGateway("http://localhost:${fakes.pdfGen.port()}")
+            val gateway = PdfGeneratorGateway("http://localhost:${fakes.pdfGenerator.port()}")
             val png = Resource.read("/resources/images/bilde.png")
 
             val result = runBlocking { gateway.bildeTilPdf(png, ContentType.Image.PNG) }

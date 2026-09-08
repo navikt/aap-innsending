@@ -29,8 +29,7 @@ internal object TestConfig {
                 baseUrl = "http://localhost:${fakes.joark.port}",
                 scope = "api://dev-fss.teamdokumenthandtering.dokarkiv/.default"
             ),
-            pdfGenHost = "http://localhost:${fakes.pdfGen.port()}",
-            pdfGeneratorHost = "http://localhost:${fakes.pdfGen.port()}",
+            pdfGeneratorHost = "http://localhost:${fakes.pdfGenerator.port()}",
             virusScanHost = "http://localhost:${fakes.virusScan.port()}",
             kafka = KafkaConfig(
                 brokers = "localhost",
