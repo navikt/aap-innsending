@@ -1,13 +1,13 @@
 package innsending
 
 import com.zaxxer.hikari.HikariConfig
-import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.postgresql.PostgreSQLContainer
 
 object InitTestDatabase {
     val hikariConfig: HikariConfig
 
     init {
-        val postgres = PostgreSQLContainer<Nothing>("postgres:16")
+        val postgres = PostgreSQLContainer("postgres:16")
         postgres.start()
         val jdbcUrl = postgres.jdbcUrl
         val username = postgres.username

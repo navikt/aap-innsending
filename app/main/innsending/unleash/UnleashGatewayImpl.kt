@@ -8,6 +8,8 @@ object UnleashGatewayImpl : UnleashGateway {
     // Lazy: DefaultUnleash starter bakgrunnstråder for polling og metrikker, og skal kun opprettes
     // én gang. Config leses inne i lambdaen slik at manglende miljøvariabler ikke sprenger ved
     // klasseinitialisering.
+    // SDK 12 trenger miljøet i registreringen; API-nøkkelen overtar dette fra SDK 13.
+    @Suppress("DEPRECATION")
     private val unleash by lazy {
         val config = ProdConfig.config.unleash
         DefaultUnleash(

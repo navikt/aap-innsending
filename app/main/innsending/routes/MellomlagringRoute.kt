@@ -44,7 +44,7 @@ private val log = LoggerFactory.getLogger("MellomLagringRoute")
 private val acceptedContentType =
     listOf(ContentType.Image.JPEG, ContentType.Image.PNG, ContentType.Application.Pdf)
 
-data class FilIdParam(@PathParam("filId") val filId: String)
+data class FilIdParam(@param:PathParam("filId") val filId: String)
 
 fun NormalOpenAPIRoute.mellomlagerRoute(
     redis: Redis,

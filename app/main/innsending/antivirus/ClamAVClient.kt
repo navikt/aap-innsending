@@ -19,7 +19,7 @@ class ClamAVClient(private val host: String) {
 }
 
 
-data class ScanResult(@JsonProperty("Result") val result: Result) {
+data class ScanResult(@param:JsonProperty("Result") val result: Result) {
     enum class Result {
         FOUND,
         OK,

@@ -5,6 +5,11 @@ includeBuild("build-logic")
 
 dependencyResolutionManagement {
     // Felles for alle gradle prosjekter i repoet
+    versionCatalogs {
+        create("kelvinLibs") {
+            from("no.nav.aap.kelvin:version-catalog:2.0.185")
+        }
+    }
     @Suppress("UnstableApiUsage")
     repositories {
         // Nav-interne artefakter hentes kun herfra, for å unngå unødvendig oppslag i andre repoer

@@ -1,6 +1,6 @@
 plugins {
     id("aap.conventions")
-    alias(libs.plugins.ktor)
+    alias(kelvinLibs.plugins.ktor)
     application
 }
 
@@ -18,40 +18,34 @@ dependencies {
     implementation(libs.kelvin.motor.api)
     implementation(libs.kelvin.ktor.openapi.generator)
     implementation(libs.behandlingsflyt.kontrakt)
-    implementation(libs.kafka.clients)
+    implementation(kelvinLibs.kafka.clients)
     implementation(libs.tms.mikrofrontend.builder)
-    implementation(libs.unleash.client.java)
+    implementation(kelvinLibs.unleash.client.java)
 
-    implementation(libs.ktor.client.cio)
-    implementation(libs.ktor.client.content.negotiation)
-    implementation(libs.ktor.client.jackson)
-    implementation(libs.ktor.client.logging)
+    implementation(kelvinLibs.ktor.client.cio)
+    implementation(kelvinLibs.ktor.client.content.negotiation)
+    implementation(kelvinLibs.ktor.client.jackson)
+    implementation(kelvinLibs.ktor.client.logging)
     implementation(libs.tika.core)
 
-    implementation(libs.ktor.serialization.jackson)
+    implementation(kelvinLibs.ktor.serialization.jackson)
     implementation(libs.jedis)
-    implementation(libs.micrometer.registry.prometheus)
-    implementation(libs.logback.classic)
-    implementation(libs.jackson.datatype.jsr310)
+    implementation(kelvinLibs.micrometer.prometheus)
+    implementation(kelvinLibs.logback.classic)
+    implementation(kelvinLibs.jackson.datatype.jsr310)
     implementation(libs.pdfbox)
-    implementation(libs.hikaricp)
-    implementation(libs.flyway.core)
-    implementation(libs.flyway.database.postgresql)
-    implementation(libs.kotlinx.coroutines.core)
-    runtimeOnly(libs.logstash.logback.encoder)
-    runtimeOnly(libs.postgresql)
+    implementation(kelvinLibs.hikaricp)
+    implementation(kelvinLibs.flyway.postgresql)
+    implementation(kelvinLibs.coroutines.core)
+    runtimeOnly(kelvinLibs.logstash.logback.encoder)
+    runtimeOnly(kelvinLibs.postgresql)
 
     testImplementation(kotlin("test"))
-    testImplementation(libs.ktor.server.test.host)
-    testImplementation(libs.nimbus.jose.jwt)
+    testImplementation(kelvinLibs.ktor.server.test.host)
+    testImplementation(kelvinLibs.nimbus.jose.jwt)
     testImplementation(libs.testcontainers.redis)
-    constraints {
-        implementation(libs.commons.compress) {
-            because("https://github.com/advisories/GHSA-4g9r-vxhx-9pgx")
-        }
-    }
-    testImplementation(libs.testcontainers.postgresql)
-    testImplementation(libs.assertj.core)
+    testImplementation(kelvinLibs.testcontainers.postgresql)
+    testImplementation(kelvinLibs.assertj.core)
 }
 tasks {
     withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
