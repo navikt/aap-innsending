@@ -32,7 +32,7 @@ import java.time.LocalDateTime
 import java.util.*
 import javax.sql.DataSource
 
-data class RefParam(@PathParam("ref") val ref: UUID)
+data class RefParam(@param:PathParam("ref") val ref: UUID)
 
 fun NormalOpenAPIRoute.innsendingRoute(dataSource: DataSource, redis: Redis, prometheus: MeterRegistry, maxFileSize: Int) {
     route("/innsending") {

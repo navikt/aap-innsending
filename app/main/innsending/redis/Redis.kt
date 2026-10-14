@@ -2,10 +2,10 @@ package innsending.redis
 
 import innsending.RedisConfig
 import innsending.logger
-import org.slf4j.LoggerFactory
 import redis.clients.jedis.DefaultJedisClientConfig
 import redis.clients.jedis.HostAndPort
 import redis.clients.jedis.RedisClient
+import redis.clients.jedis.SslOptions
 import redis.clients.jedis.params.SetParams
 import java.net.URI
 import java.time.LocalDateTime
@@ -19,8 +19,6 @@ data class Key(
     fun get(): ByteArray = "$prefix:$value".toByteArray()
 }
 
-private val logger = LoggerFactory.getLogger("Redis")
-
 class Redis private constructor(
     private val client: RedisClient
 ) : AutoCloseable {
@@ -28,33 +26,13 @@ class Redis private constructor(
         RedisClient.builder()
             .hostAndPort(HostAndPort(config.uri.host, config.uri.port))
             .clientConfig(
-                DefaultJedisClientConfig.builder().ssl(true).user(config.username).password(config.password).build()
+                DefaultJedisClientConfig.builder().sslOptions(SslOptions.defaults()).user(config.username)
+                    .password(config.password).build()
             )
             .build()
     )
 
     constructor(uri: URI) : this(RedisClient.create(uri))
-
-    @Deprecated("Keys traverserer alle keys i redis og skal dermed ikke brukes.")
-    fun getKeysByPrefix(prefix: String): List<Key> {
-        val keys = client.keys("$prefix:*")
-        val size = keys.size
-        if (size > 0) {
-            logger.info("Fant {} nøkler", size)
-        }
-
-        return keys.flatMap { keyString ->
-            val split = keyString.split(" ").map { splittedKey ->
-                splitKey(splittedKey)
-            }
-            split
-        }
-    }
-
-    private fun splitKey(splittedKey: String): Key {
-        val split = splittedKey.split(":")
-        return Key(split[1], split[0])
-    }
 
     fun set(key: Key, value: ByteArray, expireSec: Long) {
         client.set(key.get(), value, SetParams().ex(expireSec))
