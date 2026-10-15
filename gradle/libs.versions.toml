@@ -1,5 +1,5 @@
 [versions]
-kelvin = "2.0.185"
+kelvin = "2.0.186"
 
 [libraries]
 
@@ -11,7 +11,7 @@ kelvin-dbconnect = { module = "no.nav.aap.kelvin:dbconnect", version.ref = "kelv
 kelvin-infrastructure = { module = "no.nav.aap.kelvin:infrastructure", version.ref = "kelvin" }
 kelvin-motor-api = { module = "no.nav.aap.kelvin:motor-api", version.ref = "kelvin" }
 kelvin-ktor-openapi-generator = { module = "no.nav.aap.kelvin:ktor-openapi-generator", version.ref = "kelvin" }
-behandlingsflyt-kontrakt = { module = "no.nav.aap.behandlingsflyt:kontrakt", version = "0.0.669" }
+behandlingsflyt-kontrakt = { module = "no.nav.aap.behandlingsflyt:kontrakt", version = "0.0.673" }
 tms-mikrofrontend-builder = { module = "no.nav.tms.mikrofrontend.selector:builder", version = "20230704114948-74aa2e9" }
 
 tika-core = { module = "org.apache.tika:tika-core", version = "4.0.0" }
