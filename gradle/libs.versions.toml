@@ -17,4 +17,4 @@ tms-mikrofrontend-builder = { module = "no.nav.tms.mikrofrontend.selector:builde
 tika-core = { module = "org.apache.tika:tika-core", version = "4.0.0" }
 jedis = { module = "redis.clients:jedis", version = "8.0.1" }
 pdfbox = { module = "org.apache.pdfbox:pdfbox", version = "3.0.8" }
-testcontainers-redis = { module = "com.redis:testcontainers-redis", version = "2.2.4" }
+testcontainers-redis = { module = "com.redis:testcontainers-redis", version = "3.0.0" }
