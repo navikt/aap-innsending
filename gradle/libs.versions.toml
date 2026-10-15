@@ -15,6 +15,6 @@ behandlingsflyt-kontrakt = { module = "no.nav.aap.behandlingsflyt:kontrakt", ver
 tms-mikrofrontend-builder = { module = "no.nav.tms.mikrofrontend.selector:builder", version = "20230704114948-74aa2e9" }
 
 tika-core = { module = "org.apache.tika:tika-core", version = "4.0.0" }
-jedis = { module = "redis.clients:jedis", version = "8.0.1" }
+jedis = { module = "redis.clients:jedis", version = "8.0.2" }
 pdfbox = { module = "org.apache.pdfbox:pdfbox", version = "3.0.8" }
 testcontainers-redis = { module = "com.redis:testcontainers-redis", version = "3.0.0" }
