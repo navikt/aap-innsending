@@ -69,21 +69,6 @@ class ArkiveringService(
         )
     }
 
-    private fun lagDokumenter(innsending: InnsendingNy): List<Journalpost.Dokument> {
-        return innsending.filer.map { fil ->
-            Journalpost.Dokument(
-                tittel = fil.tittel,
-                brevkode = "",
-                dokumentVarianter = listOf(
-                    Journalpost.DokumentVariant(
-                        fysiskDokument = Base64.getEncoder()
-                            .encodeToString(fil.data.hent())
-                    )
-                )
-            )
-        }
-    }
-
     fun arkiverEttersendelseInnsending(innsending: InnsendingNy): ArkivResponse {
         val vedleggDokumenter = lagDokumenter(innsending)
 
@@ -107,5 +92,20 @@ class ArkiveringService(
             journalpost.eksternReferanseId
         )
         return arkivResponse
+    }
+}
+
+internal fun lagDokumenter(innsending: InnsendingNy): List<Journalpost.Dokument> {
+    return innsending.filer.mapIndexed { index, fil ->
+        Journalpost.Dokument(
+            tittel = fil.tittel,
+            brevkode = if (innsending.type == InnsendingType.ETTERSENDING && index == 0) "NAVe 11-13.05" else "",
+            dokumentVarianter = listOf(
+                Journalpost.DokumentVariant(
+                    fysiskDokument = Base64.getEncoder()
+                        .encodeToString(fil.data.hent())
+                )
+            )
+        )
     }
 }
