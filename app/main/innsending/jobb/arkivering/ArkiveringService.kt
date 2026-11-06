@@ -1,6 +1,7 @@
 package innsending.jobb.arkivering
 
 import innsending.arkiv.ArkivResponse
+import innsending.arkiv.Brevkode
 import innsending.arkiv.Journalpost
 import innsending.db.InnsendingNy
 import innsending.logger
@@ -61,7 +62,7 @@ class ArkiveringService(
     private fun lagSøknadDokument(søknad: ByteArray, original: Journalpost.DokumentVariant?): Journalpost.Dokument {
         return Journalpost.Dokument(
             tittel = "Søknad om arbeidsavklaringspenger (AAP)",
-            brevkode = "NAV 11-13.05",
+            brevkode = Brevkode.SØKNAD.verdi,
             dokumentVarianter = listOfNotNull(
                 Journalpost.DokumentVariant(fysiskDokument = Base64.getEncoder().encodeToString(søknad)),
                 original
@@ -99,7 +100,7 @@ internal fun lagDokumenter(innsending: InnsendingNy): List<Journalpost.Dokument>
     return innsending.filer.mapIndexed { index, fil ->
         Journalpost.Dokument(
             tittel = fil.tittel,
-            brevkode = if (innsending.type == InnsendingType.ETTERSENDING && index == 0) "NAVe 11-13.05" else "",
+            brevkode = if (innsending.type == InnsendingType.ETTERSENDING && index == 0) Brevkode.ETTERSENDING.verdi else "",
             dokumentVarianter = listOf(
                 Journalpost.DokumentVariant(
                     fysiskDokument = Base64.getEncoder()

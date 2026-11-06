@@ -1,5 +1,6 @@
 package innsending.jobb.arkivering
 
+import innsending.arkiv.Brevkode
 import innsending.db.FilNy
 import innsending.db.InMemoryFilData
 import innsending.db.InnsendingNy
@@ -17,7 +18,7 @@ class ArkiveringServiceTest {
 
         val dokument = lagDokumenter(innsending).single()
 
-        assertThat(dokument.brevkode).isEqualTo("NAVe 11-13.05")
+        assertThat(dokument.brevkode).isEqualTo(Brevkode.ETTERSENDING.verdi)
         assertThat(dokument.tittel).isEqualTo(innsending.filer.single().tittel)
         assertThat(Base64.getDecoder().decode(dokument.dokumentVarianter.single().fysiskDokument))
             .isEqualTo(innsending.filer.single().data.hent())
@@ -30,7 +31,7 @@ class ArkiveringServiceTest {
 
         val dokumenter = lagDokumenter(innsending)
 
-        assertThat(dokumenter.map { it.brevkode }).containsExactly("NAVe 11-13.05", "")
+        assertThat(dokumenter.map { it.brevkode }).containsExactly(Brevkode.ETTERSENDING.verdi, "")
         assertThat(dokumenter.map { it.tittel }).containsExactlyElementsOf(innsending.filer.map { it.tittel })
     }
 
