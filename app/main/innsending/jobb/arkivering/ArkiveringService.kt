@@ -97,10 +97,10 @@ class ArkiveringService(
 }
 
 internal fun lagDokumenter(innsending: InnsendingNy): List<Journalpost.Dokument> {
-    return innsending.filer.mapIndexed { index, fil ->
+    return innsending.filer.map { fil ->
         Journalpost.Dokument(
             tittel = fil.tittel,
-            brevkode = if (innsending.type == InnsendingType.ETTERSENDING && index == 0) Brevkode.ETTERSENDING.verdi else "",
+            brevkode = if (innsending.type == InnsendingType.ETTERSENDING) Brevkode.ETTERSENDING.verdi else "",
             dokumentVarianter = listOf(
                 Journalpost.DokumentVariant(
                     fysiskDokument = Base64.getEncoder()

@@ -13,25 +13,29 @@ import java.util.UUID
 
 class ArkiveringServiceTest {
     @Test
-    fun `ettersending uten tidligere innsending får brevkode på hoveddokumentet`() {
-        val innsending = innsending(InnsendingType.ETTERSENDING, antallFiler = 1)
+    fun `ettersending uten tidligere innsending får brevkode på alle dokumenter`() {
+        val innsending = innsending(InnsendingType.ETTERSENDING, antallFiler = 2)
 
-        val dokument = lagDokumenter(innsending).single()
+        val dokumenter = lagDokumenter(innsending)
 
-        assertThat(dokument.brevkode).isEqualTo(Brevkode.ETTERSENDING.verdi)
-        assertThat(dokument.tittel).isEqualTo(innsending.filer.single().tittel)
-        assertThat(Base64.getDecoder().decode(dokument.dokumentVarianter.single().fysiskDokument))
-            .isEqualTo(innsending.filer.single().data.hent())
+        assertThat(dokumenter.map { it.brevkode })
+            .containsExactly(Brevkode.ETTERSENDING.verdi, Brevkode.ETTERSENDING.verdi)
+        assertThat(dokumenter.map { it.tittel }).containsExactlyElementsOf(innsending.filer.map { it.tittel })
+        dokumenter.zip(innsending.filer).forEach { (dokument, fil) ->
+            assertThat(Base64.getDecoder().decode(dokument.dokumentVarianter.single().fysiskDokument))
+                .isEqualTo(fil.data.hent())
+        }
     }
 
     @Test
-    fun `ettersending til tidligere innsending får brevkode bare på hoveddokumentet`() {
+    fun `ettersending til tidligere innsending får brevkode på alle dokumenter`() {
         val innsending = innsending(InnsendingType.ETTERSENDING, antallFiler = 2)
             .copy(forrigeInnsendingId = 1L)
 
         val dokumenter = lagDokumenter(innsending)
 
-        assertThat(dokumenter.map { it.brevkode }).containsExactly(Brevkode.ETTERSENDING.verdi, "")
+        assertThat(dokumenter.map { it.brevkode })
+            .containsExactly(Brevkode.ETTERSENDING.verdi, Brevkode.ETTERSENDING.verdi)
         assertThat(dokumenter.map { it.tittel }).containsExactlyElementsOf(innsending.filer.map { it.tittel })
     }
 
